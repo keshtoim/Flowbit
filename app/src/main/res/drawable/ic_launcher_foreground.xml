@@ -4,6 +4,7 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
     <!-- Волновые линии -->
     <path
         android:strokeColor="#00E5C0"
@@ -17,15 +18,13 @@
         android:strokeLineCap="round"
         android:fillColor="@android:color/transparent"
         android:pathData="M18,66 Q33,52 52,66 Q71,80 86,60" />
-    <!-- Центральный круг -->
-    <circle
+
+    <!-- Белый круг (r=10) вокруг cx=54, cy=54 -->
+    <path
         android:fillColor="#FFFFFF"
-        android:cx="54"
-        android:cy="54"
-        android:r="10" />
-    <circle
+        android:pathData="M44,54 A10,10 0 1,0 64,54 A10,10 0 1,0 44,54 Z" />
+    <!-- Тёмный круг (r=5) в центре -->
+    <path
         android:fillColor="#0A2540"
-        android:cx="54"
-        android:cy="54"
-        android:r="5" />
+        android:pathData="M49,54 A5,5 0 1,0 59,54 A5,5 0 1,0 49,54 Z" />
 </vector>
