@@ -24,6 +24,9 @@ interface HabitRepository {
     suspend fun upsertEntry(entry: HabitEntry)
     suspend fun deleteEntry(entry: HabitEntry)
 
+    suspend fun updateSortOrder(habitId: Long, order: Int)
+    suspend fun getEntriesForDateRange(start: LocalDate, end: LocalDate): List<HabitEntry>
+
     suspend fun getHabitStats(habitId: Long): HabitStats?
     suspend fun getOverallStats(): OverallStats
 }

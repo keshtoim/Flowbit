@@ -72,6 +72,12 @@ class HabitRepositoryImpl @Inject constructor(
         dao.deleteEntry(HabitEntryEntity.fromDomain(entry))
     }
 
+    override suspend fun updateSortOrder(habitId: Long, order: Int) =
+        dao.updateSortOrder(habitId, order)
+
+    override suspend fun getEntriesForDateRange(start: LocalDate, end: LocalDate): List<HabitEntry> =
+        dao.getEntriesForDateRange(start.toString(), end.toString()).map { it.toDomain() }
+
     override suspend fun getHabitStats(habitId: Long): HabitStats? {
         val habit = dao.getHabitById(habitId)?.toDomain() ?: return null
         val entries = dao.getAllEntriesForHabit(habitId).map { it.toDomain() }
