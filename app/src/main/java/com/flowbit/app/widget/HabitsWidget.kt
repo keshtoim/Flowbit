@@ -20,6 +20,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.defaultWeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -42,6 +43,9 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 
+// Left column: emoji(26) + gap(4) + name(72) = 102dp
+private val LEFT_WIDTH = 102.dp
+
 class HabitsWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -57,12 +61,9 @@ class HabitsWidget : GlanceAppWidget() {
         val habits = db.habitDao().getWidgetHabits().first().map { it.toDomain() }
         val allEntries = db.habitDao().getEntriesForDateRange(weekStart.toString(), weekEnd.toString())
 
-        // habitId -> date -> entry
         val entryMap: Map<Long, Map<LocalDate, HabitEntryEntity>> = allEntries
             .groupBy { it.habitId }
-            .mapValues { (_, entries) ->
-                entries.associateBy { LocalDate.parse(it.date) }
-            }
+            .mapValues { (_, entries) -> entries.associateBy { LocalDate.parse(it.date) } }
 
         provideContent {
             GlanceTheme(colors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)) {
@@ -96,28 +97,25 @@ private fun WidgetContent(
             .padding(10.dp)
             .clickable(actionStartActivity(openIntent)),
     ) {
-        // Header row: days of week
+        // Header: days of week
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Left column placeholder (emoji + name area)
-            Spacer(GlanceModifier.width(110.dp))
+            Spacer(GlanceModifier.width(LEFT_WIDTH))
             dayNames.forEachIndexed { i, name ->
                 val isToday = weekDates[i] == today
                 Box(
-                    modifier = GlanceModifier.defaultWeight().height(22.dp),
+                    modifier = GlanceModifier.defaultWeight().height(20.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = name,
                         style = TextStyle(
-                            fontSize = 10.sp,
+                            fontSize = 9.sp,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isToday)
-                                GlanceTheme.colors.primary
-                            else
-                                GlanceTheme.colors.onSurfaceVariant,
+                            color = if (isToday) GlanceTheme.colors.primary
+                                    else GlanceTheme.colors.onSurfaceVariant,
                         ),
                     )
                 }
@@ -128,10 +126,7 @@ private fun WidgetContent(
             Spacer(GlanceModifier.height(8.dp))
             Text(
                 text = "Нет привычек для виджета",
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    color = GlanceTheme.colors.onSurfaceVariant,
-                ),
+                style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurfaceVariant),
             )
         } else {
             habits.forEach { habit ->
@@ -139,11 +134,12 @@ private fun WidgetContent(
                 val habitColor = parseHabitColor(habit.color.hex)
 
                 Spacer(GlanceModifier.height(6.dp))
+
                 Row(
                     modifier = GlanceModifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Emoji circle
+                    // Emoji circle (26dp)
                     Box(
                         modifier = GlanceModifier
                             .size(26.dp)
@@ -151,30 +147,29 @@ private fun WidgetContent(
                             .background(ColorProvider(habitColor.copy(alpha = 0.2f))),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = habit.emoji,
-                            style = TextStyle(fontSize = 14.sp),
-                        )
+                        Text(text = habit.emoji, style = TextStyle(fontSize = 13.sp))
                     }
 
+                    // Gap (4dp)
                     Spacer(GlanceModifier.width(4.dp))
 
-                    // Habit name (truncated)
+                    // Name (72dp)
                     Box(
                         modifier = GlanceModifier.width(72.dp),
                         contentAlignment = Alignment.CenterStart,
                     ) {
                         Text(
-                            text = if (habit.name.length > 9) habit.name.take(8) + "…" else habit.name,
+                            text = if (habit.name.length > 8) habit.name.take(7) + "…"
+                                   else habit.name,
                             style = TextStyle(
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 color = GlanceTheme.colors.onSurface,
                             ),
                             maxLines = 1,
                         )
                     }
 
-                    // Day circles
+                    // 7 day circles (defaultWeight each)
                     weekDates.forEach { date ->
                         val entry = habitEntries[date]
                         val completedCount = entry?.completedCount ?: 0
@@ -183,7 +178,7 @@ private fun WidgetContent(
                         val isFuture = date.isAfter(today)
 
                         Box(
-                            modifier = GlanceModifier.defaultWeight().height(22.dp),
+                            modifier = GlanceModifier.defaultWeight().height(26.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             DayCircle(
@@ -213,9 +208,9 @@ private fun DayCircle(
 ) {
     val bgColor = when {
         isCompleted -> ColorProvider(habitColor)
-        isToday -> ColorProvider(habitColor.copy(alpha = 0.3f))
-        isFuture -> ColorProvider(Color(0x0F000000))
-        else -> ColorProvider(habitColor.copy(alpha = 0.15f))
+        isToday     -> ColorProvider(habitColor.copy(alpha = 0.35f))
+        isFuture    -> ColorProvider(Color(0x0A000000))
+        else        -> ColorProvider(habitColor.copy(alpha = 0.18f))
     }
 
     Box(
@@ -238,8 +233,7 @@ private fun DayCircle(
 }
 
 private fun parseHabitColor(hex: String): Color = try {
-    val colorInt = android.graphics.Color.parseColor(hex)
-    Color(colorInt)
+    Color(android.graphics.Color.parseColor(hex))
 } catch (e: Exception) {
     Color(0xFF00E5C0)
 }
