@@ -1,3 +1,0 @@
-Этот файл — заглушка. Настоящий gradle-wrapper.jar нужно скачать командой:
-gradle wrapper --gradle-version 8.7
-или скопировать из существующего Android-проекта.
