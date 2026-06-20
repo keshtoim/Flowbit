@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 200 200" height="200" width="200">
+  
+  <rect fill="#0A2540" rx="40" height="180" width="180" y="10" x="10"></rect>
+  
+  
+  <path fill="none" stroke-linecap="round" stroke-width="18" stroke="#00E5C0" d="M40 80 Q70 50 100 80 Q130 110 160 70"></path>
+  
+  <path fill="none" stroke-linecap="round" stroke-width="12" stroke="#00B8A0" d="M35 105 Q65 75 95 105 Q125 135 155 95"></path>
+  
+  <path fill="none" stroke-linecap="round" stroke-width="8" stroke="#00D4B8" d="M45 125 Q75 100 105 125 Q135 150 165 115"></path>
+  
+  
+  <circle fill="#FFFFFF" r="22" cy="100" cx="100"></circle>
+  <circle fill="#0A2540" r="12" cy="100" cx="100"></circle>
+  
+  
+  <text letter-spacing="1" font-weight="700" font-size="18" font-family="Arial, sans-serif" fill="#FFFFFF" text-anchor="middle" y="175" x="100">FLOWBIT</text>
+</svg>
