@@ -19,7 +19,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): FlowbitDatabase =
-        Room.databaseBuilder(context, FlowbitDatabase::class.java, "flowbit.db").build()
+        Room.databaseBuilder(context, FlowbitDatabase::class.java, "flowbit.db")
+            .addMigrations(FlowbitDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides
     fun provideHabitDao(db: FlowbitDatabase): HabitDao = db.habitDao()

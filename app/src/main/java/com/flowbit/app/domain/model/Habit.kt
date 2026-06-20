@@ -17,6 +17,7 @@ data class Habit(
     val isArchived: Boolean = false,
     val showInWidget: Boolean = false,
     val createdAt: LocalDate = LocalDate.now(),
+    val sortOrder: Int = 0,
 )
 
 data class HabitReminder(

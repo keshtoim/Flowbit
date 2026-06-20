@@ -22,6 +22,7 @@ data class HabitEntity(
     val isArchived: Boolean,
     val showInWidget: Boolean,
     val createdAt: String,
+    val sortOrder: Int = 0,
 ) {
     fun toDomain(): Habit = Habit(
         id = id,
@@ -38,6 +39,7 @@ data class HabitEntity(
         isArchived = isArchived,
         showInWidget = showInWidget,
         createdAt = LocalDate.parse(createdAt),
+        sortOrder = sortOrder,
     )
 
     companion object {
@@ -53,6 +55,7 @@ data class HabitEntity(
             isArchived = habit.isArchived,
             showInWidget = habit.showInWidget,
             createdAt = habit.createdAt.toString(),
+            sortOrder = habit.sortOrder,
         )
     }
 }
