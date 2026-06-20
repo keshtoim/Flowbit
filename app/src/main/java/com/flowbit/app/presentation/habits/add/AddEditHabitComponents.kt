@@ -1,0 +1,365 @@
+package com.flowbit.app.presentation.habits.add
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.flowbit.app.domain.model.HabitColor
+import com.flowbit.app.domain.model.HabitFrequency
+import com.flowbit.app.domain.model.HabitReminder
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.TextStyle
+import java.util.Locale
+
+private val PRESET_EMOJIS = listOf(
+    "✅", "🏃", "💪", "📚", "🧘", "💧", "🥗", "😴",
+    "🎯", "🧠", "❤️", "🌱", "🎨", "🎵", "✍️", "🚴",
+    "🏊", "🧹", "💊", "🙏", "☀️", "🌙", "⭐", "🔥",
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EmojiAndNameSection(
+    name: String,
+    emoji: String,
+    onNameChange: (String) -> Unit,
+    onEmojiChange: (String) -> Unit,
+) {
+    var showEmojiPicker by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Название и иконка", style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable { showEmojiPicker = true },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = emoji, style = MaterialTheme.typography.headlineMedium)
+            }
+            Spacer(Modifier.width(12.dp))
+            OutlinedTextField(
+                value = name,
+                onValueChange = onNameChange,
+                label = { Text("Название привычки") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+        if (showEmojiPicker) {
+            EmojiPickerDialog(
+                currentEmoji = emoji,
+                onEmojiSelected = {
+                    onEmojiChange(it)
+                    showEmojiPicker = false
+                },
+                onDismiss = { showEmojiPicker = false },
+            )
+        }
+    }
+}
+
+@Composable
+fun EmojiPickerDialog(
+    currentEmoji: String,
+    onEmojiSelected: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var customEmoji by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Выберите эмодзи") },
+        text = {
+            Column {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(6),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.height(200.dp),
+                ) {
+                    items(PRESET_EMOJIS) { e ->
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (e == currentEmoji) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                                .clickable { onEmojiSelected(e) },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(text = e, style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = customEmoji,
+                    onValueChange = { if (it.length <= 2) customEmoji = it },
+                    label = { Text("Свой эмодзи") },
+                    trailingIcon = {
+                        if (customEmoji.isNotBlank()) {
+                            TextButton(onClick = { onEmojiSelected(customEmoji) }) {
+                                Text("ОК")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Закрыть") } },
+    )
+}
+
+@Composable
+fun ColorPickerSection(
+    selectedColor: HabitColor,
+    onColorSelected: (HabitColor) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Цвет", style = MaterialTheme.typography.titleMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            HabitColor.entries.forEach { color ->
+                val isSelected = color == selectedColor
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color(android.graphics.Color.parseColor(color.hex)))
+                        .then(
+                            if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                            else Modifier
+                        )
+                        .clickable { onColorSelected(color) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TargetCountSection(
+    targetCount: Int,
+    onTargetCountChange: (Int) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Количество раз в день", style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { onTargetCountChange(targetCount - 1) }) {
+                Icon(Icons.Default.Remove, "Уменьшить")
+            }
+            Text(
+                text = targetCount.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            IconButton(onClick = { onTargetCountChange(targetCount + 1) }) {
+                Icon(Icons.Default.Add, "Увеличить")
+            }
+        }
+    }
+}
+
+@Composable
+fun FrequencySection(
+    frequency: HabitFrequency,
+    scheduledDays: Set<DayOfWeek>,
+    onFrequencyChange: (HabitFrequency) -> Unit,
+    onDayToggle: (DayOfWeek) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Частота", style = MaterialTheme.typography.titleMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = frequency == HabitFrequency.DAILY,
+                onClick = { onFrequencyChange(HabitFrequency.DAILY) },
+                label = { Text("Каждый день") },
+            )
+            FilterChip(
+                selected = frequency == HabitFrequency.CUSTOM,
+                onClick = { onFrequencyChange(HabitFrequency.CUSTOM) },
+                label = { Text("По дням") },
+            )
+        }
+        if (frequency == HabitFrequency.CUSTOM) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                DayOfWeek.entries.forEach { day ->
+                    FilterChip(
+                        selected = day in scheduledDays,
+                        onClick = { onDayToggle(day) },
+                        label = {
+                            Text(day.getDisplayName(TextStyle.NARROW, Locale("ru")))
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StartDateSection(
+    startDate: LocalDate,
+    onStartDateChange: (LocalDate) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Дата начала", style = MaterialTheme.typography.titleMedium)
+        OutlinedButton(onClick = { showPicker = true }) {
+            Text(startDate.toString())
+        }
+        if (showPicker) {
+            val state = rememberDatePickerState(
+                initialSelectedDateMillis = startDate.toEpochDay() * 86_400_000L
+            )
+            DatePickerDialog(
+                onDismissRequest = { showPicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        state.selectedDateMillis?.let {
+                            onStartDateChange(LocalDate.ofEpochDay(it / 86_400_000L))
+                        }
+                        showPicker = false
+                    }) { Text("ОК") }
+                },
+            ) {
+                DatePicker(state = state)
+            }
+        }
+    }
+}
+
+@Composable
+fun WidgetSection(
+    showInWidget: Boolean,
+    onShowInWidgetChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Text("Показывать в виджете", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Привычка появится на экране телефона",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(checked = showInWidget, onCheckedChange = onShowInWidgetChange)
+    }
+}
+
+@Composable
+fun RemindersSection(
+    reminders: List<HabitReminder>,
+    onAddReminder: (LocalTime) -> Unit,
+    onRemoveReminder: (HabitReminder) -> Unit,
+    onToggleReminder: (HabitReminder) -> Unit,
+) {
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Напоминания", style = MaterialTheme.typography.titleMedium)
+            TextButton(onClick = { showTimePicker = true }) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(4.dp))
+                Text("Добавить")
+            }
+        }
+        reminders.forEach { reminder ->
+            ReminderItem(
+                reminder = reminder,
+                onToggle = { onToggleReminder(reminder) },
+                onDelete = { onRemoveReminder(reminder) },
+            )
+        }
+        if (showTimePicker) {
+            TimePickerDialog(
+                onTimeSelected = { onAddReminder(it); showTimePicker = false },
+                onDismiss = { showTimePicker = false },
+            )
+        }
+    }
+}
+
+@Composable
+fun ReminderItem(
+    reminder: HabitReminder,
+    onToggle: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "%02d:%02d".format(reminder.time.hour, reminder.time.minute),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Switch(checked = reminder.isEnabled, onCheckedChange = { onToggle() })
+                Spacer(Modifier.width(8.dp))
+                TextButton(onClick = onDelete) { Text("Удалить") }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimePickerDialog(
+    onTimeSelected: (LocalTime) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val state = rememberTimePickerState()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Время напоминания") },
+        text = { TimePicker(state = state) },
+        confirmButton = {
+            TextButton(onClick = {
+                onTimeSelected(LocalTime.of(state.hour, state.minute))
+            }) { Text("ОК") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
+    )
+}
