@@ -1,5 +1,7 @@
 package com.flowbit.app.presentation.habits.list
 
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,12 +31,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flowbit.app.presentation.habits.components.HabitCard
 import com.flowbit.app.presentation.habits.components.WeekDatePicker
+import java.time.LocalDate
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +101,12 @@ fun HabitListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .swipeToDayGesture(
+                    selectedDate = uiState.selectedDate,
+                    onPreviousDay = { viewModel.onDateSelected(uiState.selectedDate.minusDays(1)) },
+                    onNextDay = { viewModel.onDateSelected(uiState.selectedDate.plusDays(1)) },
+                ),
         ) {
             WeekDatePicker(
                 selectedDate = uiState.selectedDate,
@@ -144,6 +155,41 @@ fun HabitListScreen(
                     }
                     item { Spacer(Modifier.height(80.dp)) }
                 }
+            }
+        }
+    }
+}
+
+// Распознаёт горизонтальный свайп, не мешая вертикальной прокрутке LazyColumn
+private fun Modifier.swipeToDayGesture(
+    selectedDate: LocalDate,
+    onPreviousDay: () -> Unit,
+    onNextDay: () -> Unit,
+): Modifier = this.pointerInput(selectedDate) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false)
+        var totalX = 0f
+        var totalY = 0f
+        var directionDecided = false
+        var isHorizontal = false
+
+        do {
+            val event = awaitPointerEvent()
+            val change = event.changes.firstOrNull() ?: break
+            totalX += change.positionChange().x
+            totalY += change.positionChange().y
+
+            if (!directionDecided && (abs(totalX) > 15f || abs(totalY) > 15f)) {
+                directionDecided = true
+                isHorizontal = abs(totalX) > abs(totalY) * 1.5f
+            }
+            if (isHorizontal) change.consume()
+        } while (event.changes.any { it.pressed })
+
+        if (isHorizontal) {
+            when {
+                totalX > 80f -> onPreviousDay()
+                totalX < -80f -> onNextDay()
             }
         }
     }
