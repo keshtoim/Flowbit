@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbit.app.BuildConfig
 import com.flowbit.app.data.database.dao.HabitDao
 import com.flowbit.app.data.database.entity.HabitEntity
 import com.flowbit.app.data.database.entity.HabitEntryEntity
@@ -32,6 +33,7 @@ data class SettingsUiState(
     val habits: List<Habit> = emptyList(),
     val backupMessage: String? = null,
     val isImporting: Boolean = false,
+    val appVersion: String = "",
 )
 
 @HiltViewModel
@@ -46,6 +48,7 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
+        _uiState.update { it.copy(appVersion = BuildConfig.VERSION_NAME) }
         viewModelScope.launch {
             dataStore.data.map { prefs -> prefs[DARK_THEME_KEY] ?: false }
                 .collect { isDark -> _uiState.update { it.copy(isDarkTheme = isDark) } }
