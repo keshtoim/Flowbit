@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -51,6 +52,8 @@ class AddEditHabitViewModel @Inject constructor(
         viewModelScope.launch {
             val habit = habitRepository.getHabitById(habitId) ?: return@launch
             editingHabitId = habit.id
+            // Напоминания хранятся в отдельной таблице — загружаем явно
+            val reminders = reminderRepository.getRemindersForHabit(habitId).first()
             _uiState.update {
                 it.copy(
                     name = habit.name,
@@ -61,7 +64,7 @@ class AddEditHabitViewModel @Inject constructor(
                     scheduledDays = habit.scheduledDays,
                     startDate = habit.startDate,
                     showInWidget = habit.showInWidget,
-                    reminders = habit.reminders,
+                    reminders = reminders,
                 )
             }
         }
