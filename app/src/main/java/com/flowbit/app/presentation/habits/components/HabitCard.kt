@@ -1,5 +1,10 @@
 package com.flowbit.app.presentation.habits.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,10 +28,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,24 +51,33 @@ fun HabitCard(
     val isCompleted = completedCount >= habit.targetCount
 
     val habitColor = remember(habit.color.hex) {
-        try {
-            Color(android.graphics.Color.parseColor(habit.color.hex))
-        } catch (e: Exception) {
-            Color(0xFF00E5C0)
-        }
+        try { Color(android.graphics.Color.parseColor(habit.color.hex)) }
+        catch (e: Exception) { Color(0xFF00E5C0) }
     }
+    val surface = MaterialTheme.colorScheme.surface
+
+    // Анимированные цвета карточки
+    val cardColor by animateColorAsState(
+        targetValue = if (isCompleted) habitColor.copy(alpha = 0.12f) else surface,
+        animationSpec = tween(300),
+        label = "cardColor",
+    )
+    val buttonColor by animateColorAsState(
+        targetValue = if (isCompleted) habitColor else habitColor.copy(alpha = 0.15f),
+        animationSpec = tween(300),
+        label = "buttonColor",
+    )
+    // Пружинный отскок кнопки при нажатии
+    val buttonScale by animateFloatAsState(
+        targetValue = if (isCompleted) 1f else 0.95f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "buttonScale",
+    )
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isCompleted)
-                habitColor.copy(alpha = 0.12f)
-            else
-                MaterialTheme.colorScheme.surface,
-        ),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp),
     ) {
         Row(
@@ -70,7 +86,6 @@ fun HabitCard(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Emoji circle with habit color background
             Box(
                 modifier = Modifier
                     .size(50.dp)
@@ -78,10 +93,7 @@ fun HabitCard(
                     .background(habitColor.copy(alpha = 0.18f)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = habit.emoji,
-                    style = MaterialTheme.typography.headlineSmall,
-                )
+                Text(text = habit.emoji, style = MaterialTheme.typography.headlineSmall)
             }
 
             Spacer(Modifier.width(14.dp))
@@ -93,7 +105,6 @@ fun HabitCard(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-
                 if (habit.targetCount > 1) {
                     Spacer(Modifier.height(6.dp))
                     Row(
@@ -103,25 +114,21 @@ fun HabitCard(
                         Text(
                             text = "$completedCount / ${habit.targetCount}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isCompleted) habitColor
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (isCompleted) habitColor else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
                         )
                     }
                     Spacer(Modifier.height(6.dp))
                     LinearProgressIndicator(
                         progress = { completedCount.toFloat() / habit.targetCount },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                         color = habitColor,
                         trackColor = habitColor.copy(alpha = 0.2f),
                     )
                 } else if (isCompleted) {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "Выполнено",
+                        text = "Выполнено ✓",
                         style = MaterialTheme.typography.bodySmall,
                         color = habitColor,
                         fontWeight = FontWeight.Medium,
@@ -131,15 +138,12 @@ fun HabitCard(
 
             Spacer(Modifier.width(12.dp))
 
-            // Toggle button
             Box(
                 modifier = Modifier
                     .size(44.dp)
+                    .scale(buttonScale)
                     .clip(CircleShape)
-                    .background(
-                        if (isCompleted) habitColor
-                        else habitColor.copy(alpha = 0.15f)
-                    )
+                    .background(buttonColor)
                     .clickable(onClick = onToggle),
                 contentAlignment = Alignment.Center,
             ) {

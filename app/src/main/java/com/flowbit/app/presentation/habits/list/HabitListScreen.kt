@@ -1,5 +1,12 @@
 package com.flowbit.app.presentation.habits.list
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +49,7 @@ import com.flowbit.app.presentation.habits.components.WeekDatePicker
 import java.time.LocalDate
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HabitListScreen(
     onAddHabit: () -> Unit,
@@ -114,7 +121,11 @@ fun HabitListScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
 
-            if (uiState.habits.isEmpty()) {
+            AnimatedVisibility(
+                visible = uiState.habits.isEmpty(),
+                enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 4 },
+                exit = fadeOut(tween(200)),
+            ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
@@ -123,10 +134,7 @@ fun HabitListScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text(
-                            text = "🌱",
-                            style = MaterialTheme.typography.displayMedium,
-                        )
+                        Text(text = "🌱", style = MaterialTheme.typography.displayMedium)
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = "Нет привычек на этот день",
@@ -141,7 +149,13 @@ fun HabitListScreen(
                         )
                     }
                 }
-            } else {
+            }
+
+            AnimatedVisibility(
+                visible = uiState.habits.isNotEmpty(),
+                enter = fadeIn(tween(300)),
+                exit = fadeOut(tween(200)),
+            ) {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -151,6 +165,7 @@ fun HabitListScreen(
                             habitForDate = habitForDate,
                             onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
                             onClick = { onHabitClick(habitForDate.habit.id) },
+                            modifier = Modifier.animateItemPlacement(),
                         )
                     }
                     item { Spacer(Modifier.height(80.dp)) }
