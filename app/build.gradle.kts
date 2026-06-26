@@ -8,15 +8,13 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Автоматический versionCode из числа git-коммитов
-fun gitCommitCount(): Int = try {
-    val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
-        .redirectErrorStream(true)
-        .start()
-    process.inputStream.bufferedReader().readText().trim().toInt()
+// Автоматический versionCode через providers.exec (совместимо с configuration cache)
+val autoVersionCode: Int = try {
+    providers.exec {
+        commandLine("git", "rev-list", "--count", "HEAD")
+    }.standardOutput.asText.get().trim().toInt()
 } catch (e: Exception) { 1 }
 
-val autoVersionCode = gitCommitCount()
 val autoVersionName = "1.0.$autoVersionCode"
 
 android {
@@ -50,6 +48,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
