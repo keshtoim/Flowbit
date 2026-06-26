@@ -1,5 +1,10 @@
 package com.flowbit.app.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -25,9 +30,30 @@ sealed class Screen(val route: String) {
     data object Settings : Screen("settings")
 }
 
+private const val ANIM_DURATION = 280
+
 @Composable
 fun FlowbitNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Screen.HabitList.route) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.HabitList.route,
+        enterTransition = {
+            slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(ANIM_DURATION)) +
+                fadeIn(tween(ANIM_DURATION))
+        },
+        exitTransition = {
+            slideOutHorizontally(targetOffsetX = { -it / 3 }, animationSpec = tween(ANIM_DURATION)) +
+                fadeOut(tween(ANIM_DURATION))
+        },
+        popEnterTransition = {
+            slideInHorizontally(initialOffsetX = { -it / 3 }, animationSpec = tween(ANIM_DURATION)) +
+                fadeIn(tween(ANIM_DURATION))
+        },
+        popExitTransition = {
+            slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(ANIM_DURATION)) +
+                fadeOut(tween(ANIM_DURATION))
+        },
+    ) {
 
         composable(Screen.HabitList.route) {
             HabitListScreen(
