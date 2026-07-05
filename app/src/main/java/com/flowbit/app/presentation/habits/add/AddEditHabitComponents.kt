@@ -1,5 +1,8 @@
 package com.flowbit.app.presentation.habits.add
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +14,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,7 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.flowbit.app.domain.model.HabitColor
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.model.HabitReminder
@@ -383,4 +391,68 @@ fun TimePickerDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
     )
+}
+
+@Composable
+fun PhotoSection(
+    photoUri: String?,
+    onPhotoSelected: (String?) -> Unit,
+) {
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            // Сохраняем постоянный доступ к фото
+            context.contentResolver.takePersistableUriPermission(
+                uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+            onPhotoSelected(uri.toString())
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Фото привычки", style = MaterialTheme.typography.titleMedium)
+
+        if (photoUri != null) {
+            Box {
+                AsyncImage(
+                    model = photoUri,
+                    contentDescription = "Фото привычки",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop,
+                )
+                IconButton(
+                    onClick = { onPhotoSelected(null) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .background(
+                            MaterialTheme.colorScheme.errorContainer,
+                            CircleShape,
+                        ),
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Удалить фото",
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+        } else {
+            OutlinedButton(
+                onClick = { launcher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.Image, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Выбрать фото из галереи")
+            }
+        }
+    }
 }

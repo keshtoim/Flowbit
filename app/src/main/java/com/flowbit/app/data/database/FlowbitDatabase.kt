@@ -12,7 +12,7 @@ import com.flowbit.app.data.database.entity.ReminderEntity
 
 @Database(
     entities = [HabitEntity::class, HabitEntryEntity::class, ReminderEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class FlowbitDatabase : RoomDatabase() {
@@ -24,6 +24,14 @@ abstract class FlowbitDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
                     "ALTER TABLE habits ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0"
+                )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE habits ADD COLUMN photoUri TEXT"
                 )
             }
         }

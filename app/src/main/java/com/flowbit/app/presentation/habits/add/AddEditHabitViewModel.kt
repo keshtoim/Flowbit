@@ -31,6 +31,7 @@ data class AddEditHabitUiState(
     val startDate: LocalDate = LocalDate.now(),
     val showInWidget: Boolean = false,
     val reminders: List<HabitReminder> = emptyList(),
+    val photoUri: String? = null,
     val isSaved: Boolean = false,
     val nameError: String? = null,
 )
@@ -52,7 +53,6 @@ class AddEditHabitViewModel @Inject constructor(
         viewModelScope.launch {
             val habit = habitRepository.getHabitById(habitId) ?: return@launch
             editingHabitId = habit.id
-            // Напоминания хранятся в отдельной таблице — загружаем явно
             val reminders = reminderRepository.getRemindersForHabit(habitId).first()
             _uiState.update {
                 it.copy(
@@ -65,6 +65,7 @@ class AddEditHabitViewModel @Inject constructor(
                     startDate = habit.startDate,
                     showInWidget = habit.showInWidget,
                     reminders = reminders,
+                    photoUri = habit.photoUri,
                 )
             }
         }
@@ -77,6 +78,7 @@ class AddEditHabitViewModel @Inject constructor(
     fun onFrequencyChange(freq: HabitFrequency) = _uiState.update { it.copy(frequency = freq) }
     fun onShowInWidgetChange(show: Boolean) = _uiState.update { it.copy(showInWidget = show) }
     fun onStartDateChange(date: LocalDate) = _uiState.update { it.copy(startDate = date) }
+    fun onPhotoSelected(uri: String?) = _uiState.update { it.copy(photoUri = uri) }
 
     fun onDayToggle(day: DayOfWeek) {
         _uiState.update { state ->
@@ -121,6 +123,7 @@ class AddEditHabitViewModel @Inject constructor(
                 scheduledDays = state.scheduledDays,
                 startDate = state.startDate,
                 showInWidget = state.showInWidget,
+                photoUri = state.photoUri,
             )
 
             val savedId = if (editingHabitId == null) {

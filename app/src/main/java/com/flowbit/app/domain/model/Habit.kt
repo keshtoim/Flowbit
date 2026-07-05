@@ -18,6 +18,7 @@ data class Habit(
     val showInWidget: Boolean = false,
     val createdAt: LocalDate = LocalDate.now(),
     val sortOrder: Int = 0,
+    val photoUri: String? = null,
 )
 
 data class HabitReminder(

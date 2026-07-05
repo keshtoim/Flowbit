@@ -93,6 +93,11 @@ fun AddEditHabitScreen(
                 onRemoveReminder = viewModel::onRemoveReminder,
                 onToggleReminder = viewModel::onToggleReminder,
             )
+
+            PhotoSection(
+                photoUri = uiState.photoUri,
+                onPhotoSelected = viewModel::onPhotoSelected,
+            )
         }
     }
 }
