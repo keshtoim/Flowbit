@@ -34,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ fun HabitCard(
     habitForDate: HabitForDate,
     onToggle: () -> Unit,
     onDecrease: () -> Unit,
+    onGiveUp: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -147,6 +149,23 @@ fun HabitCard(
                         color = habitColor,
                         fontWeight = FontWeight.Medium,
                     )
+                }
+
+                // Кнопка подбадривания — только когда привычка не выполнена
+                if (!isCompleted) {
+                    TextButton(
+                        onClick = onGiveUp,
+                        modifier = Modifier
+                            .height(28.dp)
+                            .padding(horizontal = 0.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp),
+                    ) {
+                        Text(
+                            text = "Не могу сегодня...",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        )
+                    }
                 }
             }
 

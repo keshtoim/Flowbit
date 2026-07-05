@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -31,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -59,6 +61,30 @@ fun HabitListScreen(
     viewModel: HabitListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Диалог подбадривания
+    uiState.motivationQuote?.let { quote ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissMotivation,
+            title = { Text("Ты можешь! 💪") },
+            text = {
+                Text(
+                    text = "\"$quote\"",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissMotivation) {
+                    Text("Ок, попробую ещё раз!")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissMotivation) {
+                    Text("Пропустить сегодня")
+                }
+            },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -165,6 +191,7 @@ fun HabitListScreen(
                             habitForDate = habitForDate,
                             onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
                             onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
+                            onGiveUp = { viewModel.showMotivation() },
                             onClick = { onHabitClick(habitForDate.habit.id) },
                             modifier = Modifier.animateItemPlacement(),
                         )

@@ -3,6 +3,7 @@ package com.flowbit.app.presentation.habits.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.usecase.habit.DecreaseHabitEntryUseCase
+import com.flowbit.app.presentation.habits.list.randomQuote
 import com.flowbit.app.domain.usecase.habit.GetHabitsForDateUseCase
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.domain.usecase.habit.ToggleHabitEntryUseCase
@@ -22,6 +23,7 @@ data class HabitListUiState(
     val selectedDate: LocalDate = LocalDate.now(),
     val habits: List<HabitForDate> = emptyList(),
     val isLoading: Boolean = false,
+    val motivationQuote: String? = null,
 )
 
 @HiltViewModel
@@ -61,5 +63,13 @@ class HabitListViewModel @Inject constructor(
         viewModelScope.launch {
             decreaseHabitEntry(habitId, _uiState.value.selectedDate)
         }
+    }
+
+    fun showMotivation() {
+        _uiState.update { it.copy(motivationQuote = randomQuote()) }
+    }
+
+    fun dismissMotivation() {
+        _uiState.update { it.copy(motivationQuote = null) }
     }
 }
