@@ -30,10 +30,10 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
-import androidx.glance.layout.wrapContentHeight
 import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.flowbit.app.data.database.entity.HabitEntryEntity
@@ -49,7 +49,6 @@ import java.time.temporal.TemporalAdjusters
 
 class HabitsWidget : GlanceAppWidget() {
 
-    // SizeMode.Exact — provideContent получает реальные размеры виджета
     override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -70,7 +69,6 @@ class HabitsWidget : GlanceAppWidget() {
             .mapValues { (_, entries) -> entries.associateBy { LocalDate.parse(it.date) } }
 
         provideContent {
-            // LocalSize.current — реальный размер виджета в данный момент
             val widgetSize = LocalSize.current
             GlanceTheme(colors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)) {
                 WidgetContent(
@@ -99,25 +97,23 @@ private fun WidgetContent(
     val dayNames = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
     val padding = 10.dp
 
-    // --- Адаптивные размеры ---
     val availableWidth = widgetSize.width - padding * 2
-    // Левая колонка: emoji (circle) + gap + имя
     val emojiCircle: Dp = (availableWidth * 0.10f).coerceIn(22.dp, 32.dp)
     val nameWidth: Dp = (availableWidth * 0.25f).coerceIn(48.dp, 100.dp)
     val leftWidth = emojiCircle + 4.dp + nameWidth
-    // Оставшееся место — равномерно на 7 кружков
     val daysWidth = availableWidth - leftWidth
     val circleSlot: Dp = daysWidth / 7
-    val circleSize: Dp = (circleSlot * 0.78f).coerceIn(14.dp, 30.dp)
+    val circleSize: Dp = (circleSlot * 0.72f).coerceIn(14.dp, 28.dp)
 
-    // Вертикальное распределение: равные строки под количество привычек
     val availableHeight = widgetSize.height - padding * 2
-    val headerH: Dp = (availableHeight * 0.18f).coerceIn(16.dp, 24.dp)
+    // Шапка чуть выше — два ряда текста (день + число)
+    val headerH: Dp = (availableHeight * 0.22f).coerceIn(28.dp, 40.dp)
     val maxRows = habits.size.coerceAtLeast(1)
-    val rowH: Dp = ((availableHeight - headerH) / maxRows).coerceIn(28.dp, 56.dp)
+    val rowH: Dp = ((availableHeight - headerH) / maxRows).coerceIn(28.dp, 52.dp)
 
     val nameFontSize = if (nameWidth < 60.dp) 9.sp else if (nameWidth < 80.dp) 10.sp else 11.sp
-    val headerFontSize = if (circleSlot < 24.dp) 7.sp else 9.sp
+    val headerDayFontSize = if (circleSlot < 24.dp) 7.sp else 8.sp
+    val headerNumFontSize = if (circleSlot < 24.dp) 8.sp else 10.sp
 
     Column(
         modifier = GlanceModifier
@@ -126,40 +122,100 @@ private fun WidgetContent(
             .padding(padding)
             .clickable(actionStartActivity(openIntent)),
     ) {
-        // Заголовок: дни недели
+        // ── Шапка: день недели + число ──────────────────────────────────
         Row(
             modifier = GlanceModifier.fillMaxWidth().height(headerH),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Spacer(GlanceModifier.width(leftWidth))
+            // Название приложения вместо пустого места
+            Box(
+                modifier = GlanceModifier.width(leftWidth).height(headerH),
+                contentAlignment = Alignment.BottomStart,
+            ) {
+                Text(
+                    text = "Flowbit",
+                    style = TextStyle(
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GlanceTheme.colors.primary,
+                    ),
+                )
+            }
+
             dayNames.forEachIndexed { i, name ->
-                val isToday = weekDates[i] == today
+                val date = weekDates[i]
+                val isToday = date == today
+
                 Box(
-                    modifier = GlanceModifier.defaultWeight().fillMaxSize(),
+                    modifier = GlanceModifier
+                        .defaultWeight()
+                        .height(headerH)
+                        .then(
+                            if (isToday)
+                                GlanceModifier
+                                    .cornerRadius(8.dp)
+                                    .background(GlanceTheme.colors.primary)
+                            else
+                                GlanceModifier
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = name,
-                        style = TextStyle(
-                            fontSize = headerFontSize,
-                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isToday) GlanceTheme.colors.primary
-                                    else GlanceTheme.colors.onSurfaceVariant,
-                        ),
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = name,
+                            style = TextStyle(
+                                fontSize = headerDayFontSize,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isToday) GlanceTheme.colors.onPrimary
+                                        else GlanceTheme.colors.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            ),
+                        )
+                        Text(
+                            text = date.dayOfMonth.toString(),
+                            style = TextStyle(
+                                fontSize = headerNumFontSize,
+                                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isToday) GlanceTheme.colors.onPrimary
+                                        else GlanceTheme.colors.onSurface,
+                                textAlign = TextAlign.Center,
+                            ),
+                        )
+                    }
                 }
             }
         }
 
+        Spacer(GlanceModifier.height(4.dp))
+
+        // ── Контент: привычки или пустое состояние ───────────────────────
         if (habits.isEmpty()) {
             Box(
                 modifier = GlanceModifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = "Нет привычек для виджета",
-                    style = TextStyle(fontSize = 11.sp, color = GlanceTheme.colors.onSurfaceVariant),
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Нет привычек для виджета",
+                        style = TextStyle(
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = GlanceTheme.colors.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        ),
+                    )
+                    Spacer(GlanceModifier.height(4.dp))
+                    Text(
+                        text = "Откройте Flowbit и включите «Показывать в виджете»",
+                        style = TextStyle(
+                            fontSize = 9.sp,
+                            color = GlanceTheme.colors.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        ),
+                    )
+                }
             }
         } else {
             habits.forEach { habit ->
@@ -203,7 +259,7 @@ private fun WidgetContent(
                         )
                     }
 
-                    // 7 кружков дней
+                    // 7 ячеек дней
                     weekDates.forEach { date ->
                         val entry = habitEntries[date]
                         val completedCount = entry?.completedCount ?: 0
@@ -244,9 +300,9 @@ private fun DayCircle(
 ) {
     val bgColor = when {
         isCompleted -> ColorProvider(habitColor)
-        isToday     -> ColorProvider(habitColor.copy(alpha = 0.40f))
-        isFuture    -> ColorProvider(Color(0x08000000))
-        else        -> ColorProvider(habitColor.copy(alpha = 0.20f))
+        isToday     -> ColorProvider(habitColor.copy(alpha = 0.35f))
+        isFuture    -> ColorProvider(Color(0x0A000000))
+        else        -> ColorProvider(habitColor.copy(alpha = 0.18f))
     }
     val radius = (size.value / 2).dp
 
@@ -257,11 +313,20 @@ private fun DayCircle(
             .background(bgColor),
         contentAlignment = Alignment.Center,
     ) {
-        if (target > 1 && !isCompleted && !isFuture) {
-            Text(
+        when {
+            isCompleted -> Text(
+                text = "✓",
+                style = TextStyle(
+                    fontSize = (size.value * 0.42f).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ColorProvider(Color.White),
+                ),
+            )
+            target > 1 && !isFuture && count > 0 -> Text(
                 text = "$count",
                 style = TextStyle(
                     fontSize = (size.value * 0.38f).sp,
+                    fontWeight = FontWeight.Medium,
                     color = ColorProvider(habitColor),
                 ),
             )
