@@ -164,6 +164,7 @@ fun HabitListScreen(
                         HabitCard(
                             habitForDate = habitForDate,
                             onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
+                            onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
                             onClick = { onHabitClick(habitForDate.habit.id) },
                             modifier = Modifier.animateItemPlacement(),
                         )

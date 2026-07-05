@@ -1,10 +1,15 @@
 package com.flowbit.app.presentation.habits.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,9 +26,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +50,7 @@ import com.flowbit.app.domain.usecase.habit.HabitForDate
 fun HabitCard(
     habitForDate: HabitForDate,
     onToggle: () -> Unit,
+    onDecrease: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -56,7 +64,6 @@ fun HabitCard(
     }
     val surface = MaterialTheme.colorScheme.surface
 
-    // Анимированные цвета карточки
     val cardColor by animateColorAsState(
         targetValue = if (isCompleted) habitColor.copy(alpha = 0.12f) else surface,
         animationSpec = tween(300),
@@ -67,10 +74,12 @@ fun HabitCard(
         animationSpec = tween(300),
         label = "buttonColor",
     )
-    // Пружинный отскок кнопки при нажатии
     val buttonScale by animateFloatAsState(
         targetValue = if (isCompleted) 1f else 0.95f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
         label = "buttonScale",
     )
 
@@ -86,6 +95,7 @@ fun HabitCard(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Emoji
             Box(
                 modifier = Modifier
                     .size(50.dp)
@@ -114,14 +124,18 @@ fun HabitCard(
                         Text(
                             text = "$completedCount / ${habit.targetCount}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isCompleted) habitColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (isCompleted) habitColor
+                                    else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
                         )
                     }
                     Spacer(Modifier.height(6.dp))
                     LinearProgressIndicator(
                         progress = { completedCount.toFloat() / habit.targetCount },
-                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
                         color = habitColor,
                         trackColor = habitColor.copy(alpha = 0.2f),
                     )
@@ -136,8 +150,30 @@ fun HabitCard(
                 }
             }
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(8.dp))
 
+            // Кнопка "−" — появляется при completedCount > 0
+            AnimatedVisibility(
+                visible = completedCount > 0,
+                enter = scaleIn(tween(180)) + fadeIn(tween(180)),
+                exit = scaleOut(tween(180)) + fadeOut(tween(180)),
+            ) {
+                IconButton(
+                    onClick = onDecrease,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Remove,
+                        contentDescription = "Уменьшить",
+                        tint = habitColor,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(4.dp))
+
+            // Главная кнопка-галочка
             Box(
                 modifier = Modifier
                     .size(44.dp)

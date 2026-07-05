@@ -2,6 +2,7 @@ package com.flowbit.app.presentation.habits.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbit.app.domain.usecase.habit.DecreaseHabitEntryUseCase
 import com.flowbit.app.domain.usecase.habit.GetHabitsForDateUseCase
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.domain.usecase.habit.ToggleHabitEntryUseCase
@@ -27,6 +28,7 @@ data class HabitListUiState(
 class HabitListViewModel @Inject constructor(
     private val getHabitsForDate: GetHabitsForDateUseCase,
     private val toggleHabitEntry: ToggleHabitEntryUseCase,
+    private val decreaseHabitEntry: DecreaseHabitEntryUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HabitListUiState())
@@ -52,6 +54,12 @@ class HabitListViewModel @Inject constructor(
         viewModelScope.launch {
             val habit = _uiState.value.habits.find { it.habit.id == habitId } ?: return@launch
             toggleHabitEntry(habitId, _uiState.value.selectedDate, habit.habit.targetCount)
+        }
+    }
+
+    fun decreaseHabit(habitId: Long) {
+        viewModelScope.launch {
+            decreaseHabitEntry(habitId, _uiState.value.selectedDate)
         }
     }
 }
