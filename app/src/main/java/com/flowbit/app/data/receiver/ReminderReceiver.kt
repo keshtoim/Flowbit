@@ -9,6 +9,11 @@ import androidx.core.app.NotificationCompat
 import com.flowbit.app.FlowbitApp
 import com.flowbit.app.R
 import com.flowbit.app.presentation.MainActivity
+import com.flowbit.app.widget.WidgetEntryPoint
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ReminderReceiver : BroadcastReceiver() {
 
@@ -17,28 +22,44 @@ class ReminderReceiver : BroadcastReceiver() {
         val reminderId = intent.getLongExtra(EXTRA_REMINDER_ID, -1L)
         if (habitId == -1L) return
 
-        val openIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(EXTRA_HABIT_ID, habitId)
+        val pending = goAsync()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = EntryPointAccessors
+                    .fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
+                    .database()
+                val habit = db.habitDao().getHabitById(habitId)
+
+                val title = if (habit != null) "${habit.emoji} ${habit.name}" else "Flowbit"
+                val text = if (habit != null) "Время выполнить привычку" else "Не забудьте отметить привычку!"
+
+                val openIntent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    putExtra(EXTRA_HABIT_ID, habitId)
+                }
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    habitId.toInt(),
+                    openIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+
+                val notification = NotificationCompat.Builder(context, FlowbitApp.REMINDER_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(title)
+                    .setContentText(text)
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .build()
+
+                val manager = context.getSystemService(NotificationManager::class.java)
+                manager.notify(reminderId.toInt(), notification)
+            } finally {
+                pending.finish()
+            }
         }
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            habitId.toInt(),
-            openIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-
-        val notification = NotificationCompat.Builder(context, FlowbitApp.REMINDER_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(context.getString(R.string.reminder_title))
-            .setContentText(context.getString(R.string.reminder_text))
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .build()
-
-        val manager = context.getSystemService(NotificationManager::class.java)
-        manager.notify(reminderId.toInt(), notification)
     }
 
     companion object {
