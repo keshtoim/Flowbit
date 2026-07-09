@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.flowbit.app.data.database.FlowbitDatabase
 import com.flowbit.app.data.database.dao.HabitDao
 import com.flowbit.app.data.database.dao.ReminderDao
+import com.flowbit.app.data.database.dao.TagDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,7 +21,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): FlowbitDatabase =
         Room.databaseBuilder(context, FlowbitDatabase::class.java, "flowbit.db")
-            .addMigrations(FlowbitDatabase.MIGRATION_1_2, FlowbitDatabase.MIGRATION_2_3, FlowbitDatabase.MIGRATION_3_4, FlowbitDatabase.MIGRATION_4_5)
+            .addMigrations(FlowbitDatabase.MIGRATION_1_2, FlowbitDatabase.MIGRATION_2_3, FlowbitDatabase.MIGRATION_3_4, FlowbitDatabase.MIGRATION_4_5, FlowbitDatabase.MIGRATION_5_6)
             .build()
 
     @Provides
@@ -28,4 +29,7 @@ object DatabaseModule {
 
     @Provides
     fun provideReminderDao(db: FlowbitDatabase): ReminderDao = db.reminderDao()
+
+    @Provides
+    fun provideTagDao(db: FlowbitDatabase): TagDao = db.tagDao()
 }

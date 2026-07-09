@@ -19,6 +19,7 @@ fun AddEditHabitScreen(
     viewModel: AddEditHabitViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val allTags by viewModel.allTags.collectAsState()
 
     LaunchedEffect(habitId) { viewModel.loadHabit(habitId) }
     LaunchedEffect(uiState.isSaved) { if (uiState.isSaved) onBack() }
@@ -89,6 +90,12 @@ fun AddEditHabitScreen(
             AudioSection(
                 audioUri = uiState.audioUri,
                 onAudioSelected = viewModel::onAudioSelected,
+            )
+            TagSection(
+                tags = allTags,
+                selectedTagId = uiState.tagId,
+                onTagSelected = viewModel::onTagSelected,
+                onCreateTag = viewModel::createTag,
             )
         }
     }

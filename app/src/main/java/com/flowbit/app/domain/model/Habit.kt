@@ -21,6 +21,7 @@ data class Habit(
     val photoUri: String? = null,
     val isPhotoHidden: Boolean = false,
     val audioUri: String? = null,
+    val tagId: Long? = null,
 )
 
 data class HabitReminder(
