@@ -12,7 +12,7 @@ import com.flowbit.app.data.database.entity.ReminderEntity
 
 @Database(
     entities = [HabitEntity::class, HabitEntryEntity::class, ReminderEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class FlowbitDatabase : RoomDatabase() {
@@ -38,6 +38,12 @@ abstract class FlowbitDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE habits ADD COLUMN isPhotoHidden INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE habits ADD COLUMN audioUri TEXT")
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE habit_entries ADD COLUMN note TEXT")
             }
         }
     }

@@ -181,6 +181,7 @@ class SettingsViewModel @Inject constructor(
         put("habitId", e.habitId)
         put("date", e.date)
         put("completedCount", e.completedCount)
+        e.note?.let { put("note", it) }
     }
 
     private fun jsonToHabit(j: JSONObject) = HabitEntity(
@@ -206,6 +207,7 @@ class SettingsViewModel @Inject constructor(
         habitId = j.getLong("habitId"),
         date = j.getString("date"),
         completedCount = j.getInt("completedCount"),
+        note = j.optString("note").takeIf { it.isNotEmpty() },
     )
 
     companion object {

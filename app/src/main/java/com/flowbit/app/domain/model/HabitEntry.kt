@@ -7,6 +7,7 @@ data class HabitEntry(
     val habitId: Long,
     val date: LocalDate,
     val completedCount: Int = 0,
+    val note: String? = null,
 )
 
 data class HabitWithEntries(
