@@ -20,13 +20,8 @@ fun AddEditHabitScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(habitId) {
-        viewModel.loadHabit(habitId)
-    }
-
-    LaunchedEffect(uiState.isSaved) {
-        if (uiState.isSaved) onBack()
-    }
+    LaunchedEffect(habitId) { viewModel.loadHabit(habitId) }
+    LaunchedEffect(uiState.isSaved) { if (uiState.isSaved) onBack() }
 
     Scaffold(
         topBar = {
@@ -38,9 +33,7 @@ fun AddEditHabitScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = viewModel::save) {
-                        Text("Сохранить")
-                    }
+                    TextButton(onClick = viewModel::save) { Text("Сохранить") }
                 },
             )
         },
@@ -59,44 +52,43 @@ fun AddEditHabitScreen(
                 onNameChange = viewModel::onNameChange,
                 onEmojiChange = viewModel::onEmojiChange,
             )
-
             ColorPickerSection(
                 selectedColor = uiState.color,
                 onColorSelected = viewModel::onColorChange,
             )
-
             TargetCountSection(
                 targetCount = uiState.targetCount,
                 onTargetCountChange = viewModel::onTargetCountChange,
             )
-
             FrequencySection(
                 frequency = uiState.frequency,
                 scheduledDays = uiState.scheduledDays,
                 onFrequencyChange = viewModel::onFrequencyChange,
                 onDayToggle = viewModel::onDayToggle,
             )
-
             StartDateSection(
                 startDate = uiState.startDate,
                 onStartDateChange = viewModel::onStartDateChange,
             )
-
             WidgetSection(
                 showInWidget = uiState.showInWidget,
                 onShowInWidgetChange = viewModel::onShowInWidgetChange,
             )
-
             RemindersSection(
                 reminders = uiState.reminders,
                 onAddReminder = viewModel::onAddReminder,
                 onRemoveReminder = viewModel::onRemoveReminder,
                 onToggleReminder = viewModel::onToggleReminder,
             )
-
             PhotoSection(
                 photoUri = uiState.photoUri,
+                isPhotoHidden = uiState.isPhotoHidden,
                 onPhotoSelected = viewModel::onPhotoSelected,
+                onIsPhotoHiddenChange = viewModel::onIsPhotoHiddenChange,
+            )
+            AudioSection(
+                audioUri = uiState.audioUri,
+                onAudioSelected = viewModel::onAudioSelected,
             )
         }
     }

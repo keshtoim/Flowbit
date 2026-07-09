@@ -1,8 +1,12 @@
 package com.flowbit.app.presentation.habits.add
 
+import android.media.MediaPlayer
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,9 +18,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.flowbit.app.domain.model.HabitColor
@@ -396,19 +406,33 @@ fun TimePickerDialog(
 @Composable
 fun PhotoSection(
     photoUri: String?,
+    isPhotoHidden: Boolean,
     onPhotoSelected: (String?) -> Unit,
+    onIsPhotoHiddenChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
+    // Шаг 2: кадрирование
+    val cropLauncher = rememberLauncherForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            result.uriContent?.toString()?.let { onPhotoSelected(it) }
+        }
+    }
+
+    // Шаг 1: выбор из галереи → сразу запускает кадрирование
+    val pickLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null) {
-            // Сохраняем постоянный доступ к фото
-            context.contentResolver.takePersistableUriPermission(
-                uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+        uri?.let { picked ->
+            cropLauncher.launch(
+                CropImageContractOptions(
+                    uri = picked,
+                    cropImageOptions = CropImageOptions(
+                        imageSourceIncludeCamera = false,
+                        imageSourceIncludeGallery = false,
+                    ),
+                )
             )
-            onPhotoSelected(uri.toString())
         }
     }
 
@@ -426,15 +450,35 @@ fun PhotoSection(
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = ContentScale.Crop,
                 )
+                // Кнопка кадрирования (перекроп)
+                IconButton(
+                    onClick = {
+                        cropLauncher.launch(
+                            CropImageContractOptions(
+                                uri = Uri.parse(photoUri),
+                                cropImageOptions = CropImageOptions(),
+                            )
+                        )
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(6.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                ) {
+                    Icon(
+                        Icons.Default.Crop,
+                        contentDescription = "Кадрировать",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                // Кнопка удаления
                 IconButton(
                     onClick = { onPhotoSelected(null) },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(4.dp)
-                        .background(
-                            MaterialTheme.colorScheme.errorContainer,
-                            CircleShape,
-                        ),
+                        .padding(6.dp)
+                        .background(MaterialTheme.colorScheme.errorContainer, CircleShape),
                 ) {
                     Icon(
                         Icons.Default.Delete,
@@ -444,15 +488,166 @@ fun PhotoSection(
                     )
                 }
             }
+            // Переключатель скрытия на общем экране
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        Icons.Default.VisibilityOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Column {
+                        Text("Скрыть на общем экране", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "Видно только в деталях привычки",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Switch(checked = isPhotoHidden, onCheckedChange = onIsPhotoHiddenChange)
+            }
         } else {
             OutlinedButton(
-                onClick = { launcher.launch("image/*") },
+                onClick = { pickLauncher.launch("image/*") },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.Image, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Выбрать фото из галереи")
+                Text("Выбрать и кадрировать фото")
             }
         }
     }
 }
+
+@Composable
+fun AudioSection(
+    audioUri: String?,
+    onAudioSelected: (String?) -> Unit,
+) {
+    val context = LocalContext.current
+    var isPlaying by remember { mutableStateOf(false) }
+    var isPrepared by remember { mutableStateOf(false) }
+    val mediaPlayer = remember { MediaPlayer() }
+
+    DisposableEffect(audioUri) {
+        isPrepared = false
+        isPlaying = false
+        if (audioUri != null) {
+            try {
+                mediaPlayer.reset()
+                mediaPlayer.setDataSource(context, Uri.parse(audioUri))
+                mediaPlayer.setOnPreparedListener { isPrepared = true }
+                mediaPlayer.setOnCompletionListener { isPlaying = false }
+                mediaPlayer.prepareAsync()
+            } catch (_: Exception) { }
+        } else {
+            mediaPlayer.reset()
+        }
+        onDispose {
+            try { if (mediaPlayer.isPlaying) mediaPlayer.stop() } catch (_: Exception) { }
+            mediaPlayer.reset()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { mediaPlayer.release() }
+    }
+
+    val pickLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            onAudioSelected(it.toString())
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Аудио к привычке", style = MaterialTheme.typography.titleMedium)
+
+        if (audioUri != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        Icons.Default.MusicNote,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(26.dp),
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = audioFileName(context, Uri.parse(audioUri)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    // Play / Pause
+                    IconButton(
+                        onClick = {
+                            if (!isPrepared) return@IconButton
+                            if (isPlaying) { mediaPlayer.pause(); isPlaying = false }
+                            else { mediaPlayer.start(); isPlaying = true }
+                        },
+                    ) {
+                        Icon(
+                            if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "Пауза" else "Воспроизвести",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    // Delete
+                    IconButton(onClick = { onAudioSelected(null) }) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Удалить аудио",
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+        } else {
+            OutlinedButton(
+                onClick = { pickLauncher.launch("audio/*") },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.MusicNote, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Выбрать аудиофайл")
+            }
+        }
+    }
+}
+
+private fun audioFileName(context: android.content.Context, uri: Uri): String = try {
+    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+        val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+        cursor.moveToFirst()
+        cursor.getString(idx)
+    } ?: uri.lastPathSegment ?: "Аудиофайл"
+} catch (_: Exception) { uri.lastPathSegment ?: "Аудиофайл" }

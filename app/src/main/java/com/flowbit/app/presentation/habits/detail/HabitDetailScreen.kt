@@ -1,5 +1,7 @@
 package com.flowbit.app.presentation.habits.detail
 
+import android.media.MediaPlayer
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +25,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,10 +51,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -97,6 +107,28 @@ fun HabitDetailScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                // Фото-баннер (всегда виден в детальном экране, не зависит от isPhotoHidden)
+                if (stats.photoUri != null) {
+                    item {
+                        AsyncImage(
+                            model = stats.photoUri,
+                            contentDescription = "Фото привычки",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                            contentScale = ContentScale.Crop,
+                        )
+                    }
+                }
+
+                // Аудиоплеер
+                if (stats.audioUri != null) {
+                    item {
+                        DetailAudioPlayer(audioUri = stats.audioUri)
+                    }
+                }
+
                 // Header
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -273,6 +305,93 @@ fun HabitDetailScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailAudioPlayer(audioUri: String) {
+    val context = LocalContext.current
+    val mediaPlayer = remember { MediaPlayer() }
+    var isPlaying by remember { mutableStateOf(false) }
+    var isPrepared by remember { mutableStateOf(false) }
+
+    DisposableEffect(audioUri) {
+        try {
+            mediaPlayer.reset()
+            mediaPlayer.setDataSource(context, Uri.parse(audioUri))
+            mediaPlayer.prepare()
+            isPrepared = true
+        } catch (e: Exception) {
+            isPrepared = false
+        }
+        mediaPlayer.setOnCompletionListener { isPlaying = false }
+        onDispose {
+            mediaPlayer.stop()
+            isPlaying = false
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { mediaPlayer.release() }
+    }
+
+    val fileName = remember(audioUri) {
+        try {
+            val cursor = context.contentResolver.query(
+                Uri.parse(audioUri),
+                arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
+                null, null, null,
+            )
+            cursor?.use { c ->
+                if (c.moveToFirst()) c.getString(0) else null
+            }
+        } catch (e: Exception) { null }
+    } ?: audioUri.substringAfterLast('/')
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Default.MusicNote,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = fileName,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.width(8.dp))
+            IconButton(
+                onClick = {
+                    if (!isPrepared) return@IconButton
+                    if (isPlaying) {
+                        mediaPlayer.pause()
+                        isPlaying = false
+                    } else {
+                        mediaPlayer.start()
+                        isPlaying = true
+                    }
+                },
+                enabled = isPrepared,
+            ) {
+                Icon(
+                    if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) "Пауза" else "Воспроизвести",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
             }
         }
     }

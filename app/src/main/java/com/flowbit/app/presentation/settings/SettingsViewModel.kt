@@ -172,6 +172,8 @@ class SettingsViewModel @Inject constructor(
         put("createdAt", h.createdAt)
         put("sortOrder", h.sortOrder)
         h.photoUri?.let { put("photoUri", it) }
+        put("isPhotoHidden", h.isPhotoHidden)
+        h.audioUri?.let { put("audioUri", it) }
     }
 
     private fun entryToJson(e: HabitEntryEntity) = JSONObject().apply {
@@ -195,6 +197,8 @@ class SettingsViewModel @Inject constructor(
         createdAt = j.getString("createdAt"),
         sortOrder = j.optInt("sortOrder", 0),
         photoUri = j.optString("photoUri").takeIf { it.isNotEmpty() },
+        isPhotoHidden = j.optBoolean("isPhotoHidden", false),
+        audioUri = j.optString("audioUri").takeIf { it.isNotEmpty() },
     )
 
     private fun jsonToEntry(j: JSONObject) = HabitEntryEntity(

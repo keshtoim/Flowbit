@@ -95,8 +95,8 @@ fun HabitCard(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp),
     ) {
         Column {
-            // Фото-баннер — показывается если задано
-            if (habit.photoUri != null) {
+            // Фото-баннер — показывается если задано и не скрыто
+            if (habit.photoUri != null && !habit.isPhotoHidden) {
                 AsyncImage(
                     model = habit.photoUri,
                     contentDescription = "Фото привычки",
