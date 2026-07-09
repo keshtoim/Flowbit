@@ -1,40 +1,77 @@
-# Flowbit — трекер привычек
+<div align="center">
 
-Минималистичный Android-трекер привычек с виджетом на рабочем столе, гибкими напоминаниями и подробной статистикой.
+# 〰️ Flowbit
+
+**Минималистичный трекер привычек для Android**
+
+[![Android](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/Jetpack_Compose-Material_3-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
+[![CI](https://github.com/keshtoim/Flowbit/actions/workflows/build.yml/badge.svg)](https://github.com/keshtoim/Flowbit/actions)
+
+</div>
+
+---
 
 ## Возможности
 
-- **Привычки** — создание с эмодзи, цветом, частотой (ежедневно / по дням недели) и счётчиком повторений в день
-- **Фото** — прикрепление фото из галереи с кадрированием; опция скрыть на общем экране (видно только в деталях)
-- **Аудио** — прикрепление аудиофайла к привычке, воспроизведение прямо в приложении
-- **Мотивация** — кнопка «Не могу сегодня» открывает случайную мотивационную цитату вместо отказа
-- **Счётчик** — кнопка уменьшения выполненного (+) и отмены последнего шага (−)
-- **Виджет** — адаптивный недельный виджет на рабочем столе; день и число в шапке, сегодня выделено, ✓ в выполненных ячейках
-- **Напоминания** — точные уведомления по расписанию через AlarmManager; в тексте уведомления — эмодзи и название конкретной привычки
-- **Статистика** — текущие и максимальные серии, процент выполнения, тепловая карта за год
-- **Свайп по дням** — горизонтальный свайп на главном экране переключает дату, не мешая прокрутке списка
-- **Тема** — светлая и тёмная тема; цвета по Material Design 3
-- **Резервное копирование** — экспорт / импорт всех данных в JSON (включая флаги фото и аудио)
-- **Порядок привычек** — ручная сортировка в настройках
+### Привычки
+| | |
+|---|---|
+| 🎯 | Счётчик повторений в день с кнопками + и − |
+| 📅 | Частота: ежедневно или по выбранным дням недели |
+| 🏷️ | Цветные теги и группировка (по тегам / частоте / статусу) |
+| 📆 | Цель на период — «N раз в неделю / в месяц» |
+| 📝 | Заметка к каждому дню выполнения |
+| 🖼️ | Фото с кадрированием; можно скрыть на общем экране |
+| 🎵 | Аудиофайл с воспроизведением прямо в приложении |
 
-## Технологии
+### Аналитика
+| | |
+|---|---|
+| 🔥 | Текущая и лучшая серия |
+| 📊 | График активности за 30 дней |
+| 🗓️ | Тепловая карта за год |
+| ✅ | Процент выполнения |
+
+### Виджеты
+| Виджет | Размер | Описание |
+|---|---|---|
+| Недельный | 3×2 | Все привычки за 7 дней, ✓ в выполненных |
+| Сводка дня | 2×2 | Круговой прогресс X/Y |
+| Одна привычка | 2×2 | Эмодзи + счётчик + серия 🔥; привычка выбирается при добавлении |
+
+### Остальное
+| | |
+|---|---|
+| 🔔 | Точные напоминания (AlarmManager); в тексте — эмодзи и название привычки |
+| 💬 | Кнопка «Не могу сегодня» → случайная мотивационная цитата |
+| 🌗 | Светлая и тёмная тема (Material Design 3) |
+| 💾 | Экспорт / импорт данных в JSON |
+| ↕️ | Ручная сортировка привычек в настройках |
+
+---
+
+## Стек технологий
 
 | Слой | Технология |
 |---|---|
 | UI | Jetpack Compose + Material 3 |
-| Виджет | Jetpack Glance 1.1 (`SizeMode.Exact`) |
+| Виджеты | Jetpack Glance 1.1 · `SizeMode.Exact` · `PreferencesGlanceStateDefinition` |
 | DI | Hilt |
-| БД | Room 2.6 (SQLite, v4) |
-| Изображения | Coil 2.6 + android-image-cropper 4.6 (JitPack) |
+| БД | Room 2.6 · SQLite · v7 |
+| Изображения | Coil 2.6 · android-image-cropper 4.7 (`com.vanniktech`) |
 | Аудио | `android.media.MediaPlayer` |
-| Фоновые задачи | AlarmManager + WorkManager |
-| Хранилище настроек | DataStore Preferences |
+| Фон | AlarmManager · WorkManager |
+| Настройки | DataStore Preferences |
 | Навигация | Navigation Compose 2.7 |
-| CI/CD | GitHub Actions |
+| CI/CD | GitHub Actions · auto versionName по числу коммитов |
+
+---
 
 ## Сборка
 
-Требования: Android Studio Ladybug или новее, JDK 17.
+> Требования: Android Studio Ladybug+, JDK 17
 
 ```bash
 git clone https://github.com/keshtoim/Flowbit.git
@@ -42,35 +79,34 @@ cd Flowbit
 ./gradlew assembleDebug
 ```
 
-APK окажется в `app/build/outputs/apk/debug/app-debug.apk`.
+APK → `app/build/outputs/apk/debug/app-debug.apk`
 
-### Release-сборка
+> `versionCode` и `versionName` (`1.0.<N>`) считаются автоматически из числа git-коммитов.
 
-```bash
-./gradlew assembleRelease
-```
-
-`versionCode` и `versionName` рассчитываются автоматически по числу git-коммитов.
+---
 
 ## Архитектура
 
 ```
 app/
 ├── data/
-│   ├── database/       # Room: сущности, DAO, база
+│   ├── database/       # Room: сущности, DAO, миграции (v1→v7)
 │   └── repository/     # Реализации репозиториев
 ├── domain/
-│   ├── model/          # Доменные модели
-│   ├── repository/     # Интерфейсы репозиториев
-│   └── usecase/        # Use case'ы
+│   ├── model/          # Habit, HabitTag, HabitEntry, HabitStats…
+│   ├── repository/     # Интерфейсы
+│   └── usecase/        # Бизнес-логика
 ├── presentation/
-│   ├── habits/         # Список, добавление, детали
-│   ├── statistics/     # Статистика и календарь
-│   ├── settings/       # Настройки
+│   ├── habits/         # Список · редактор · детали
+│   ├── today/          # Экран «Сегодня»
+│   ├── statistics/     # Статистика и графики
+│   ├── settings/       # Настройки · бекап
 │   ├── navigation/     # NavGraph с анимациями
 │   └── theme/          # M3 цвета и типографика
-└── widget/             # Glance-виджет
+└── widget/             # 3 Glance-виджета + конфиг-активити
 ```
+
+---
 
 ## Разрешения
 
@@ -82,10 +118,16 @@ app/
 | `READ_MEDIA_IMAGES` | Выбор фото из галереи (Android 13+) |
 | `READ_MEDIA_AUDIO` | Выбор аудиофайла из галереи (Android 13+) |
 
+---
+
 ## Скриншоты
 
-> Добавьте скриншоты в папку `docs/screenshots/` и вставьте их здесь.
+> Добавьте скриншоты в `docs/screenshots/` и вставьте их здесь.
 
-## Лицензия
+---
 
-MIT
+<div align="center">
+
+MIT License · made with ❤️ by [Keshtoim](https://github.com/keshtoim)
+
+</div>
