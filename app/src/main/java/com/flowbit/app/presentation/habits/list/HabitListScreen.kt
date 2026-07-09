@@ -186,6 +186,12 @@ fun HabitListScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
 
+            TodaySummaryCard(
+                habits = uiState.habits,
+                selectedDate = uiState.selectedDate,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 4.dp),
+            )
+
             AnimatedVisibility(
                 visible = uiState.habits.isEmpty(),
                 enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 4 },
