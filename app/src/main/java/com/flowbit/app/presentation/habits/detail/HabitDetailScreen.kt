@@ -28,6 +28,11 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NoteAdd
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -239,6 +244,28 @@ fun HabitDetailScreen(
                     }
                 }
 
+                // График прогресса за 30 дней
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Text(
+                                text = "Активность за 30 дней",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            ProgressBarChart(
+                                completedDates = stats.completedDates,
+                                modifier = Modifier.fillMaxWidth().height(80.dp),
+                            )
+                        }
+                    }
+                }
+
                 // Current streak — big card
                 item {
                     Card(
@@ -371,6 +398,37 @@ fun HabitDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ProgressBarChart(
+    completedDates: List<LocalDate>,
+    modifier: Modifier = Modifier,
+) {
+    val today = LocalDate.now()
+    val days = (29 downTo 0).map { today.minusDays(it.toLong()) }
+    val completedSet = completedDates.toHashSet()
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+
+    Canvas(modifier = modifier) {
+        val barCount = days.size
+        val gap = 2.dp.toPx()
+        val barWidth = (size.width - gap * (barCount - 1)) / barCount
+        val maxH = size.height
+
+        days.forEachIndexed { i, date ->
+            val x = i * (barWidth + gap)
+            val isCompleted = date in completedSet
+            val barH = if (isCompleted) maxH else maxH * 0.15f
+            drawRoundRect(
+                color = if (isCompleted) primaryColor else surfaceVariant,
+                topLeft = Offset(x, maxH - barH),
+                size = Size(barWidth, barH),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
+            )
         }
     }
 }
