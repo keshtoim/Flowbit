@@ -48,6 +48,21 @@ class SingleHabitWidget : GlanceAppWidget() {
         val habit = habits.firstOrNull()
             ?: db.habitDao().getActiveHabits().first().firstOrNull()
 
+        val entry = habit?.let { db.habitDao().getEntryForDate(it.id, todayStr) }
+        val completedCount = entry?.completedCount ?: 0
+        val isDone = habit != null && completedCount >= habit.targetCount
+        val allEntries = habit?.let { db.habitDao().getAllEntriesForHabit(it.id) } ?: emptyList()
+        val completedDates = allEntries
+            .filter { it.completedCount >= (habit?.targetCount ?: 1) }
+            .map { LocalDate.parse(it.date) }
+            .toHashSet()
+        var streak = 0
+        var cur = today
+        while (habit != null && (cur in completedDates || (cur == today && isDone))) {
+            if (cur in completedDates) { streak++; cur = cur.minusDays(1) }
+            else break
+        }
+
         provideContent {
             GlanceTheme(colors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)) {
                 val bg = GlanceTheme.colors.widgetBackground
@@ -79,23 +94,6 @@ class SingleHabitWidget : GlanceAppWidget() {
                             )
                         }
                     } else {
-                        val entry = db.habitDao().getEntryForDate(habit.id, todayStr)
-                        val completedCount = entry?.completedCount ?: 0
-                        val isDone = completedCount >= habit.targetCount
-
-                        // Считаем текущую серию
-                        val allEntries = db.habitDao().getAllEntriesForHabit(habit.id)
-                        val completedDates = allEntries
-                            .filter { it.completedCount >= habit.targetCount }
-                            .map { LocalDate.parse(it.date) }
-                            .toHashSet()
-                        var streak = 0
-                        var cur = today
-                        while (cur in completedDates || (cur == today && isDone)) {
-                            if (cur in completedDates) { streak++; cur = cur.minusDays(1) }
-                            else break
-                        }
-
                         Column(
                             modifier = GlanceModifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,

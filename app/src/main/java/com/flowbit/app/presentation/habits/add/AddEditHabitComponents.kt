@@ -653,41 +653,40 @@ fun PeriodGoalSection(
     onTypeChange: (PeriodGoalType) -> Unit,
     onCountChange: (Int) -> Unit,
 ) {
-    SectionCard(title = "Цель на период") {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PeriodGoalType.entries.forEach { type ->
-                    FilterChip(
-                        selected = periodGoalType == type,
-                        onClick = { onTypeChange(type) },
-                        label = { Text(type.label) },
-                    )
-                }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Цель на период", style = MaterialTheme.typography.titleMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PeriodGoalType.entries.forEach { type ->
+                FilterChip(
+                    selected = periodGoalType == type,
+                    onClick = { onTypeChange(type) },
+                    label = { Text(type.label) },
+                )
             }
-            if (periodGoalType != PeriodGoalType.NONE) {
-                val periodLabel = when (periodGoalType) {
-                    PeriodGoalType.WEEKLY -> "раз за неделю"
-                    PeriodGoalType.MONTHLY -> "раз за месяц"
-                    else -> ""
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+        }
+        if (periodGoalType != PeriodGoalType.NONE) {
+            val periodLabel = when (periodGoalType) {
+                PeriodGoalType.WEEKLY -> "раз за неделю"
+                PeriodGoalType.MONTHLY -> "раз за месяц"
+                else -> ""
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                IconButton(
+                    onClick = { onCountChange(periodGoalCount - 1) },
+                    enabled = periodGoalCount > 1,
                 ) {
-                    IconButton(
-                        onClick = { onCountChange(periodGoalCount - 1) },
-                        enabled = periodGoalCount > 1,
-                    ) {
-                        Icon(Icons.Default.Remove, contentDescription = "Меньше")
-                    }
-                    Text(
-                        text = "$periodGoalCount $periodLabel",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f),
-                    )
-                    IconButton(onClick = { onCountChange(periodGoalCount + 1) }) {
-                        Icon(Icons.Default.Add, contentDescription = "Больше")
-                    }
+                    Icon(Icons.Default.Remove, contentDescription = "Меньше")
+                }
+                Text(
+                    text = "$periodGoalCount $periodLabel",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = { onCountChange(periodGoalCount + 1) }) {
+                    Icon(Icons.Default.Add, contentDescription = "Больше")
                 }
             }
         }
@@ -756,42 +755,38 @@ fun TagSection(
         )
     }
 
-    SectionCard(title = "Тег") {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            // «Без тега»
-            FilterChip(
-                selected = selectedTagId == null,
-                onClick = { onTagSelected(null) },
-                label = { Text("Без тега") },
-            )
-            if (tags.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    tags.forEach { tag ->
-                        val color = try { Color(android.graphics.Color.parseColor(tag.colorHex)) } catch (_: Exception) { Color.Gray }
-                        FilterChip(
-                            selected = selectedTagId == tag.id,
-                            onClick = { onTagSelected(if (selectedTagId == tag.id) null else tag.id) },
-                            label = { Text(tag.name) },
-                            leadingIcon = {
-                                Box(
-                                    modifier = Modifier.size(10.dp).clip(CircleShape).background(color)
-                                )
-                            },
-                        )
-                    }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Тег", style = MaterialTheme.typography.titleMedium)
+        FilterChip(
+            selected = selectedTagId == null,
+            onClick = { onTagSelected(null) },
+            label = { Text("Без тега") },
+        )
+        if (tags.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                tags.forEach { tag ->
+                    val color = try { Color(android.graphics.Color.parseColor(tag.colorHex)) } catch (_: Exception) { Color.Gray }
+                    FilterChip(
+                        selected = selectedTagId == tag.id,
+                        onClick = { onTagSelected(if (selectedTagId == tag.id) null else tag.id) },
+                        label = { Text(tag.name) },
+                        leadingIcon = {
+                            Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
+                        },
+                    )
                 }
             }
-            OutlinedButton(
-                onClick = { showDialog = true },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Создать тег")
-            }
+        }
+        OutlinedButton(
+            onClick = { showDialog = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("Создать тег")
         }
     }
 }

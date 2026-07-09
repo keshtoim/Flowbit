@@ -229,10 +229,10 @@ fun HabitDetailScreen(
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
-                                if (uiState.todayNote != null) {
+                                uiState.todayNote?.let { note ->
                                     Spacer(Modifier.height(2.dp))
                                     Text(
-                                        text = uiState.todayNote,
+                                        text = note,
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                 }
