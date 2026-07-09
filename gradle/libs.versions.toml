@@ -19,6 +19,7 @@ datastore = "1.1.1"
 coroutines = "1.8.1"
 accompanist = "0.34.0"
 coil = "2.6.0"
+imagecropper = "4.6.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ glance-material3 = { group = "androidx.glance", name = "glance-material3", versi
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+image-cropper = { group = "com.canhub.cropper", name = "android-image-cropper", version.ref = "imagecropper" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -25,6 +25,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Image Cropper -->
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
+
         <!-- Widget Provider -->
         <receiver
             android:name=".widget.HabitsWidgetReceiver"

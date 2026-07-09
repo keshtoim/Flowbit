@@ -32,6 +32,8 @@ data class AddEditHabitUiState(
     val showInWidget: Boolean = false,
     val reminders: List<HabitReminder> = emptyList(),
     val photoUri: String? = null,
+    val isPhotoHidden: Boolean = false,
+    val audioUri: String? = null,
     val isSaved: Boolean = false,
     val nameError: String? = null,
 )
@@ -66,6 +68,8 @@ class AddEditHabitViewModel @Inject constructor(
                     showInWidget = habit.showInWidget,
                     reminders = reminders,
                     photoUri = habit.photoUri,
+                    isPhotoHidden = habit.isPhotoHidden,
+                    audioUri = habit.audioUri,
                 )
             }
         }
@@ -79,6 +83,8 @@ class AddEditHabitViewModel @Inject constructor(
     fun onShowInWidgetChange(show: Boolean) = _uiState.update { it.copy(showInWidget = show) }
     fun onStartDateChange(date: LocalDate) = _uiState.update { it.copy(startDate = date) }
     fun onPhotoSelected(uri: String?) = _uiState.update { it.copy(photoUri = uri) }
+    fun onIsPhotoHiddenChange(hidden: Boolean) = _uiState.update { it.copy(isPhotoHidden = hidden) }
+    fun onAudioSelected(uri: String?) = _uiState.update { it.copy(audioUri = uri) }
 
     fun onDayToggle(day: DayOfWeek) {
         _uiState.update { state ->
@@ -124,6 +130,8 @@ class AddEditHabitViewModel @Inject constructor(
                 startDate = state.startDate,
                 showInWidget = state.showInWidget,
                 photoUri = state.photoUri,
+                isPhotoHidden = state.isPhotoHidden,
+                audioUri = state.audioUri,
             )
 
             val savedId = if (editingHabitId == null) {

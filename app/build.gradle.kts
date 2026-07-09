@@ -99,6 +99,9 @@ dependencies {
     // Coil — загрузка изображений
     implementation(libs.coil.compose)
 
+    // Image Cropper
+    implementation(libs.image.cropper)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
