@@ -4,4 +4,7 @@
     <string name="reminder_title">Flowbit — напоминание</string>
     <string name="reminder_text">Не забудьте отметить привычку!</string>
     <string name="widget_description">Виджет привычек Flowbit</string>
+    <string name="widget_week_description">Недельный виджет — показывает все привычки за 7 дней с отметками выполнения</string>
+    <string name="widget_today_description">Сводка дня — круговой прогресс выполненных привычек за сегодня</string>
+    <string name="widget_single_description">Одна привычка — эмодзи, счётчик и текущая серия 🔥 для выбранной привычки</string>
 </resources>
