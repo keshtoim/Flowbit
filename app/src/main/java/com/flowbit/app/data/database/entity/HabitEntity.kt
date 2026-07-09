@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.domain.model.HabitColor
 import com.flowbit.app.domain.model.HabitFrequency
+import com.flowbit.app.domain.model.PeriodGoalType
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -27,6 +28,8 @@ data class HabitEntity(
     val isPhotoHidden: Boolean = false,
     val audioUri: String? = null,
     val tagId: Long? = null,
+    val periodGoalType: String = "NONE",
+    val periodGoalCount: Int = 0,
 ) {
     fun toDomain(): Habit = Habit(
         id = id,
@@ -48,6 +51,8 @@ data class HabitEntity(
         isPhotoHidden = isPhotoHidden,
         audioUri = audioUri,
         tagId = tagId,
+        periodGoalType = try { PeriodGoalType.valueOf(periodGoalType) } catch (_: Exception) { PeriodGoalType.NONE },
+        periodGoalCount = periodGoalCount,
     )
 
     companion object {
@@ -68,6 +73,8 @@ data class HabitEntity(
             isPhotoHidden = habit.isPhotoHidden,
             audioUri = habit.audioUri,
             tagId = habit.tagId,
+            periodGoalType = habit.periodGoalType.name,
+            periodGoalCount = habit.periodGoalCount,
         )
     }
 }

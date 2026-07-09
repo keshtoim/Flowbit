@@ -41,6 +41,7 @@ import com.flowbit.app.domain.model.HabitColor
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.model.HabitReminder
 import com.flowbit.app.domain.model.HabitTag
+import com.flowbit.app.domain.model.PeriodGoalType
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -640,6 +641,54 @@ fun AudioSection(
                 Icon(Icons.Default.MusicNote, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text("Выбрать аудиофайл")
+            }
+        }
+    }
+}
+
+@Composable
+fun PeriodGoalSection(
+    periodGoalType: PeriodGoalType,
+    periodGoalCount: Int,
+    onTypeChange: (PeriodGoalType) -> Unit,
+    onCountChange: (Int) -> Unit,
+) {
+    SectionCard(title = "Цель на период") {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PeriodGoalType.entries.forEach { type ->
+                    FilterChip(
+                        selected = periodGoalType == type,
+                        onClick = { onTypeChange(type) },
+                        label = { Text(type.label) },
+                    )
+                }
+            }
+            if (periodGoalType != PeriodGoalType.NONE) {
+                val periodLabel = when (periodGoalType) {
+                    PeriodGoalType.WEEKLY -> "раз за неделю"
+                    PeriodGoalType.MONTHLY -> "раз за месяц"
+                    else -> ""
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    IconButton(
+                        onClick = { onCountChange(periodGoalCount - 1) },
+                        enabled = periodGoalCount > 1,
+                    ) {
+                        Icon(Icons.Default.Remove, contentDescription = "Меньше")
+                    }
+                    Text(
+                        text = "$periodGoalCount $periodLabel",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { onCountChange(periodGoalCount + 1) }) {
+                        Icon(Icons.Default.Add, contentDescription = "Больше")
+                    }
+                }
             }
         }
     }

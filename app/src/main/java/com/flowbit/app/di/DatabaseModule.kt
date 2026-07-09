@@ -21,7 +21,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): FlowbitDatabase =
         Room.databaseBuilder(context, FlowbitDatabase::class.java, "flowbit.db")
-            .addMigrations(FlowbitDatabase.MIGRATION_1_2, FlowbitDatabase.MIGRATION_2_3, FlowbitDatabase.MIGRATION_3_4, FlowbitDatabase.MIGRATION_4_5, FlowbitDatabase.MIGRATION_5_6)
+            .addMigrations(FlowbitDatabase.MIGRATION_1_2, FlowbitDatabase.MIGRATION_2_3, FlowbitDatabase.MIGRATION_3_4, FlowbitDatabase.MIGRATION_4_5, FlowbitDatabase.MIGRATION_5_6, FlowbitDatabase.MIGRATION_6_7)
             .build()
 
     @Provides
