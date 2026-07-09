@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -24,6 +25,8 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.material3.ColorProviders
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -33,9 +36,10 @@ import com.flowbit.app.presentation.theme.LightColorScheme
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 class SingleHabitWidget : GlanceAppWidget() {
+
+    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
@@ -43,10 +47,16 @@ class SingleHabitWidget : GlanceAppWidget() {
         val today = LocalDate.now()
         val todayStr = today.toString()
 
-        // Берём первую привычку с showInWidget=true, иначе первую активную
-        val habits = db.habitDao().getWidgetHabits().first()
-        val habit = habits.firstOrNull()
-            ?: db.habitDao().getActiveHabits().first().firstOrNull()
+        // Читаем выбранную привычку из state, иначе fallback на первую с showInWidget или первую активную
+        val state = androidx.glance.appwidget.state.getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
+        val pinnedId = state[PINNED_HABIT_KEY]
+
+        val habit = if (pinnedId != null) {
+            db.habitDao().getHabitById(pinnedId)
+        } else {
+            db.habitDao().getWidgetHabits().first().firstOrNull()
+                ?: db.habitDao().getActiveHabits().first().firstOrNull()
+        }
 
         val entry = habit?.let { db.habitDao().getEntryForDate(it.id, todayStr) }
         val completedCount = entry?.completedCount ?: 0
@@ -83,10 +93,7 @@ class SingleHabitWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text(
-                                text = "🌱",
-                                style = TextStyle(fontSize = 28.sp),
-                            )
+                            Text("🌱", style = TextStyle(fontSize = 28.sp))
                             Spacer(GlanceModifier.height(8.dp))
                             Text(
                                 text = "Нет привычек",
@@ -98,18 +105,11 @@ class SingleHabitWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text(
-                                text = habit.emoji,
-                                style = TextStyle(fontSize = 28.sp),
-                            )
+                            Text(habit.emoji, style = TextStyle(fontSize = 28.sp))
                             Spacer(GlanceModifier.height(6.dp))
                             Text(
                                 text = habit.name,
-                                style = TextStyle(
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = onSurface,
-                                ),
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onSurface),
                                 maxLines = 1,
                             )
                             Spacer(GlanceModifier.height(8.dp))
@@ -124,10 +124,7 @@ class SingleHabitWidget : GlanceAppWidget() {
                                 )
                                 if (streak > 0) {
                                     Spacer(GlanceModifier.width(8.dp))
-                                    Text(
-                                        text = "🔥$streak",
-                                        style = TextStyle(fontSize = 14.sp, color = onSurface),
-                                    )
+                                    Text("🔥$streak", style = TextStyle(fontSize = 14.sp, color = onSurface))
                                 }
                             }
                         }
@@ -135,6 +132,10 @@ class SingleHabitWidget : GlanceAppWidget() {
                 }
             }
         }
+    }
+
+    companion object {
+        val PINNED_HABIT_KEY = longPreferencesKey("pinned_habit_id")
     }
 }
 

@@ -66,6 +66,15 @@
                 android:resource="@xml/single_habit_widget_info" />
         </receiver>
 
+        <!-- Config activity для SingleHabitWidget -->
+        <activity
+            android:name=".widget.SingleHabitWidgetConfigActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <!-- Reminder BroadcastReceiver -->
         <receiver
             android:name=".data.receiver.ReminderReceiver"
