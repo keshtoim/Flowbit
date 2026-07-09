@@ -554,16 +554,12 @@ fun AudioSection(
                 mediaPlayer.prepareAsync()
             } catch (_: Exception) { }
         } else {
-            mediaPlayer.reset()
+            try { mediaPlayer.reset() } catch (_: Exception) { }
         }
         onDispose {
-            try { if (mediaPlayer.isPlaying) mediaPlayer.stop() } catch (_: Exception) { }
-            mediaPlayer.reset()
+            try { mediaPlayer.stop() } catch (_: Exception) { }
+            try { mediaPlayer.release() } catch (_: Exception) { }
         }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose { mediaPlayer.release() }
     }
 
     val pickLauncher = rememberLauncherForActivityResult(

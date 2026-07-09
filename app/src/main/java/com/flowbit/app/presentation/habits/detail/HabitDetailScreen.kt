@@ -444,20 +444,16 @@ private fun DetailAudioPlayer(audioUri: String) {
         try {
             mediaPlayer.reset()
             mediaPlayer.setDataSource(context, Uri.parse(audioUri))
-            mediaPlayer.prepare()
-            isPrepared = true
-        } catch (e: Exception) {
+            mediaPlayer.setOnPreparedListener { isPrepared = true }
+            mediaPlayer.setOnCompletionListener { isPlaying = false }
+            mediaPlayer.prepareAsync()
+        } catch (_: Exception) {
             isPrepared = false
         }
-        mediaPlayer.setOnCompletionListener { isPlaying = false }
         onDispose {
-            mediaPlayer.stop()
-            isPlaying = false
+            try { mediaPlayer.stop() } catch (_: Exception) { }
+            try { mediaPlayer.release() } catch (_: Exception) { }
         }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose { mediaPlayer.release() }
     }
 
     val fileName = remember(audioUri) {
