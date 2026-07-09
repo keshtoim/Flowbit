@@ -23,7 +23,7 @@ fun WeekDatePicker(
     modifier: Modifier = Modifier,
 ) {
     val today = LocalDate.now()
-    val weekStart = today.minusDays(3)
+    val weekStart = selectedDate.minusDays(3)
     val days = (0..6).map { weekStart.plusDays(it.toLong()) }
 
     Card(
