@@ -40,6 +40,7 @@ import coil.compose.AsyncImage
 import com.flowbit.app.domain.model.HabitColor
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.model.HabitReminder
+import com.flowbit.app.domain.model.HabitTag
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -639,6 +640,108 @@ fun AudioSection(
                 Icon(Icons.Default.MusicNote, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text("Выбрать аудиофайл")
+            }
+        }
+    }
+}
+
+@Composable
+fun TagSection(
+    tags: List<HabitTag>,
+    selectedTagId: Long?,
+    onTagSelected: (Long?) -> Unit,
+    onCreateTag: (name: String, colorHex: String) -> Unit,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var newTagName by remember { mutableStateOf("") }
+    var newTagColor by remember { mutableStateOf("#4A90E2") }
+
+    val tagColors = listOf(
+        "#4A90E2", "#2ECC71", "#E74C3C", "#9B59B6",
+        "#E67E22", "#00E5C0", "#FF69B4", "#F1C40F",
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Новый тег") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = newTagName,
+                        onValueChange = { newTagName = it },
+                        label = { Text("Название тега") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text("Цвет", style = MaterialTheme.typography.labelMedium)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        tagColors.forEach { hex ->
+                            val color = try { Color(android.graphics.Color.parseColor(hex)) } catch (_: Exception) { Color.Gray }
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .then(if (newTagColor == hex) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier)
+                                    .clickable { newTagColor = hex },
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newTagName.isNotBlank()) {
+                            onCreateTag(newTagName.trim(), newTagColor)
+                            newTagName = ""
+                            showDialog = false
+                        }
+                    }
+                ) { Text("Создать") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) { Text("Отмена") }
+            },
+        )
+    }
+
+    SectionCard(title = "Тег") {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // «Без тега»
+            FilterChip(
+                selected = selectedTagId == null,
+                onClick = { onTagSelected(null) },
+                label = { Text("Без тега") },
+            )
+            if (tags.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    tags.forEach { tag ->
+                        val color = try { Color(android.graphics.Color.parseColor(tag.colorHex)) } catch (_: Exception) { Color.Gray }
+                        FilterChip(
+                            selected = selectedTagId == tag.id,
+                            onClick = { onTagSelected(if (selectedTagId == tag.id) null else tag.id) },
+                            label = { Text(tag.name) },
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier.size(10.dp).clip(CircleShape).background(color)
+                                )
+                            },
+                        )
+                    }
+                }
+            }
+            OutlinedButton(
+                onClick = { showDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Создать тег")
             }
         }
     }

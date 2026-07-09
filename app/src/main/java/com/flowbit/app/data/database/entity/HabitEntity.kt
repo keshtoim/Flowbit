@@ -26,6 +26,7 @@ data class HabitEntity(
     val photoUri: String? = null,
     val isPhotoHidden: Boolean = false,
     val audioUri: String? = null,
+    val tagId: Long? = null,
 ) {
     fun toDomain(): Habit = Habit(
         id = id,
@@ -46,6 +47,7 @@ data class HabitEntity(
         photoUri = photoUri,
         isPhotoHidden = isPhotoHidden,
         audioUri = audioUri,
+        tagId = tagId,
     )
 
     companion object {
@@ -65,6 +67,7 @@ data class HabitEntity(
             photoUri = habit.photoUri,
             isPhotoHidden = habit.isPhotoHidden,
             audioUri = habit.audioUri,
+            tagId = habit.tagId,
         )
     }
 }

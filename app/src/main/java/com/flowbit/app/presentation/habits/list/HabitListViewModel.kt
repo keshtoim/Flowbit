@@ -2,6 +2,9 @@ package com.flowbit.app.presentation.habits.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbit.app.domain.model.GroupingMode
+import com.flowbit.app.domain.model.HabitTag
+import com.flowbit.app.domain.repository.TagRepository
 import com.flowbit.app.domain.usecase.habit.DecreaseHabitEntryUseCase
 import com.flowbit.app.presentation.habits.list.randomQuote
 import com.flowbit.app.domain.usecase.habit.GetHabitsForDateUseCase
@@ -9,11 +12,13 @@ import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.domain.usecase.habit.ToggleHabitEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -24,6 +29,7 @@ data class HabitListUiState(
     val habits: List<HabitForDate> = emptyList(),
     val isLoading: Boolean = false,
     val motivationQuote: String? = null,
+    val groupingMode: GroupingMode = GroupingMode.NONE,
 )
 
 @HiltViewModel
@@ -31,7 +37,11 @@ class HabitListViewModel @Inject constructor(
     private val getHabitsForDate: GetHabitsForDateUseCase,
     private val toggleHabitEntry: ToggleHabitEntryUseCase,
     private val decreaseHabitEntry: DecreaseHabitEntryUseCase,
+    private val tagRepository: TagRepository,
 ) : ViewModel() {
+
+    val allTags: StateFlow<List<HabitTag>> = tagRepository.getAllTags()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _uiState = MutableStateFlow(HabitListUiState())
     val uiState: StateFlow<HabitListUiState> = _uiState.asStateFlow()
@@ -71,5 +81,9 @@ class HabitListViewModel @Inject constructor(
 
     fun dismissMotivation() {
         _uiState.update { it.copy(motivationQuote = null) }
+    }
+
+    fun setGroupingMode(mode: GroupingMode) {
+        _uiState.update { it.copy(groupingMode = mode) }
     }
 }

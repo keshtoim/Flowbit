@@ -6,14 +6,18 @@ import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.domain.model.HabitColor
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.model.HabitReminder
+import com.flowbit.app.domain.model.HabitTag
 import com.flowbit.app.domain.repository.HabitRepository
 import com.flowbit.app.domain.repository.ReminderRepository
+import com.flowbit.app.domain.repository.TagRepository
 import com.flowbit.app.domain.usecase.reminder.ScheduleReminderUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -34,6 +38,7 @@ data class AddEditHabitUiState(
     val photoUri: String? = null,
     val isPhotoHidden: Boolean = false,
     val audioUri: String? = null,
+    val tagId: Long? = null,
     val isSaved: Boolean = false,
     val nameError: String? = null,
 )
@@ -43,7 +48,11 @@ class AddEditHabitViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
     private val reminderRepository: ReminderRepository,
     private val scheduleReminder: ScheduleReminderUseCase,
+    private val tagRepository: TagRepository,
 ) : ViewModel() {
+
+    val allTags: StateFlow<List<HabitTag>> = tagRepository.getAllTags()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _uiState = MutableStateFlow(AddEditHabitUiState())
     val uiState: StateFlow<AddEditHabitUiState> = _uiState.asStateFlow()
@@ -70,6 +79,7 @@ class AddEditHabitViewModel @Inject constructor(
                     photoUri = habit.photoUri,
                     isPhotoHidden = habit.isPhotoHidden,
                     audioUri = habit.audioUri,
+                    tagId = habit.tagId,
                 )
             }
         }
@@ -85,6 +95,14 @@ class AddEditHabitViewModel @Inject constructor(
     fun onPhotoSelected(uri: String?) = _uiState.update { it.copy(photoUri = uri) }
     fun onIsPhotoHiddenChange(hidden: Boolean) = _uiState.update { it.copy(isPhotoHidden = hidden) }
     fun onAudioSelected(uri: String?) = _uiState.update { it.copy(audioUri = uri) }
+    fun onTagSelected(tagId: Long?) = _uiState.update { it.copy(tagId = tagId) }
+
+    fun createTag(name: String, colorHex: String) {
+        viewModelScope.launch {
+            val id = tagRepository.insertTag(HabitTag(name = name, colorHex = colorHex))
+            _uiState.update { it.copy(tagId = id) }
+        }
+    }
 
     fun onDayToggle(day: DayOfWeek) {
         _uiState.update { state ->
@@ -132,6 +150,7 @@ class AddEditHabitViewModel @Inject constructor(
                 photoUri = state.photoUri,
                 isPhotoHidden = state.isPhotoHidden,
                 audioUri = state.audioUri,
+                tagId = state.tagId,
             )
 
             val savedId = if (editingHabitId == null) {

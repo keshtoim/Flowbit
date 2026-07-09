@@ -21,16 +21,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -38,6 +45,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -46,6 +56,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.flowbit.app.domain.model.GroupingMode
+import com.flowbit.app.domain.model.HabitFrequency
+import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.presentation.habits.components.HabitCard
 import com.flowbit.app.presentation.habits.components.WeekDatePicker
 import java.time.LocalDate
@@ -61,6 +74,8 @@ fun HabitListScreen(
     viewModel: HabitListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val allTags by viewModel.allTags.collectAsState()
+    var groupMenuExpanded by remember { mutableStateOf(false) }
 
     // Диалог подбадривания
     uiState.motivationQuote?.let { quote ->
@@ -98,18 +113,42 @@ fun HabitListScreen(
                 },
                 actions = {
                     IconButton(onClick = onStatisticsClick) {
-                        Icon(
-                            Icons.Default.BarChart,
-                            contentDescription = "Статистика",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
+                        Icon(Icons.Default.BarChart, contentDescription = "Статистика", tint = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Box {
+                        IconButton(onClick = { groupMenuExpanded = true }) {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = "Группировка",
+                                tint = if (uiState.groupingMode != GroupingMode.NONE)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = groupMenuExpanded,
+                            onDismissRequest = { groupMenuExpanded = false },
+                        ) {
+                            GroupingMode.entries.forEach { mode ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            mode.label,
+                                            fontWeight = if (uiState.groupingMode == mode) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (uiState.groupingMode == mode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        )
+                                    },
+                                    onClick = {
+                                        viewModel.setGroupingMode(mode)
+                                        groupMenuExpanded = false
+                                    },
+                                )
+                            }
+                        }
                     }
                     IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Настройки",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
+                        Icon(Icons.Default.Settings, contentDescription = "Настройки", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -182,23 +221,78 @@ fun HabitListScreen(
                 enter = fadeIn(tween(300)),
                 exit = fadeOut(tween(200)),
             ) {
+                val groups = remember(uiState.habits, uiState.groupingMode, allTags) {
+                    groupHabits(uiState.habits, uiState.groupingMode, allTags.associateBy { it.id })
+                }
+
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    items(uiState.habits, key = { it.habit.id }) { habitForDate ->
-                        HabitCard(
-                            habitForDate = habitForDate,
-                            onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
-                            onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
-                            onGiveUp = { viewModel.showMotivation() },
-                            onClick = { onHabitClick(habitForDate.habit.id) },
-                            modifier = Modifier.animateItemPlacement(),
-                        )
+                    groups.forEach { (groupName, habits) ->
+                        if (groupName != null) {
+                            stickyHeader(key = "header_$groupName") {
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.background,
+                                ) {
+                                    Text(
+                                        text = groupName,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(vertical = 6.dp),
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
+                            }
+                        }
+                        items(habits, key = { it.habit.id }) { habitForDate ->
+                            HabitCard(
+                                habitForDate = habitForDate,
+                                onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
+                                onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
+                                onGiveUp = { viewModel.showMotivation() },
+                                onClick = { onHabitClick(habitForDate.habit.id) },
+                                modifier = Modifier.animateItemPlacement(),
+                            )
+                        }
                     }
                     item { Spacer(Modifier.height(80.dp)) }
                 }
             }
+        }
+    }
+}
+
+private fun groupHabits(
+    habits: List<HabitForDate>,
+    mode: GroupingMode,
+    tagsById: Map<Long, com.flowbit.app.domain.model.HabitTag>,
+): List<Pair<String?, List<HabitForDate>>> = when (mode) {
+    GroupingMode.NONE -> listOf(null to habits)
+    GroupingMode.BY_TAG -> {
+        val withTag = habits.filter { it.habit.tagId != null }
+            .groupBy { tagsById[it.habit.tagId]?.name ?: "Неизвестный тег" }
+            .map { (name, list) -> name to list }
+            .sortedBy { it.first }
+        val withoutTag = habits.filter { it.habit.tagId == null }
+        if (withoutTag.isNotEmpty()) withTag + ("Без тега" to withoutTag)
+        else withTag
+    }
+    GroupingMode.BY_FREQUENCY -> {
+        val daily = habits.filter { it.habit.frequency == HabitFrequency.DAILY }
+        val scheduled = habits.filter { it.habit.frequency != HabitFrequency.DAILY }
+        buildList {
+            if (daily.isNotEmpty()) add("Ежедневные" to daily)
+            if (scheduled.isNotEmpty()) add("По расписанию" to scheduled)
+        }
+    }
+    GroupingMode.BY_STATUS -> {
+        val done = habits.filter { (it.entry?.completedCount ?: 0) >= it.habit.targetCount }
+        val notDone = habits.filter { (it.entry?.completedCount ?: 0) < it.habit.targetCount }
+        buildList {
+            if (notDone.isNotEmpty()) add("Не выполнено" to notDone)
+            if (done.isNotEmpty()) add("Выполнено ✓" to done)
         }
     }
 }
