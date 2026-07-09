@@ -111,6 +111,15 @@ class AddEditHabitViewModel @Inject constructor(
         }
     }
 
+    fun deleteTag(tag: HabitTag) {
+        viewModelScope.launch {
+            tagRepository.deleteTag(tag)
+            if (_uiState.value.tagId == tag.id) {
+                _uiState.update { it.copy(tagId = null) }
+            }
+        }
+    }
+
     fun onDayToggle(day: DayOfWeek) {
         _uiState.update { state ->
             val days = state.scheduledDays.toMutableSet()

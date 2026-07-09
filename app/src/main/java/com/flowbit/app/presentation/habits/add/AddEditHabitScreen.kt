@@ -102,6 +102,7 @@ fun AddEditHabitScreen(
                 selectedTagId = uiState.tagId,
                 onTagSelected = viewModel::onTagSelected,
                 onCreateTag = viewModel::createTag,
+                onDeleteTag = viewModel::deleteTag,
             )
         }
     }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Image
@@ -695,15 +696,35 @@ fun TagSection(
     selectedTagId: Long?,
     onTagSelected: (Long?) -> Unit,
     onCreateTag: (name: String, colorHex: String) -> Unit,
+    onDeleteTag: (HabitTag) -> Unit = {},
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var newTagName by remember { mutableStateOf("") }
     var newTagColor by remember { mutableStateOf("#4A90E2") }
+    var tagToDelete by remember { mutableStateOf<HabitTag?>(null) }
 
     val tagColors = listOf(
         "#4A90E2", "#2ECC71", "#E74C3C", "#9B59B6",
         "#E67E22", "#00E5C0", "#FF69B4", "#F1C40F",
     )
+
+    tagToDelete?.let { tag ->
+        AlertDialog(
+            onDismissRequest = { tagToDelete = null },
+            title = { Text("Удалить тег") },
+            text = { Text("Удалить тег «${tag.name}»? Привычки с этим тегом останутся, но тег будет снят.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteTag(tag)
+                    if (selectedTagId == tag.id) onTagSelected(null)
+                    tagToDelete = null
+                }) { Text("Удалить", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { tagToDelete = null }) { Text("Отмена") }
+            },
+        )
+    }
 
     if (showDialog) {
         AlertDialog(
@@ -771,6 +792,16 @@ fun TagSection(
                         label = { Text(tag.name) },
                         leadingIcon = {
                             Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
+                        },
+                        trailingIcon = {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Удалить тег",
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .clickable { tagToDelete = tag },
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         },
                     )
                 }
