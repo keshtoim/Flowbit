@@ -24,6 +24,8 @@ data class HabitEntity(
     val createdAt: String,
     val sortOrder: Int = 0,
     val photoUri: String? = null,
+    val isPhotoHidden: Boolean = false,
+    val audioUri: String? = null,
 ) {
     fun toDomain(): Habit = Habit(
         id = id,
@@ -42,6 +44,8 @@ data class HabitEntity(
         createdAt = LocalDate.parse(createdAt),
         sortOrder = sortOrder,
         photoUri = photoUri,
+        isPhotoHidden = isPhotoHidden,
+        audioUri = audioUri,
     )
 
     companion object {
@@ -59,6 +63,8 @@ data class HabitEntity(
             createdAt = habit.createdAt.toString(),
             sortOrder = habit.sortOrder,
             photoUri = habit.photoUri,
+            isPhotoHidden = habit.isPhotoHidden,
+            audioUri = habit.audioUri,
         )
     }
 }

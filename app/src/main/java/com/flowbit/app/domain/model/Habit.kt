@@ -19,6 +19,8 @@ data class Habit(
     val createdAt: LocalDate = LocalDate.now(),
     val sortOrder: Int = 0,
     val photoUri: String? = null,
+    val isPhotoHidden: Boolean = false,
+    val audioUri: String? = null,
 )
 
 data class HabitReminder(

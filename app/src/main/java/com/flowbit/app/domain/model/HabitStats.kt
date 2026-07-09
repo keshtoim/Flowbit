@@ -11,6 +11,8 @@ data class HabitStats(
     val longestStreak: Int,
     val totalCompletions: Int,
     val completedDates: List<LocalDate>,
+    val photoUri: String? = null,
+    val audioUri: String? = null,
 )
 
 data class OverallStats(
