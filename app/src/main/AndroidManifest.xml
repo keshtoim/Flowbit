@@ -30,7 +30,7 @@
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
 
-        <!-- Widget Provider -->
+        <!-- Widget: недельный трекер -->
         <receiver
             android:name=".widget.HabitsWidgetReceiver"
             android:exported="true">
@@ -40,6 +40,30 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/habits_widget_info" />
+        </receiver>
+
+        <!-- Widget: итоги дня -->
+        <receiver
+            android:name=".widget.TodaySummaryWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/today_summary_widget_info" />
+        </receiver>
+
+        <!-- Widget: одна привычка -->
+        <receiver
+            android:name=".widget.SingleHabitWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/single_habit_widget_info" />
         </receiver>
 
         <!-- Reminder BroadcastReceiver -->
