@@ -26,8 +26,10 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.NoteAdd
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,8 +37,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -75,6 +79,28 @@ fun HabitDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(habitId) { viewModel.load(habitId) }
+
+    if (uiState.noteDialogOpen) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissNoteDialog,
+            title = { Text("Заметка на сегодня") },
+            text = {
+                OutlinedTextField(
+                    value = uiState.noteInput,
+                    onValueChange = viewModel::onNoteInputChange,
+                    placeholder = { Text("Как прошло?") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 5,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::saveNote) { Text("Сохранить") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissNoteDialog) { Text("Отмена") }
+            },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -171,6 +197,45 @@ fun HabitDetailScreen(
                             completedDates = stats.completedDates,
                             modifier = Modifier.padding(16.dp),
                         )
+                    }
+                }
+
+                // Заметка на сегодня
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                Icons.Default.NoteAdd,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp),
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Заметка на сегодня",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                if (uiState.todayNote != null) {
+                                    Spacer(Modifier.height(2.dp))
+                                    Text(
+                                        text = uiState.todayNote,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                            }
+                            TextButton(onClick = viewModel::openNoteDialog) {
+                                Text(if (uiState.todayNote == null) "Добавить" else "Изменить")
+                            }
+                        }
                     }
                 }
 

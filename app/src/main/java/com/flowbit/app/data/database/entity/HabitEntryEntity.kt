@@ -25,12 +25,14 @@ data class HabitEntryEntity(
     val habitId: Long,
     val date: String,
     val completedCount: Int,
+    val note: String? = null,
 ) {
     fun toDomain(): HabitEntry = HabitEntry(
         id = id,
         habitId = habitId,
         date = LocalDate.parse(date),
         completedCount = completedCount,
+        note = note,
     )
 
     companion object {
@@ -39,6 +41,7 @@ data class HabitEntryEntity(
             habitId = entry.habitId,
             date = entry.date.toString(),
             completedCount = entry.completedCount,
+            note = entry.note,
         )
     }
 }
