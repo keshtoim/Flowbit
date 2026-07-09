@@ -22,6 +22,8 @@ data class Habit(
     val isPhotoHidden: Boolean = false,
     val audioUri: String? = null,
     val tagId: Long? = null,
+    val periodGoalType: PeriodGoalType = PeriodGoalType.NONE,
+    val periodGoalCount: Int = 0,
 )
 
 data class HabitReminder(
@@ -35,6 +37,12 @@ enum class HabitFrequency {
     DAILY,
     WEEKLY,
     CUSTOM,
+}
+
+enum class PeriodGoalType(val label: String) {
+    NONE("Без цели"),
+    WEEKLY("Раз в неделю"),
+    MONTHLY("Раз в месяц"),
 }
 
 enum class HabitColor(val hex: String) {

@@ -91,6 +91,12 @@ fun AddEditHabitScreen(
                 audioUri = uiState.audioUri,
                 onAudioSelected = viewModel::onAudioSelected,
             )
+            PeriodGoalSection(
+                periodGoalType = uiState.periodGoalType,
+                periodGoalCount = uiState.periodGoalCount,
+                onTypeChange = viewModel::onPeriodGoalTypeChange,
+                onCountChange = viewModel::onPeriodGoalCountChange,
+            )
             TagSection(
                 tags = allTags,
                 selectedTagId = uiState.tagId,

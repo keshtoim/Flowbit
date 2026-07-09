@@ -7,6 +7,7 @@ import com.flowbit.app.domain.model.HabitColor
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.model.HabitReminder
 import com.flowbit.app.domain.model.HabitTag
+import com.flowbit.app.domain.model.PeriodGoalType
 import com.flowbit.app.domain.repository.HabitRepository
 import com.flowbit.app.domain.repository.ReminderRepository
 import com.flowbit.app.domain.repository.TagRepository
@@ -39,6 +40,8 @@ data class AddEditHabitUiState(
     val isPhotoHidden: Boolean = false,
     val audioUri: String? = null,
     val tagId: Long? = null,
+    val periodGoalType: PeriodGoalType = PeriodGoalType.NONE,
+    val periodGoalCount: Int = 4,
     val isSaved: Boolean = false,
     val nameError: String? = null,
 )
@@ -80,6 +83,8 @@ class AddEditHabitViewModel @Inject constructor(
                     isPhotoHidden = habit.isPhotoHidden,
                     audioUri = habit.audioUri,
                     tagId = habit.tagId,
+                    periodGoalType = habit.periodGoalType,
+                    periodGoalCount = habit.periodGoalCount,
                 )
             }
         }
@@ -96,6 +101,8 @@ class AddEditHabitViewModel @Inject constructor(
     fun onIsPhotoHiddenChange(hidden: Boolean) = _uiState.update { it.copy(isPhotoHidden = hidden) }
     fun onAudioSelected(uri: String?) = _uiState.update { it.copy(audioUri = uri) }
     fun onTagSelected(tagId: Long?) = _uiState.update { it.copy(tagId = tagId) }
+    fun onPeriodGoalTypeChange(type: PeriodGoalType) = _uiState.update { it.copy(periodGoalType = type) }
+    fun onPeriodGoalCountChange(count: Int) = _uiState.update { it.copy(periodGoalCount = count.coerceIn(1, 31)) }
 
     fun createTag(name: String, colorHex: String) {
         viewModelScope.launch {
@@ -151,6 +158,8 @@ class AddEditHabitViewModel @Inject constructor(
                 isPhotoHidden = state.isPhotoHidden,
                 audioUri = state.audioUri,
                 tagId = state.tagId,
+                periodGoalType = state.periodGoalType,
+                periodGoalCount = if (state.periodGoalType == PeriodGoalType.NONE) 0 else state.periodGoalCount,
             )
 
             val savedId = if (editingHabitId == null) {
