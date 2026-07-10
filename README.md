@@ -120,14 +120,6 @@ app/
 
 ---
 
-## Скриншоты
-
-> Добавьте скриншоты в `docs/screenshots/` и вставьте их здесь.
-
----
-
-<div align="center">
-
 MIT License · made with ❤️ by [Keshtoim](https://github.com/keshtoim)
 
 </div>
