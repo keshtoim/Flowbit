@@ -24,15 +24,12 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
-import androidx.glance.material3.ColorProviders
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.flowbit.app.presentation.MainActivity
-import com.flowbit.app.presentation.theme.DarkColorScheme
-import com.flowbit.app.presentation.theme.LightColorScheme
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -74,7 +71,7 @@ class SingleHabitWidget : GlanceAppWidget() {
         }
 
         provideContent {
-            GlanceTheme(colors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)) {
+            GlanceTheme {
                 val bg = GlanceTheme.colors.widgetBackground
                 val primary = GlanceTheme.colors.primary
                 val onSurface = GlanceTheme.colors.onSurface
