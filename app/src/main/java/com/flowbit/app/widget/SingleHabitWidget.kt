@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -15,6 +16,7 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -29,6 +31,7 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import com.flowbit.app.data.database.entity.HabitEntity
 import com.flowbit.app.presentation.MainActivity
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
@@ -44,33 +47,48 @@ class SingleHabitWidget : GlanceAppWidget() {
         val today = LocalDate.now()
         val todayStr = today.toString()
 
-        // Читаем выбранную привычку из state, иначе fallback на первую с showInWidget или первую активную
-        val state = androidx.glance.appwidget.state.getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
-        val pinnedId = state[PINNED_HABIT_KEY]
+        // Загружаем все привычки заранее — фильтрация внутри provideContent
+        // через currentState<Preferences>(), который реагирует на изменения стейта реактивно
+        val allHabits = db.habitDao().getActiveHabits().first()
 
-        val habit = if (pinnedId != null) {
-            db.habitDao().getHabitById(pinnedId)
-        } else {
-            db.habitDao().getWidgetHabits().first().firstOrNull()
-                ?: db.habitDao().getActiveHabits().first().firstOrNull()
-        }
+        data class HabitStats(val completedCount: Int, val isDone: Boolean, val streak: Int)
 
-        val entry = habit?.let { db.habitDao().getEntryForDate(it.id, todayStr) }
-        val completedCount = entry?.completedCount ?: 0
-        val isDone = habit != null && completedCount >= habit.targetCount
-        val allEntries = habit?.let { db.habitDao().getAllEntriesForHabit(it.id) } ?: emptyList()
-        val completedDates = allEntries
-            .filter { it.completedCount >= (habit?.targetCount ?: 1) }
-            .map { LocalDate.parse(it.date) }
-            .toHashSet()
-        var streak = 0
-        var cur = today
-        while (habit != null && (cur in completedDates || (cur == today && isDone))) {
-            if (cur in completedDates) { streak++; cur = cur.minusDays(1) }
-            else break
+        val statsMap: Map<Long, HabitStats> = buildMap {
+            for (habit in allHabits) {
+                val entry = db.habitDao().getEntryForDate(habit.id, todayStr)
+                val completedCount = entry?.completedCount ?: 0
+                val isDone = completedCount >= habit.targetCount
+                val allEntries = db.habitDao().getAllEntriesForHabit(habit.id)
+                val completedDates = allEntries
+                    .filter { it.completedCount >= habit.targetCount }
+                    .map { LocalDate.parse(it.date) }
+                    .toHashSet()
+                var streak = 0
+                var cur = today
+                while (cur in completedDates || (cur == today && isDone)) {
+                    if (cur in completedDates) { streak++; cur = cur.minusDays(1) }
+                    else break
+                }
+                put(habit.id, HabitStats(completedCount, isDone, streak))
+            }
         }
 
         provideContent {
+            // currentState() реагирует на updateAppWidgetState из конфиг-активити
+            val prefs = currentState<Preferences>()
+            val pinnedId = prefs[PINNED_HABIT_KEY]
+
+            val habit: HabitEntity? = if (pinnedId != null) {
+                allHabits.find { it.id == pinnedId }
+            } else {
+                allHabits.firstOrNull { it.showInWidget } ?: allHabits.firstOrNull()
+            }
+
+            val stats = habit?.let { statsMap[it.id] }
+            val completedCount = stats?.completedCount ?: 0
+            val isDone = stats?.isDone ?: false
+            val streak = stats?.streak ?: 0
+
             GlanceTheme {
                 val bg = GlanceTheme.colors.widgetBackground
                 val primary = GlanceTheme.colors.primary
@@ -106,7 +124,11 @@ class SingleHabitWidget : GlanceAppWidget() {
                             Spacer(GlanceModifier.height(6.dp))
                             Text(
                                 text = habit.name,
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, color = onSurface),
+                                style = TextStyle(
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = onSurface,
+                                ),
                                 maxLines = 1,
                             )
                             Spacer(GlanceModifier.height(8.dp))
@@ -121,7 +143,10 @@ class SingleHabitWidget : GlanceAppWidget() {
                                 )
                                 if (streak > 0) {
                                     Spacer(GlanceModifier.width(8.dp))
-                                    Text("🔥$streak", style = TextStyle(fontSize = 14.sp, color = onSurface))
+                                    Text(
+                                        "🔥$streak",
+                                        style = TextStyle(fontSize = 14.sp, color = onSurface),
+                                    )
                                 }
                             }
                         }
