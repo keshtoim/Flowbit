@@ -30,7 +30,6 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
-import androidx.glance.material3.ColorProviders
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -39,8 +38,6 @@ import androidx.glance.unit.ColorProvider
 import com.flowbit.app.data.database.entity.HabitEntryEntity
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.presentation.MainActivity
-import com.flowbit.app.presentation.theme.DarkColorScheme
-import com.flowbit.app.presentation.theme.LightColorScheme
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.time.DayOfWeek
@@ -70,7 +67,7 @@ class HabitsWidget : GlanceAppWidget() {
 
         provideContent {
             val widgetSize = LocalSize.current
-            GlanceTheme(colors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)) {
+            GlanceTheme {
                 WidgetContent(
                     context = context,
                     habits = habits,
