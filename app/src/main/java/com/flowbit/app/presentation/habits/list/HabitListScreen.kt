@@ -77,6 +77,21 @@ fun HabitListScreen(
     val allTags by viewModel.allTags.collectAsState()
     var groupMenuExpanded by remember { mutableStateOf(false) }
 
+    // Диалог подтверждения отмены пропуска
+    if (uiState.unSkipRequestId != null) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissUnSkip,
+            title = { Text("Отменить пропуск?") },
+            text = { Text("Привычка снова будет считаться невыполненной. Продолжить?") },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmUnSkip) { Text("Да, отменить") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissUnSkip) { Text("Нет") }
+            },
+        )
+    }
+
     // Диалог подбадривания
     uiState.motivationQuote?.let { quote ->
         AlertDialog(
@@ -259,6 +274,8 @@ fun HabitListScreen(
                                 onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
                                 onGiveUp = { viewModel.showMotivation() },
                                 onClick = { onHabitClick(habitForDate.habit.id) },
+                                onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
+                                onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                 modifier = Modifier.animateItemPlacement(),
                             )
                         }

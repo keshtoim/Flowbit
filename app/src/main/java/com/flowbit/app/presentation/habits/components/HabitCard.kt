@@ -58,10 +58,13 @@ fun HabitCard(
     onGiveUp: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onSkip: () -> Unit = {},
+    onUnSkipRequest: () -> Unit = {},
 ) {
     val habit = habitForDate.habit
-    val completedCount = habitForDate.entry?.completedCount ?: 0
-    val isCompleted = completedCount >= habit.targetCount
+    val isSkipped = habitForDate.entry?.isSkipped ?: false
+    val completedCount = if (isSkipped) 0 else (habitForDate.entry?.completedCount ?: 0)
+    val isCompleted = !isSkipped && completedCount >= habit.targetCount
 
     val habitColor = remember(habit.color.hex) {
         try { Color(android.graphics.Color.parseColor(habit.color.hex)) }
@@ -69,8 +72,13 @@ fun HabitCard(
     }
     val surface = MaterialTheme.colorScheme.surface
 
+    val skippedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
     val cardColor by animateColorAsState(
-        targetValue = if (isCompleted) habitColor.copy(alpha = 0.12f) else surface,
+        targetValue = when {
+            isSkipped -> skippedColor
+            isCompleted -> habitColor.copy(alpha = 0.12f)
+            else -> surface
+        },
         animationSpec = tween(300),
         label = "cardColor",
     )
@@ -134,12 +142,27 @@ fun HabitCard(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
-                    if (habit.targetCount > 1) {
-                        Spacer(Modifier.height(6.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    if (isSkipped) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "Пропущено —",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
+                        TextButton(
+                            onClick = onUnSkipRequest,
+                            modifier = Modifier.height(28.dp),
+                            contentPadding = PaddingValues(horizontal = 0.dp),
                         ) {
+                            Text(
+                                text = "Отменить пропуск",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                            )
+                        }
+                    } else {
+                        if (habit.targetCount > 1) {
+                            Spacer(Modifier.height(6.dp))
                             Text(
                                 text = "$completedCount / ${habit.targetCount}",
                                 style = MaterialTheme.typography.bodySmall,
@@ -147,48 +170,60 @@ fun HabitCard(
                                         else MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
                             )
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        LinearProgressIndicator(
-                            progress = { completedCount.toFloat() / habit.targetCount },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            color = habitColor,
-                            trackColor = habitColor.copy(alpha = 0.2f),
-                        )
-                    } else if (isCompleted) {
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = "Выполнено ✓",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = habitColor,
-                            fontWeight = FontWeight.Medium,
-                        )
-                    }
-
-                    // Кнопка подбадривания — только когда не выполнено
-                    if (!isCompleted) {
-                        TextButton(
-                            onClick = onGiveUp,
-                            modifier = Modifier.height(28.dp),
-                            contentPadding = PaddingValues(horizontal = 0.dp),
-                        ) {
-                            Text(
-                                text = "Не могу сегодня...",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            Spacer(Modifier.height(6.dp))
+                            LinearProgressIndicator(
+                                progress = { completedCount.toFloat() / habit.targetCount },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
+                                color = habitColor,
+                                trackColor = habitColor.copy(alpha = 0.2f),
                             )
+                        } else if (isCompleted) {
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = "Выполнено ✓",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = habitColor,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
+
+                        if (!isCompleted) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                                TextButton(
+                                    onClick = onGiveUp,
+                                    modifier = Modifier.height(28.dp),
+                                    contentPadding = PaddingValues(horizontal = 0.dp),
+                                ) {
+                                    Text(
+                                        text = "Не могу сегодня",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    )
+                                }
+                                TextButton(
+                                    onClick = onSkip,
+                                    modifier = Modifier.height(28.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp),
+                                ) {
+                                    Text(
+                                        text = "· Пропустить",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
                 Spacer(Modifier.width(8.dp))
 
-                // Кнопка "−" — появляется при completedCount > 0
+                // Кнопка "−" — появляется при completedCount > 0 и не пропущено
                 AnimatedVisibility(
-                    visible = completedCount > 0,
+                    visible = completedCount > 0 && !isSkipped,
                     enter = scaleIn(tween(180)) + fadeIn(tween(180)),
                     exit = scaleOut(tween(180)) + fadeOut(tween(180)),
                 ) {
@@ -207,23 +242,25 @@ fun HabitCard(
 
                 Spacer(Modifier.width(4.dp))
 
-                // Главная кнопка-галочка
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .scale(buttonScale)
-                        .clip(CircleShape)
-                        .background(buttonColor)
-                        .clickable(onClick = onToggle),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (isCompleted) {
-                        Icon(
-                            Icons.Default.Check,
-                            contentDescription = "Выполнено",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp),
-                        )
+                // Главная кнопка-галочка (скрыта когда пропущено)
+                if (!isSkipped) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .scale(buttonScale)
+                            .clip(CircleShape)
+                            .background(buttonColor)
+                            .clickable(onClick = onToggle),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (isCompleted) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = "Выполнено",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
                     }
                 }
             }

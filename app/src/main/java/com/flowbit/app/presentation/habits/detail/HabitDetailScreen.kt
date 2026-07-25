@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NoteAdd
@@ -85,6 +86,41 @@ fun HabitDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(habitId) { viewModel.load(habitId) }
 
+    // Диалог удаления
+    if (uiState.deleteConfirmOpen) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissDeleteConfirm,
+            title = { Text("Удалить привычку?") },
+            text = { Text("Все данные и история будут удалены безвозвратно.") },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.confirmDelete(onBack) },
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
+                ) { Text("Удалить") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissDeleteConfirm) { Text("Отмена") }
+            },
+        )
+    }
+
+    // Диалог подтверждения отмены пропуска
+    if (uiState.unSkipConfirmOpen) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissUnSkip,
+            title = { Text("Отменить пропуск?") },
+            text = { Text("Привычка снова будет считаться невыполненной.") },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmUnSkip) { Text("Да, отменить") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissUnSkip) { Text("Нет") }
+            },
+        )
+    }
+
     if (uiState.noteDialogOpen) {
         AlertDialog(
             onDismissRequest = viewModel::dismissNoteDialog,
@@ -119,6 +155,13 @@ fun HabitDetailScreen(
                 actions = {
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Default.Edit, "Редактировать")
+                    }
+                    IconButton(onClick = viewModel::openDeleteConfirm) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Удалить",
+                            tint = MaterialTheme.colorScheme.error,
+                        )
                     }
                 },
             )
@@ -187,6 +230,42 @@ fun HabitDetailScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                        }
+                    }
+                }
+
+                // Блок пропуска на сегодня
+                item {
+                    if (uiState.isTodaySkipped) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            ),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "⏭ Сегодня пропущено",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                TextButton(onClick = viewModel::requestUnSkip) {
+                                    Text("Отменить", color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        }
+                    } else {
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = viewModel::skipToday,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            Text("⏭ Пропустить сегодня")
                         }
                     }
                 }
