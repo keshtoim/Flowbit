@@ -102,6 +102,9 @@ dependencies {
     // Image Cropper
     implementation(libs.image.cropper)
 
+    // Drag-and-drop reorder
+    implementation(libs.reorderable)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
