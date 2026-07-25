@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +63,8 @@ import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.presentation.habits.components.HabitCard
 import com.flowbit.app.presentation.habits.components.WeekDatePicker
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.LocalDate
 import kotlin.math.abs
 
@@ -76,6 +80,17 @@ fun HabitListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val allTags by viewModel.allTags.collectAsState()
     var groupMenuExpanded by remember { mutableStateOf(false) }
+
+    // Drag-and-drop state
+    var draggableHabits by remember { mutableStateOf(uiState.habits) }
+    var isDragging by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.habits) {
+        if (!isDragging) draggableHabits = uiState.habits
+    }
+    val lazyListState = rememberLazyListState()
+    val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        draggableHabits = draggableHabits.toMutableList().apply { add(to.index, removeAt(from.index)) }
+    }
 
     // Диалог подтверждения отмены пропуска
     if (uiState.unSkipRequestId != null) {
@@ -242,42 +257,68 @@ fun HabitListScreen(
                 enter = fadeIn(tween(300)),
                 exit = fadeOut(tween(200)),
             ) {
+                val isGrouped = uiState.groupingMode != GroupingMode.NONE
                 val groups = remember(uiState.habits, uiState.groupingMode, allTags) {
                     groupHabits(uiState.habits, uiState.groupingMode, allTags.associateBy { it.id })
                 }
 
                 LazyColumn(
+                    state = lazyListState,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    groups.forEach { (groupName, habits) ->
-                        if (groupName != null) {
-                            stickyHeader(key = "header_$groupName") {
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.background,
-                                ) {
-                                    Text(
-                                        text = groupName,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(vertical = 6.dp),
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
+                    if (isGrouped) {
+                        // Группировка — без drag-and-drop
+                        groups.forEach { (groupName, habits) ->
+                            if (groupName != null) {
+                                stickyHeader(key = "header_$groupName") {
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        color = MaterialTheme.colorScheme.background,
+                                    ) {
+                                        Text(
+                                            text = groupName,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(vertical = 6.dp),
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                    }
                                 }
                             }
+                            items(habits, key = { it.habit.id }) { habitForDate ->
+                                HabitCard(
+                                    habitForDate = habitForDate,
+                                    onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
+                                    onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
+                                    onGiveUp = { viewModel.showMotivation() },
+                                    onClick = { onHabitClick(habitForDate.habit.id) },
+                                    onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
+                                    onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
+                                )
+                            }
                         }
-                        items(habits, key = { it.habit.id }) { habitForDate ->
-                            HabitCard(
-                                habitForDate = habitForDate,
-                                onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
-                                onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
-                                onGiveUp = { viewModel.showMotivation() },
-                                onClick = { onHabitClick(habitForDate.habit.id) },
-                                onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
-                                onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
-                                modifier = Modifier.animateItemPlacement(),
-                            )
+                    } else {
+                        // Без группировки — drag-and-drop через удержание
+                        items(draggableHabits, key = { it.habit.id }) { habitForDate ->
+                            ReorderableItem(reorderState, key = habitForDate.habit.id) { isDraggingItem ->
+                                HabitCard(
+                                    habitForDate = habitForDate,
+                                    onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
+                                    onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
+                                    onGiveUp = { viewModel.showMotivation() },
+                                    onClick = { onHabitClick(habitForDate.habit.id) },
+                                    onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
+                                    onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
+                                    modifier = Modifier.longPressDraggableHandle(
+                                        onDragStarted = { isDragging = true },
+                                        onDragStopped = {
+                                            isDragging = false
+                                            viewModel.persistReorder(draggableHabits)
+                                        },
+                                    ),
+                                )
+                            }
                         }
                     }
                     item { Spacer(Modifier.height(80.dp)) }

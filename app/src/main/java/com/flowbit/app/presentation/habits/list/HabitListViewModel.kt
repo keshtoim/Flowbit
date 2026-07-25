@@ -120,4 +120,12 @@ class HabitListViewModel @Inject constructor(
     fun dismissUnSkip() {
         _uiState.update { it.copy(unSkipRequestId = null) }
     }
+
+    fun persistReorder(habits: List<HabitForDate>) {
+        viewModelScope.launch {
+            habits.forEachIndexed { index, habitForDate ->
+                habitRepository.updateSortOrder(habitForDate.habit.id, index)
+            }
+        }
+    }
 }
