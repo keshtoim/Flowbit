@@ -3,7 +3,9 @@ package com.flowbit.app.presentation.habits.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.GroupingMode
+import com.flowbit.app.domain.model.HabitEntry
 import com.flowbit.app.domain.model.HabitTag
+import com.flowbit.app.domain.repository.HabitRepository
 import com.flowbit.app.domain.repository.TagRepository
 import com.flowbit.app.domain.usecase.habit.DecreaseHabitEntryUseCase
 import com.flowbit.app.presentation.habits.list.randomQuote
@@ -30,6 +32,7 @@ data class HabitListUiState(
     val isLoading: Boolean = false,
     val motivationQuote: String? = null,
     val groupingMode: GroupingMode = GroupingMode.NONE,
+    val unSkipRequestId: Long? = null,
 )
 
 @HiltViewModel
@@ -38,6 +41,7 @@ class HabitListViewModel @Inject constructor(
     private val toggleHabitEntry: ToggleHabitEntryUseCase,
     private val decreaseHabitEntry: DecreaseHabitEntryUseCase,
     private val tagRepository: TagRepository,
+    private val habitRepository: HabitRepository,
 ) : ViewModel() {
 
     val allTags: StateFlow<List<HabitTag>> = tagRepository.getAllTags()
@@ -85,5 +89,35 @@ class HabitListViewModel @Inject constructor(
 
     fun setGroupingMode(mode: GroupingMode) {
         _uiState.update { it.copy(groupingMode = mode) }
+    }
+
+    fun skipHabit(habitId: Long) {
+        viewModelScope.launch {
+            val date = _uiState.value.selectedDate
+            val existing = habitRepository.getEntryForDate(habitId, date)
+            val entry = existing?.copy(completedCount = 0, isSkipped = true)
+                ?: HabitEntry(habitId = habitId, date = date, completedCount = 0, isSkipped = true)
+            habitRepository.upsertEntry(entry)
+        }
+    }
+
+    fun requestUnSkip(habitId: Long) {
+        _uiState.update { it.copy(unSkipRequestId = habitId) }
+    }
+
+    fun confirmUnSkip() {
+        val habitId = _uiState.value.unSkipRequestId ?: return
+        viewModelScope.launch {
+            val date = _uiState.value.selectedDate
+            val existing = habitRepository.getEntryForDate(habitId, date)
+            if (existing != null) {
+                habitRepository.upsertEntry(existing.copy(isSkipped = false))
+            }
+            _uiState.update { it.copy(unSkipRequestId = null) }
+        }
+    }
+
+    fun dismissUnSkip() {
+        _uiState.update { it.copy(unSkipRequestId = null) }
     }
 }
