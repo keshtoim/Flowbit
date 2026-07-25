@@ -8,6 +8,7 @@ data class HabitEntry(
     val date: LocalDate,
     val completedCount: Int = 0,
     val note: String? = null,
+    val isSkipped: Boolean = false,
 )
 
 data class HabitWithEntries(
