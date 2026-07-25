@@ -25,6 +25,9 @@
 | 📝 | Заметка к каждому дню выполнения |
 | 🖼️ | Фото с кадрированием; можно скрыть на общем экране |
 | 🎵 | Аудиофайл с воспроизведением прямо в приложении |
+| ⏭ | Пропуск дня — намеренно, с возможностью отмены через подтверждение |
+| 🗑️ | Удаление привычки из детального экрана |
+| ↕️ | Перетаскивание карточек удержанием для изменения порядка |
 
 ### Аналитика
 | | |
@@ -59,7 +62,8 @@
 | UI | Jetpack Compose + Material 3 |
 | Виджеты | Jetpack Glance 1.1 · `SizeMode.Exact` · `PreferencesGlanceStateDefinition` |
 | DI | Hilt |
-| БД | Room 2.6 · SQLite · v7 |
+| БД | Room 2.6 · SQLite · v8 |
+| Drag-and-drop | sh.calvin.reorderable 2.4 |
 | Изображения | Coil 2.6 · android-image-cropper 4.7 (`com.vanniktech`) |
 | Аудио | `android.media.MediaPlayer` |
 | Фон | AlarmManager · WorkManager |
@@ -90,7 +94,7 @@ APK → `app/build/outputs/apk/debug/app-debug.apk`
 ```
 app/
 ├── data/
-│   ├── database/       # Room: сущности, DAO, миграции (v1→v7)
+│   ├── database/       # Room: сущности, DAO, миграции (v1→v8)
 │   └── repository/     # Реализации репозиториев
 ├── domain/
 │   ├── model/          # Habit, HabitTag, HabitEntry, HabitStats…
