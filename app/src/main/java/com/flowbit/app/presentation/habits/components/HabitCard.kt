@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -60,6 +61,7 @@ fun HabitCard(
     modifier: Modifier = Modifier,
     onSkip: () -> Unit = {},
     onUnSkipRequest: () -> Unit = {},
+    onTimer: () -> Unit = {},
 ) {
     val habit = habitForDate.habit
     val isSkipped = habitForDate.entry?.isSkipped ?: false
@@ -151,20 +153,23 @@ fun HabitCard(
                         )
                         TextButton(
                             onClick = onUnSkipRequest,
-                            modifier = Modifier.height(28.dp),
-                            contentPadding = PaddingValues(horizontal = 0.dp),
+                            modifier = Modifier.height(32.dp),
+                            contentPadding = PaddingValues(horizontal = 2.dp),
                         ) {
                             Text(
                                 text = "Отменить пропуск",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                             )
                         }
                     } else {
                         if (habit.targetCount > 1) {
                             Spacer(Modifier.height(6.dp))
                             Text(
-                                text = "$completedCount / ${habit.targetCount}",
+                                text = buildString {
+                                    append("$completedCount / ${habit.targetCount}")
+                                    if (!habit.unit.isNullOrEmpty()) append(" ${habit.unit}")
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (isCompleted) habitColor
                                         else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -191,27 +196,36 @@ fun HabitCard(
                         }
 
                         if (!isCompleted) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                            Spacer(Modifier.height(2.dp))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
                                 TextButton(
                                     onClick = onGiveUp,
-                                    modifier = Modifier.height(28.dp),
-                                    contentPadding = PaddingValues(horizontal = 0.dp),
+                                    modifier = Modifier.height(34.dp),
+                                    contentPadding = PaddingValues(horizontal = 6.dp),
                                 ) {
                                     Text(
                                         text = "Не могу сегодня",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                                     )
                                 }
+                                Text(
+                                    text = "·",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                                )
                                 TextButton(
                                     onClick = onSkip,
-                                    modifier = Modifier.height(28.dp),
-                                    contentPadding = PaddingValues(horizontal = 8.dp),
+                                    modifier = Modifier.height(34.dp),
+                                    contentPadding = PaddingValues(horizontal = 6.dp),
                                 ) {
                                     Text(
-                                        text = "· Пропустить",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        text = "Пропустить",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                                     )
                                 }
                             }
@@ -236,6 +250,21 @@ fun HabitCard(
                             contentDescription = "Уменьшить",
                             tint = habitColor,
                             modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+
+                // Кнопка таймера — показывается если таймер задан и не выполнено
+                if (habit.timerSeconds > 0 && !isCompleted && !isSkipped) {
+                    IconButton(
+                        onClick = onTimer,
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.Timer,
+                            contentDescription = "Запустить таймер",
+                            tint = habitColor,
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 }

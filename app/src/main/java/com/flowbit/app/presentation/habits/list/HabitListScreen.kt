@@ -92,6 +92,17 @@ fun HabitListScreen(
         draggableHabits = draggableHabits.toMutableList().apply { add(to.index, removeAt(from.index)) }
     }
 
+    // Диалог таймера
+    val timerHabitId = uiState.timerHabitId
+    if (timerHabitId != null) {
+        val habitName = uiState.habits.find { it.habit.id == timerHabitId }?.habit?.name ?: ""
+        TimerDialog(
+            habitName = habitName,
+            remainingSeconds = uiState.timerRemaining,
+            onStop = viewModel::stopTimer,
+        )
+    }
+
     // Диалог подтверждения отмены пропуска
     if (uiState.unSkipRequestId != null) {
         AlertDialog(
@@ -295,6 +306,7 @@ fun HabitListScreen(
                                     onClick = { onHabitClick(habitForDate.habit.id) },
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
+                                    onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                 )
                             }
                         }

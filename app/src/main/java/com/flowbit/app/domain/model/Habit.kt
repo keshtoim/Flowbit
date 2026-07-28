@@ -24,6 +24,8 @@ data class Habit(
     val tagId: Long? = null,
     val periodGoalType: PeriodGoalType = PeriodGoalType.NONE,
     val periodGoalCount: Int = 0,
+    val unit: String? = null,
+    val timerSeconds: Int = 0,
 )
 
 data class HabitReminder(

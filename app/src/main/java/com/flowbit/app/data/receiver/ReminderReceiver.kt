@@ -45,6 +45,17 @@ class ReminderReceiver : BroadcastReceiver() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
 
+                val doneIntent = Intent(context, HabitDoneReceiver::class.java).apply {
+                    putExtra(HabitDoneReceiver.EXTRA_HABIT_ID, habitId)
+                    putExtra(HabitDoneReceiver.EXTRA_NOTIFICATION_ID, reminderId.toInt())
+                }
+                val donePendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    (habitId * 1000 + reminderId).toInt(),
+                    doneIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+
                 val notification = NotificationCompat.Builder(context, FlowbitApp.REMINDER_CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_notification)
                     .setContentTitle(title)
@@ -52,6 +63,7 @@ class ReminderReceiver : BroadcastReceiver() {
                     .setContentIntent(pendingIntent)
                     .setAutoCancel(true)
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .addAction(0, "Выполнено ✓", donePendingIntent)
                     .build()
 
                 val manager = context.getSystemService(NotificationManager::class.java)

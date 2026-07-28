@@ -30,6 +30,8 @@ data class HabitEntity(
     val tagId: Long? = null,
     val periodGoalType: String = "NONE",
     val periodGoalCount: Int = 0,
+    val unit: String? = null,
+    val timerSeconds: Int = 0,
 ) {
     fun toDomain(): Habit = Habit(
         id = id,
@@ -53,6 +55,8 @@ data class HabitEntity(
         tagId = tagId,
         periodGoalType = try { PeriodGoalType.valueOf(periodGoalType) } catch (_: Exception) { PeriodGoalType.NONE },
         periodGoalCount = periodGoalCount,
+        unit = unit,
+        timerSeconds = timerSeconds,
     )
 
     companion object {
@@ -75,6 +79,8 @@ data class HabitEntity(
             tagId = habit.tagId,
             periodGoalType = habit.periodGoalType.name,
             periodGoalCount = habit.periodGoalCount,
+            unit = habit.unit,
+            timerSeconds = habit.timerSeconds,
         )
     }
 }

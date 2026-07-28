@@ -13,6 +13,8 @@ import com.flowbit.app.domain.usecase.habit.GetHabitsForDateUseCase
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.domain.usecase.habit.ToggleHabitEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +35,8 @@ data class HabitListUiState(
     val motivationQuote: String? = null,
     val groupingMode: GroupingMode = GroupingMode.NONE,
     val unSkipRequestId: Long? = null,
+    val timerHabitId: Long? = null,
+    val timerRemaining: Int = 0,
 )
 
 @HiltViewModel
@@ -49,6 +53,8 @@ class HabitListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(HabitListUiState())
     val uiState: StateFlow<HabitListUiState> = _uiState.asStateFlow()
+
+    private var timerJob: Job? = null
 
     private val selectedDate = MutableStateFlow(LocalDate.now())
 
@@ -119,6 +125,29 @@ class HabitListViewModel @Inject constructor(
 
     fun dismissUnSkip() {
         _uiState.update { it.copy(unSkipRequestId = null) }
+    }
+
+    fun startTimer(habitId: Long) {
+        val habit = _uiState.value.habits.find { it.habit.id == habitId }?.habit ?: return
+        if (habit.timerSeconds <= 0) return
+        timerJob?.cancel()
+        _uiState.update { it.copy(timerHabitId = habitId, timerRemaining = habit.timerSeconds) }
+        timerJob = viewModelScope.launch {
+            var remaining = habit.timerSeconds
+            while (remaining > 0) {
+                delay(1000L)
+                remaining--
+                _uiState.update { it.copy(timerRemaining = remaining) }
+            }
+            toggleHabit(habitId)
+            _uiState.update { it.copy(timerHabitId = null, timerRemaining = 0) }
+        }
+    }
+
+    fun stopTimer() {
+        timerJob?.cancel()
+        timerJob = null
+        _uiState.update { it.copy(timerHabitId = null, timerRemaining = 0) }
     }
 
     fun persistReorder(habits: List<HabitForDate>) {
