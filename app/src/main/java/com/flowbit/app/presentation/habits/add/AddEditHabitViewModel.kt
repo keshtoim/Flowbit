@@ -42,6 +42,8 @@ data class AddEditHabitUiState(
     val tagId: Long? = null,
     val periodGoalType: PeriodGoalType = PeriodGoalType.NONE,
     val periodGoalCount: Int = 4,
+    val unit: String = "",
+    val timerSeconds: Int = 0,
     val isSaved: Boolean = false,
     val nameError: String? = null,
 )
@@ -85,6 +87,8 @@ class AddEditHabitViewModel @Inject constructor(
                     tagId = habit.tagId,
                     periodGoalType = habit.periodGoalType,
                     periodGoalCount = habit.periodGoalCount,
+                    unit = habit.unit ?: "",
+                    timerSeconds = habit.timerSeconds,
                 )
             }
         }
@@ -103,6 +107,8 @@ class AddEditHabitViewModel @Inject constructor(
     fun onTagSelected(tagId: Long?) = _uiState.update { it.copy(tagId = tagId) }
     fun onPeriodGoalTypeChange(type: PeriodGoalType) = _uiState.update { it.copy(periodGoalType = type) }
     fun onPeriodGoalCountChange(count: Int) = _uiState.update { it.copy(periodGoalCount = count.coerceIn(1, 31)) }
+    fun onUnitChange(unit: String) = _uiState.update { it.copy(unit = unit.take(8)) }
+    fun onTimerSecondsChange(seconds: Int) = _uiState.update { it.copy(timerSeconds = seconds.coerceIn(0, 7200)) }
 
     fun createTag(name: String, colorHex: String) {
         viewModelScope.launch {
@@ -169,6 +175,8 @@ class AddEditHabitViewModel @Inject constructor(
                 tagId = state.tagId,
                 periodGoalType = state.periodGoalType,
                 periodGoalCount = if (state.periodGoalType == PeriodGoalType.NONE) 0 else state.periodGoalCount,
+                unit = state.unit.trim().takeIf { it.isNotEmpty() },
+                timerSeconds = state.timerSeconds,
             )
 
             val savedId = if (editingHabitId == null) {

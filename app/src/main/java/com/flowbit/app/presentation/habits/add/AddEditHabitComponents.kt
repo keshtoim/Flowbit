@@ -206,21 +206,42 @@ fun ColorPickerSection(
 fun TargetCountSection(
     targetCount: Int,
     onTargetCountChange: (Int) -> Unit,
+    unit: String = "",
+    onUnitChange: (String) -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Количество раз в день", style = MaterialTheme.typography.titleMedium)
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("Количество в день", style = MaterialTheme.typography.titleMedium)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             IconButton(onClick = { onTargetCountChange(targetCount - 1) }) {
                 Icon(Icons.Default.Remove, "Уменьшить")
             }
             Text(
                 text = targetCount.toString(),
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(horizontal = 8.dp),
             )
             IconButton(onClick = { onTargetCountChange(targetCount + 1) }) {
                 Icon(Icons.Default.Add, "Увеличить")
             }
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = unit,
+                onValueChange = onUnitChange,
+                placeholder = { Text("ед.") },
+                label = { Text("Единица") },
+                modifier = Modifier.width(110.dp),
+                singleLine = true,
+            )
+        }
+        if (unit.isNotBlank()) {
+            Text(
+                text = "Отображение: $targetCount $unit в день",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -825,3 +846,47 @@ private fun audioFileName(context: android.content.Context, uri: Uri): String = 
         cursor.getString(idx)
     } ?: uri.lastPathSegment ?: "Аудиофайл"
 } catch (_: Exception) { uri.lastPathSegment ?: "Аудиофайл" }
+
+@Composable
+fun TimerSection(
+    timerSeconds: Int,
+    onTimerSecondsChange: (Int) -> Unit,
+) {
+    val presets = listOf(0 to "Нет", 300 to "5 мин", 600 to "10 мин", 900 to "15 мин", 1800 to "30 мин", 3600 to "1 час")
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Таймер привычки", style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = "При запуске таймер отсчитает время и автоматически отметит привычку выполненной",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            presets.forEach { (secs, label) ->
+                FilterChip(
+                    selected = timerSeconds == secs,
+                    onClick = { onTimerSecondsChange(secs) },
+                    label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                )
+            }
+        }
+        if (timerSeconds > 0) {
+            val h = timerSeconds / 3600
+            val m = (timerSeconds % 3600) / 60
+            val s = timerSeconds % 60
+            val formatted = buildString {
+                if (h > 0) append("${h} ч ")
+                if (m > 0) append("${m} мин ")
+                if (s > 0) append("${s} с")
+            }.trim()
+            Text(
+                text = "Таймер на $formatted",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}

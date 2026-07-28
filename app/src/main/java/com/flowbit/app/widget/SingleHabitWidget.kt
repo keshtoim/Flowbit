@@ -9,9 +9,11 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -147,6 +149,33 @@ class SingleHabitWidget : GlanceAppWidget() {
                                         "🔥$streak",
                                         style = TextStyle(fontSize = 14.sp, color = onSurface),
                                     )
+                                }
+                                if (!isDone) {
+                                    Spacer(GlanceModifier.width(10.dp))
+                                    Box(
+                                        modifier = GlanceModifier
+                                            .width(30.dp)
+                                            .height(30.dp)
+                                            .background(primary)
+                                            .cornerRadius(15.dp)
+                                            .clickable(
+                                                actionRunCallback<IncrementHabitAction>(
+                                                    parameters = actionParametersOf(
+                                                        IncrementHabitAction.habitIdKey to habit.id,
+                                                    ),
+                                                ),
+                                            ),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(
+                                            "+",
+                                            style = TextStyle(
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = GlanceTheme.colors.onPrimary,
+                                            ),
+                                        )
+                                    }
                                 }
                             }
                         }

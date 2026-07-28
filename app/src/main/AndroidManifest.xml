@@ -80,6 +80,11 @@
             android:name=".data.receiver.ReminderReceiver"
             android:exported="false" />
 
+        <!-- Выполнение привычки из уведомления -->
+        <receiver
+            android:name=".data.receiver.HabitDoneReceiver"
+            android:exported="false" />
+
         <!-- Boot receiver для восстановления будильников -->
         <receiver
             android:name=".data.receiver.BootReceiver"

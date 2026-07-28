@@ -60,6 +60,8 @@ fun AddEditHabitScreen(
             TargetCountSection(
                 targetCount = uiState.targetCount,
                 onTargetCountChange = viewModel::onTargetCountChange,
+                unit = uiState.unit,
+                onUnitChange = viewModel::onUnitChange,
             )
             FrequencySection(
                 frequency = uiState.frequency,
@@ -96,6 +98,10 @@ fun AddEditHabitScreen(
                 periodGoalCount = uiState.periodGoalCount,
                 onTypeChange = viewModel::onPeriodGoalTypeChange,
                 onCountChange = viewModel::onPeriodGoalCountChange,
+            )
+            TimerSection(
+                timerSeconds = uiState.timerSeconds,
+                onTimerSecondsChange = viewModel::onTimerSecondsChange,
             )
             TagSection(
                 tags = allTags,
