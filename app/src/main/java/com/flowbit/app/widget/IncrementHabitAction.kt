@@ -23,7 +23,7 @@ class IncrementHabitAction : ActionCallback {
         val newEntry = existing?.copy(completedCount = currentCount + 1)
             ?: HabitEntryEntity(habitId = habitId, date = today, completedCount = 1)
         db.habitDao().insertEntry(newEntry)
-        SingleHabitWidget().updateAll(context)
+        SingleHabitWidget().update(context, glanceId)
     }
 
     companion object {
