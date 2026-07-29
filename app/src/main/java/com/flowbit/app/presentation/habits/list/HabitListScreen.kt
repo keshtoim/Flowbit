@@ -103,6 +103,17 @@ fun HabitListScreen(
         )
     }
 
+    // Диалог таймера
+    if (uiState.timerHabitId != null) {
+        val timerHabitName = uiState.habits
+            .find { it.habit.id == uiState.timerHabitId }?.habit?.name ?: ""
+        TimerDialog(
+            habitName = timerHabitName,
+            remainingSeconds = uiState.timerRemaining,
+            onStop = viewModel::stopTimer,
+        )
+    }
+
     // Диалог подтверждения отмены пропуска
     if (uiState.unSkipRequestId != null) {
         AlertDialog(
@@ -322,6 +333,7 @@ fun HabitListScreen(
                                     onClick = { onHabitClick(habitForDate.habit.id) },
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
+                                    onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     modifier = Modifier.longPressDraggableHandle(
                                         onDragStarted = { isDragging = true },
                                         onDragStopped = {
