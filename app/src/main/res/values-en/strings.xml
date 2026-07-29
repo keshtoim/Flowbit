@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widgets -->
+    <string name="widget_description">Flowbit habit widget</string>
+    <string name="widget_week_description">Weekly widget — all habits for 7 days with completion marks</string>
+    <string name="widget_today_description">Day summary — circular progress of today\'s completed habits</string>
+    <string name="widget_single_description">Single habit — emoji, counter and current streak 🔥 for the selected habit</string>
+    <string name="widget_no_habits">No habits</string>
+    <string name="widget_config_title">Select a habit for the widget</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="delete">Delete</string>
+    <string name="open">Open</string>
+    <string name="allow">Allow</string>
+    <string name="enable">Enable</string>
+
+    <!-- HabitCard -->
+    <string name="done_check">Done ✓</string>
+    <string name="skipped_label">Skipped —</string>
+    <string name="cancel_skip">Undo skip</string>
+    <string name="cant_today">Can\'t today</string>
+    <string name="skip">Skip</string>
+
+    <!-- HabitList -->
+    <string name="no_habits_title">No habits for this day</string>
+    <string name="no_habits_hint">Tap + to add one</string>
+    <string name="motivation_dialog_title">You can do it! 💪</string>
+    <string name="motivation_ok">OK, I\'ll try again!</string>
+    <string name="motivation_skip">Skip today</string>
+    <string name="cancel_skip_title">Undo skip?</string>
+    <string name="cancel_skip_message">The habit will be marked as incomplete again. Continue?</string>
+    <string name="cancel_skip_confirm">Yes, undo</string>
+    <string name="group_daily">Daily</string>
+    <string name="group_scheduled">Scheduled</string>
+    <string name="group_not_done">Not done</string>
+    <string name="group_done">Done ✓</string>
+    <string name="group_no_tag">No tag</string>
+    <string name="group_unknown_tag">Unknown tag</string>
+
+    <!-- Timer -->
+    <string name="timer_stop">Stop</string>
+    <string name="timer_auto_complete">Will be marked done automatically</string>
+
+    <!-- AddEditHabit -->
+    <string name="new_habit">New habit</string>
+    <string name="edit_habit">Edit habit</string>
+    <string name="name_error">Enter a name</string>
+
+    <!-- HabitDetail -->
+    <string name="delete_habit_title">Delete habit?</string>
+    <string name="delete_habit_message">All completion records will be deleted. This cannot be undone.</string>
+    <string name="skip_today_button">⏭ Skip today</string>
+    <string name="today_skipped">⏭ Today is skipped</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="appearance_section">Appearance</string>
+    <string name="dark_theme">Dark theme</string>
+    <string name="dark_theme_subtitle">Toggle dark mode</string>
+    <string name="language_section">Language</string>
+    <string name="language_title">App language</string>
+    <string name="lang_ru">Russian</string>
+    <string name="lang_en">English</string>
+    <string name="notifications_section">Notifications</string>
+    <string name="notif_permission_title">Notification permission</string>
+    <string name="notif_permission_enabled">Notifications enabled</string>
+    <string name="notif_permission_prompt">Tap to allow</string>
+    <string name="exact_alarm_title">Exact alarms</string>
+    <string name="exact_alarm_enabled">Enabled for precise reminders</string>
+    <string name="exact_alarm_prompt">Tap to enable exact reminders</string>
+    <string name="notif_settings_title">Notification settings</string>
+    <string name="notif_settings_subtitle">Open system notification settings</string>
+    <string name="data_section">Data</string>
+    <string name="backup_title">Create backup</string>
+    <string name="backup_subtitle">Export habits, records and reminders to JSON</string>
+    <string name="import_title">Import data</string>
+    <string name="import_subtitle">Restore habits from a backup file</string>
+    <string name="order_section">Habit order</string>
+    <string name="about_section">About</string>
+    <string name="about_subtitle">Habit tracker with widgets and reminders</string>
+    <string name="version">Version %s</string>
+    <string name="backup_success">Backup saved</string>
+    <string name="backup_error">Backup error: %s</string>
+    <string name="import_success">Import complete</string>
+    <string name="import_error">Import error: %s</string>
+</resources>

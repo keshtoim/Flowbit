@@ -14,8 +14,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.flowbit.app.R
 
 @Composable
 fun TimerDialog(
@@ -43,7 +45,7 @@ fun TimerDialog(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Отметится выполненной автоматически",
+                    text = stringResource(R.string.timer_auto_complete),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -51,7 +53,7 @@ fun TimerDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onStop) { Text("Остановить") }
+            TextButton(onClick = onStop) { Text(stringResource(R.string.timer_stop)) }
         },
     )
 }

@@ -1,10 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Flowbit</string>
-    <string name="reminder_title">Flowbit — напоминание</string>
-    <string name="reminder_text">Не забудьте отметить привычку!</string>
+
+    <!-- Widgets -->
     <string name="widget_description">Виджет привычек Flowbit</string>
-    <string name="widget_week_description">Недельный виджет — показывает все привычки за 7 дней с отметками выполнения</string>
+    <string name="widget_week_description">Недельный виджет — все привычки за 7 дней с отметками выполнения</string>
     <string name="widget_today_description">Сводка дня — круговой прогресс выполненных привычек за сегодня</string>
     <string name="widget_single_description">Одна привычка — эмодзи, счётчик и текущая серия 🔥 для выбранной привычки</string>
+    <string name="widget_no_habits">Нет привычек</string>
+    <string name="widget_config_title">Выберите привычку для виджета</string>
+
+    <!-- Common -->
+    <string name="back">Назад</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="delete">Удалить</string>
+    <string name="open">Открыть</string>
+    <string name="allow">Разрешить</string>
+    <string name="enable">Включить</string>
+
+    <!-- HabitCard -->
+    <string name="done_check">Выполнено ✓</string>
+    <string name="skipped_label">Пропущено —</string>
+    <string name="cancel_skip">Отменить пропуск</string>
+    <string name="cant_today">Не могу сегодня</string>
+    <string name="skip">Пропустить</string>
+
+    <!-- HabitList -->
+    <string name="no_habits_title">Нет привычек на этот день</string>
+    <string name="no_habits_hint">Нажмите + чтобы добавить</string>
+    <string name="motivation_dialog_title">Ты можешь! 💪</string>
+    <string name="motivation_ok">Ок, попробую ещё раз!</string>
+    <string name="motivation_skip">Пропустить сегодня</string>
+    <string name="cancel_skip_title">Отменить пропуск?</string>
+    <string name="cancel_skip_message">Привычка снова будет считаться невыполненной. Продолжить?</string>
+    <string name="cancel_skip_confirm">Да, отменить</string>
+    <string name="group_daily">Ежедневные</string>
+    <string name="group_scheduled">По расписанию</string>
+    <string name="group_not_done">Не выполнено</string>
+    <string name="group_done">Выполнено ✓</string>
+    <string name="group_no_tag">Без тега</string>
+    <string name="group_unknown_tag">Неизвестный тег</string>
+
+    <!-- Timer -->
+    <string name="timer_stop">Остановить</string>
+    <string name="timer_auto_complete">Отметится выполненной автоматически</string>
+
+    <!-- AddEditHabit -->
+    <string name="new_habit">Новая привычка</string>
+    <string name="edit_habit">Редактировать</string>
+    <string name="name_error">Введите название</string>
+
+    <!-- HabitDetail -->
+    <string name="delete_habit_title">Удалить привычку?</string>
+    <string name="delete_habit_message">Все записи о выполнении будут удалены. Это действие нельзя отменить.</string>
+    <string name="skip_today_button">⏭ Пропустить сегодня</string>
+    <string name="today_skipped">⏭ Сегодня пропущено</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="appearance_section">Внешний вид</string>
+    <string name="dark_theme">Тёмная тема</string>
+    <string name="dark_theme_subtitle">Переключить тёмный режим</string>
+    <string name="language_section">Язык</string>
+    <string name="language_title">Язык приложения</string>
+    <string name="lang_ru">Русский</string>
+    <string name="lang_en">English</string>
+    <string name="notifications_section">Уведомления</string>
+    <string name="notif_permission_title">Разрешение на уведомления</string>
+    <string name="notif_permission_enabled">Уведомления включены</string>
+    <string name="notif_permission_prompt">Нажмите, чтобы разрешить</string>
+    <string name="exact_alarm_title">Точные будильники</string>
+    <string name="exact_alarm_enabled">Для точных напоминаний — включено</string>
+    <string name="exact_alarm_prompt">Нажмите для включения точных напоминаний</string>
+    <string name="notif_settings_title">Настройки уведомлений</string>
+    <string name="notif_settings_subtitle">Открыть системные настройки уведомлений</string>
+    <string name="data_section">Данные</string>
+    <string name="backup_title">Создать резервную копию</string>
+    <string name="backup_subtitle">Экспорт привычек, записей и напоминаний в JSON</string>
+    <string name="import_title">Импорт данных</string>
+    <string name="import_subtitle">Восстановить привычки из файла резервной копии</string>
+    <string name="order_section">Порядок привычек</string>
+    <string name="about_section">О приложении</string>
+    <string name="about_subtitle">Трекер привычек с виджетом и напоминаниями</string>
+    <string name="version">Версия %s</string>
+    <string name="backup_success">Бекап сохранён</string>
+    <string name="backup_error">Ошибка бекапа: %s</string>
+    <string name="import_success">Импорт завершён</string>
+    <string name="import_error">Ошибка импорта: %s</string>
 </resources>

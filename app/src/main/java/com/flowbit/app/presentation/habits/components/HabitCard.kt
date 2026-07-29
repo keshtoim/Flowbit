@@ -46,9 +46,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.flowbit.app.R
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 
 @Composable
@@ -147,7 +149,7 @@ fun HabitCard(
                     if (isSkipped) {
                         Spacer(Modifier.height(2.dp))
                         Text(
-                            text = "Пропущено —",
+                            text = stringResource(R.string.skipped_label),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         )
@@ -157,7 +159,7 @@ fun HabitCard(
                             contentPadding = PaddingValues(horizontal = 2.dp),
                         ) {
                             Text(
-                                text = "Отменить пропуск",
+                                text = stringResource(R.string.cancel_skip),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                             )
@@ -188,7 +190,7 @@ fun HabitCard(
                         } else if (isCompleted) {
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                text = "Выполнено ✓",
+                                text = stringResource(R.string.done_check),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = habitColor,
                                 fontWeight = FontWeight.Medium,
@@ -207,7 +209,7 @@ fun HabitCard(
                                     contentPadding = PaddingValues(horizontal = 6.dp),
                                 ) {
                                     Text(
-                                        text = "Не могу сегодня",
+                                        text = stringResource(R.string.cant_today),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                                     )
@@ -223,7 +225,7 @@ fun HabitCard(
                                     contentPadding = PaddingValues(horizontal = 6.dp),
                                 ) {
                                     Text(
-                                        text = "Пропустить",
+                                        text = stringResource(R.string.skip),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
                                     )

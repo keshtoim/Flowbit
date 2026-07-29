@@ -54,10 +54,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.flowbit.app.R
 import com.flowbit.app.domain.model.GroupingMode
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.usecase.habit.HabitForDate
@@ -93,22 +95,10 @@ fun HabitListScreen(
     }
 
     // Диалог таймера
-    val timerHabitId = uiState.timerHabitId
-    if (timerHabitId != null) {
+    uiState.timerHabitId?.let { timerHabitId ->
         val habitName = uiState.habits.find { it.habit.id == timerHabitId }?.habit?.name ?: ""
         TimerDialog(
             habitName = habitName,
-            remainingSeconds = uiState.timerRemaining,
-            onStop = viewModel::stopTimer,
-        )
-    }
-
-    // Диалог таймера
-    if (uiState.timerHabitId != null) {
-        val timerHabitName = uiState.habits
-            .find { it.habit.id == uiState.timerHabitId }?.habit?.name ?: ""
-        TimerDialog(
-            habitName = timerHabitName,
             remainingSeconds = uiState.timerRemaining,
             onStop = viewModel::stopTimer,
         )
@@ -118,13 +108,15 @@ fun HabitListScreen(
     if (uiState.unSkipRequestId != null) {
         AlertDialog(
             onDismissRequest = viewModel::dismissUnSkip,
-            title = { Text("Отменить пропуск?") },
-            text = { Text("Привычка снова будет считаться невыполненной. Продолжить?") },
+            title = { Text(stringResource(R.string.cancel_skip_title)) },
+            text = { Text(stringResource(R.string.cancel_skip_message)) },
             confirmButton = {
-                TextButton(onClick = viewModel::confirmUnSkip) { Text("Да, отменить") }
+                TextButton(onClick = viewModel::confirmUnSkip) {
+                    Text(stringResource(R.string.cancel_skip_confirm))
+                }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::dismissUnSkip) { Text("Нет") }
+                TextButton(onClick = viewModel::dismissUnSkip) { Text(stringResource(R.string.no)) }
             },
         )
     }
@@ -133,7 +125,7 @@ fun HabitListScreen(
     uiState.motivationQuote?.let { quote ->
         AlertDialog(
             onDismissRequest = viewModel::dismissMotivation,
-            title = { Text("Ты можешь! 💪") },
+            title = { Text(stringResource(R.string.motivation_dialog_title)) },
             text = {
                 Text(
                     text = "\"$quote\"",
@@ -142,12 +134,12 @@ fun HabitListScreen(
             },
             confirmButton = {
                 TextButton(onClick = viewModel::dismissMotivation) {
-                    Text("Ок, попробую ещё раз!")
+                    Text(stringResource(R.string.motivation_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::dismissMotivation) {
-                    Text("Пропустить сегодня")
+                    Text(stringResource(R.string.motivation_skip))
                 }
             },
         )
@@ -260,13 +252,13 @@ fun HabitListScreen(
                         Text(text = "🌱", style = MaterialTheme.typography.displayMedium)
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "Нет привычек на этот день",
+                            text = stringResource(R.string.no_habits_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                         )
                         Text(
-                            text = "Нажмите + чтобы добавить",
+                            text = stringResource(R.string.no_habits_hint),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         )
@@ -280,8 +272,19 @@ fun HabitListScreen(
                 exit = fadeOut(tween(200)),
             ) {
                 val isGrouped = uiState.groupingMode != GroupingMode.NONE
+                val strDaily = stringResource(R.string.group_daily)
+                val strScheduled = stringResource(R.string.group_scheduled)
+                val strNotDone = stringResource(R.string.group_not_done)
+                val strDone = stringResource(R.string.group_done)
+                val strNoTag = stringResource(R.string.group_no_tag)
+                val strUnknownTag = stringResource(R.string.group_unknown_tag)
                 val groups = remember(uiState.habits, uiState.groupingMode, allTags) {
-                    groupHabits(uiState.habits, uiState.groupingMode, allTags.associateBy { it.id })
+                    groupHabits(
+                        uiState.habits,
+                        uiState.groupingMode,
+                        allTags.associateBy { it.id },
+                        strDaily, strScheduled, strNotDone, strDone, strNoTag, strUnknownTag,
+                    )
                 }
 
                 LazyColumn(
@@ -356,31 +359,37 @@ private fun groupHabits(
     habits: List<HabitForDate>,
     mode: GroupingMode,
     tagsById: Map<Long, com.flowbit.app.domain.model.HabitTag>,
+    strDaily: String,
+    strScheduled: String,
+    strNotDone: String,
+    strDone: String,
+    strNoTag: String,
+    strUnknownTag: String,
 ): List<Pair<String?, List<HabitForDate>>> = when (mode) {
     GroupingMode.NONE -> listOf(null to habits)
     GroupingMode.BY_TAG -> {
         val withTag = habits.filter { it.habit.tagId != null }
-            .groupBy { tagsById[it.habit.tagId]?.name ?: "Неизвестный тег" }
+            .groupBy { tagsById[it.habit.tagId]?.name ?: strUnknownTag }
             .map { (name, list) -> name to list }
             .sortedBy { it.first }
         val withoutTag = habits.filter { it.habit.tagId == null }
-        if (withoutTag.isNotEmpty()) withTag + ("Без тега" to withoutTag)
+        if (withoutTag.isNotEmpty()) withTag + (strNoTag to withoutTag)
         else withTag
     }
     GroupingMode.BY_FREQUENCY -> {
         val daily = habits.filter { it.habit.frequency == HabitFrequency.DAILY }
         val scheduled = habits.filter { it.habit.frequency != HabitFrequency.DAILY }
         buildList {
-            if (daily.isNotEmpty()) add("Ежедневные" to daily)
-            if (scheduled.isNotEmpty()) add("По расписанию" to scheduled)
+            if (daily.isNotEmpty()) add(strDaily to daily)
+            if (scheduled.isNotEmpty()) add(strScheduled to scheduled)
         }
     }
     GroupingMode.BY_STATUS -> {
         val done = habits.filter { (it.entry?.completedCount ?: 0) >= it.habit.targetCount }
         val notDone = habits.filter { (it.entry?.completedCount ?: 0) < it.habit.targetCount }
         buildList {
-            if (notDone.isNotEmpty()) add("Не выполнено" to notDone)
-            if (done.isNotEmpty()) add("Выполнено ✓" to done)
+            if (notDone.isNotEmpty()) add(strNotDone to notDone)
+            if (done.isNotEmpty()) add(strDone to done)
         }
     }
 }

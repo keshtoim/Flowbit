@@ -2,6 +2,9 @@ package com.flowbit.app.presentation.settings
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -9,9 +12,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.BuildConfig
+import com.flowbit.app.R
 import com.flowbit.app.data.database.dao.HabitDao
+import com.flowbit.app.data.database.dao.ReminderDao
 import com.flowbit.app.data.database.entity.HabitEntity
 import com.flowbit.app.data.database.entity.HabitEntryEntity
+import com.flowbit.app.data.database.entity.ReminderEntity
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.domain.repository.HabitRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +25,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,6 +39,8 @@ data class SettingsUiState(
     val backupMessage: String? = null,
     val isImporting: Boolean = false,
     val appVersion: String = "",
+    val currentLanguage: String = "ru",
+    val needsRecreate: Boolean = false,
 )
 
 @HiltViewModel
@@ -42,6 +49,7 @@ class SettingsViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val repository: HabitRepository,
     private val dao: HabitDao,
+    private val reminderDao: ReminderDao,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -53,6 +61,9 @@ class SettingsViewModel @Inject constructor(
             dataStore.data.map { prefs -> prefs[DARK_THEME_KEY] ?: false }
                 .collect { isDark -> _uiState.update { it.copy(isDarkTheme = isDark) } }
         }
+        val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+            .let { if (it.contains("en")) "en" else "ru" }
+        _uiState.update { it.copy(currentLanguage = currentLang) }
         loadHabits()
     }
 
@@ -68,6 +79,15 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStore.edit { it[DARK_THEME_KEY] = enabled }
         }
+    }
+
+    fun setLanguage(lang: String) {
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
+        _uiState.update { it.copy(currentLanguage = lang, needsRecreate = true) }
+    }
+
+    fun clearNeedsRecreate() {
+        _uiState.update { it.copy(needsRecreate = false) }
     }
 
     fun moveHabitUp(habitId: Long) {
@@ -101,9 +121,10 @@ class SettingsViewModel @Inject constructor(
             try {
                 val habits = dao.getAllHabitsList()
                 val entries = dao.getAllEntries()
+                val reminders = reminderDao.getAllReminders()
 
                 val root = JSONObject().apply {
-                    put("version", 1)
+                    put("version", 2)
                     put("exportedAt", LocalDate.now().toString())
                     put("habits", JSONArray().apply {
                         habits.forEach { h -> put(habitToJson(h)) }
@@ -111,14 +132,17 @@ class SettingsViewModel @Inject constructor(
                     put("entries", JSONArray().apply {
                         entries.forEach { e -> put(entryToJson(e)) }
                     })
+                    put("reminders", JSONArray().apply {
+                        reminders.forEach { r -> put(reminderToJson(r)) }
+                    })
                 }
 
                 context.contentResolver.openOutputStream(uri)?.use { stream ->
                     stream.write(root.toString(2).toByteArray(Charsets.UTF_8))
                 }
-                _uiState.update { it.copy(backupMessage = "Бекап сохранён") }
+                _uiState.update { it.copy(backupMessage = context.getString(R.string.backup_success)) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(backupMessage = "Ошибка бекапа: ${e.message}") }
+                _uiState.update { it.copy(backupMessage = context.getString(R.string.backup_error, e.message)) }
             }
         }
     }
@@ -134,6 +158,7 @@ class SettingsViewModel @Inject constructor(
                 val root = JSONObject(json)
                 val habitsJson = root.getJSONArray("habits")
                 val entriesJson = root.getJSONArray("entries")
+                val remindersJson = root.optJSONArray("reminders")
 
                 val habitEntities = (0 until habitsJson.length()).map { i ->
                     jsonToHabit(habitsJson.getJSONObject(i))
@@ -145,9 +170,15 @@ class SettingsViewModel @Inject constructor(
                 dao.insertAllHabits(habitEntities)
                 dao.insertAllEntries(entryEntities)
 
-                _uiState.update { it.copy(backupMessage = "Импорт завершён") }
+                if (remindersJson != null) {
+                    for (i in 0 until remindersJson.length()) {
+                        reminderDao.insertReminder(jsonToReminder(remindersJson.getJSONObject(i)))
+                    }
+                }
+
+                _uiState.update { it.copy(backupMessage = context.getString(R.string.import_success)) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(backupMessage = "Ошибка импорта: ${e.message}") }
+                _uiState.update { it.copy(backupMessage = context.getString(R.string.import_error, e.message)) }
             } finally {
                 _uiState.update { it.copy(isImporting = false) }
             }
@@ -157,6 +188,8 @@ class SettingsViewModel @Inject constructor(
     fun clearMessage() {
         _uiState.update { it.copy(backupMessage = null) }
     }
+
+    // ── Serialization ─────────────────────────────────────────────────────────
 
     private fun habitToJson(h: HabitEntity) = JSONObject().apply {
         put("id", h.id)
@@ -171,9 +204,14 @@ class SettingsViewModel @Inject constructor(
         put("showInWidget", h.showInWidget)
         put("createdAt", h.createdAt)
         put("sortOrder", h.sortOrder)
-        h.photoUri?.let { put("photoUri", it) }
         put("isPhotoHidden", h.isPhotoHidden)
+        put("periodGoalType", h.periodGoalType)
+        put("periodGoalCount", h.periodGoalCount)
+        put("timerSeconds", h.timerSeconds)
+        h.photoUri?.let { put("photoUri", it) }
         h.audioUri?.let { put("audioUri", it) }
+        h.tagId?.let { put("tagId", it) }
+        h.unit?.let { put("unit", it) }
     }
 
     private fun entryToJson(e: HabitEntryEntity) = JSONObject().apply {
@@ -181,8 +219,19 @@ class SettingsViewModel @Inject constructor(
         put("habitId", e.habitId)
         put("date", e.date)
         put("completedCount", e.completedCount)
+        put("isSkipped", e.isSkipped)
         e.note?.let { put("note", it) }
     }
+
+    private fun reminderToJson(r: ReminderEntity) = JSONObject().apply {
+        put("id", r.id)
+        put("habitId", r.habitId)
+        put("timeHour", r.timeHour)
+        put("timeMinute", r.timeMinute)
+        put("isEnabled", r.isEnabled)
+    }
+
+    // ── Deserialization ────────────────────────────────────────────────────────
 
     private fun jsonToHabit(j: JSONObject) = HabitEntity(
         id = j.getLong("id"),
@@ -197,9 +246,14 @@ class SettingsViewModel @Inject constructor(
         showInWidget = j.getBoolean("showInWidget"),
         createdAt = j.getString("createdAt"),
         sortOrder = j.optInt("sortOrder", 0),
-        photoUri = j.optString("photoUri").takeIf { it.isNotEmpty() },
         isPhotoHidden = j.optBoolean("isPhotoHidden", false),
+        periodGoalType = j.optString("periodGoalType", "NONE"),
+        periodGoalCount = j.optInt("periodGoalCount", 0),
+        timerSeconds = j.optInt("timerSeconds", 0),
+        photoUri = j.optString("photoUri").takeIf { it.isNotEmpty() },
         audioUri = j.optString("audioUri").takeIf { it.isNotEmpty() },
+        tagId = if (j.has("tagId")) j.getLong("tagId") else null,
+        unit = j.optString("unit").takeIf { it.isNotEmpty() },
     )
 
     private fun jsonToEntry(j: JSONObject) = HabitEntryEntity(
@@ -207,7 +261,16 @@ class SettingsViewModel @Inject constructor(
         habitId = j.getLong("habitId"),
         date = j.getString("date"),
         completedCount = j.getInt("completedCount"),
+        isSkipped = j.optBoolean("isSkipped", false),
         note = j.optString("note").takeIf { it.isNotEmpty() },
+    )
+
+    private fun jsonToReminder(j: JSONObject) = ReminderEntity(
+        id = j.getLong("id"),
+        habitId = j.getLong("habitId"),
+        timeHour = j.getInt("timeHour"),
+        timeMinute = j.getInt("timeMinute"),
+        isEnabled = j.getBoolean("isEnabled"),
     )
 
     companion object {
