@@ -29,5 +29,5 @@ interface HabitRepository {
 
     suspend fun getHabitStats(habitId: Long): HabitStats?
     suspend fun getOverallStats(): OverallStats
-    suspend fun getAllMarkedAtTimes(): List<String>
+    suspend fun getAllMarkedAtTimes(): List<String?>
 }

@@ -121,11 +121,11 @@ class StatisticsViewModel @Inject constructor(
         )
     }
 
-    private fun computeBestTime(times: List<String>): BestTimeData? {
+    private fun computeBestTime(times: List<String?>): BestTimeData? {
         if (times.isEmpty()) return null
         val hourCounts = mutableMapOf<Int, Int>()
         times.forEach { t ->
-            val hour = t.substringBefore(":").toIntOrNull() ?: return@forEach
+            val hour = t?.substringBefore(":")?.toIntOrNull() ?: return@forEach
             hourCounts[hour] = (hourCounts[hour] ?: 0) + 1
         }
         val peak = hourCounts.maxByOrNull { it.value }?.key

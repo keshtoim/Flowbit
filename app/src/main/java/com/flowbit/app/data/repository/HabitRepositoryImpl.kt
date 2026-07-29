@@ -117,8 +117,8 @@ class HabitRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getAllMarkedAtTimes(): List<String> =
-        habitDao.getAllMarkedAtTimes()
+    override suspend fun getAllMarkedAtTimes(): List<String?> =
+        dao.getAllMarkedAtTimes()
 
     private fun countScheduledDays(habit: Habit): Int {
         val today = LocalDate.now()

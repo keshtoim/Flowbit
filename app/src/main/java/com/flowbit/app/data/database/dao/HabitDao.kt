@@ -74,5 +74,5 @@ interface HabitDao {
     suspend fun insertAllHabits(habits: List<HabitEntity>)
 
     @Query("SELECT markedAt FROM habit_entries WHERE markedAt IS NOT NULL")
-    suspend fun getAllMarkedAtTimes(): List<String>
+    suspend fun getAllMarkedAtTimes(): List<String?>
 }
