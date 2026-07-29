@@ -46,6 +46,10 @@ data class AddEditHabitUiState(
     val timerSeconds: Int = 0,
     val isSaved: Boolean = false,
     val nameError: String? = null,
+    val recurringEnabled: Boolean = false,
+    val recurringStartHour: Int = 9,
+    val recurringEndHour: Int = 21,
+    val recurringIntervalHours: Int = 3,
 )
 
 @HiltViewModel
@@ -109,6 +113,11 @@ class AddEditHabitViewModel @Inject constructor(
     fun onPeriodGoalCountChange(count: Int) = _uiState.update { it.copy(periodGoalCount = count.coerceIn(1, 31)) }
     fun onUnitChange(unit: String) = _uiState.update { it.copy(unit = unit.take(8)) }
     fun onTimerSecondsChange(seconds: Int) = _uiState.update { it.copy(timerSeconds = seconds.coerceIn(0, 7200)) }
+
+    fun onRecurringToggle() = _uiState.update { it.copy(recurringEnabled = !it.recurringEnabled) }
+    fun onRecurringStartHour(hour: Int) = _uiState.update { it.copy(recurringStartHour = hour.coerceIn(0, 23)) }
+    fun onRecurringEndHour(hour: Int) = _uiState.update { it.copy(recurringEndHour = hour.coerceIn(0, 23)) }
+    fun onRecurringInterval(hours: Int) = _uiState.update { it.copy(recurringIntervalHours = hours.coerceIn(1, 12)) }
 
     fun createTag(name: String, colorHex: String) {
         viewModelScope.launch {
@@ -187,7 +196,18 @@ class AddEditHabitViewModel @Inject constructor(
             }
 
             reminderRepository.deleteRemindersForHabit(savedId)
-            state.reminders.forEach { reminder ->
+            val finalReminders = if (state.recurringEnabled) {
+                val generated = mutableListOf<HabitReminder>()
+                var h = state.recurringStartHour
+                while (h <= state.recurringEndHour) {
+                    generated.add(HabitReminder(habitId = savedId, time = LocalTime.of(h, 0)))
+                    h += state.recurringIntervalHours
+                }
+                generated
+            } else {
+                state.reminders
+            }
+            finalReminders.forEach { reminder ->
                 scheduleReminder(reminder.copy(habitId = savedId))
             }
 

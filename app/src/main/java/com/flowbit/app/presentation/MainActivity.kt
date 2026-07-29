@@ -19,16 +19,24 @@ class MainActivity : ComponentActivity() {
 
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* разрешение получено или отклонено — продолжаем работу в любом случае */ }
+    ) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         requestNotificationPermissionIfNeeded()
+
+        val habitIdFromShortcut = if (intent?.action == ShortcutHelper.ACTION_OPEN_HABIT)
+            intent.getLongExtra(ShortcutHelper.EXTRA_HABIT_ID, -1L).takeIf { it > 0 }
+        else null
+
         setContent {
             FlowbitTheme {
                 val navController = rememberNavController()
-                FlowbitNavGraph(navController = navController)
+                FlowbitNavGraph(
+                    navController = navController,
+                    initialHabitId = habitIdFromShortcut,
+                )
             }
         }
     }

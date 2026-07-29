@@ -1,5 +1,6 @@
 package com.flowbit.app.presentation.habits.list
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.GroupingMode
@@ -12,7 +13,9 @@ import com.flowbit.app.presentation.habits.list.randomQuote
 import com.flowbit.app.domain.usecase.habit.GetHabitsForDateUseCase
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.domain.usecase.habit.ToggleHabitEntryUseCase
+import com.flowbit.app.presentation.ShortcutHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,10 +40,13 @@ data class HabitListUiState(
     val unSkipRequestId: Long? = null,
     val timerHabitId: Long? = null,
     val timerRemaining: Int = 0,
+    val showConfetti: Boolean = false,
+    val confettiShownDates: Set<LocalDate> = emptySet(),
 )
 
 @HiltViewModel
 class HabitListViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val getHabitsForDate: GetHabitsForDateUseCase,
     private val toggleHabitEntry: ToggleHabitEntryUseCase,
     private val decreaseHabitEntry: DecreaseHabitEntryUseCase,
@@ -62,7 +68,23 @@ class HabitListViewModel @Inject constructor(
         selectedDate
             .flatMapLatest { date -> getHabitsForDate(date) }
             .onEach { habits ->
-                _uiState.update { it.copy(habits = habits, isLoading = false) }
+                val date = selectedDate.value
+                val isToday = date == LocalDate.now()
+                val allDone = habits.isNotEmpty() && habits.all { hfd ->
+                    hfd.entry?.isSkipped == true ||
+                        (hfd.entry?.completedCount ?: 0) >= hfd.habit.targetCount
+                }
+                _uiState.update { state ->
+                    val canTrigger = isToday && allDone && date !in state.confettiShownDates
+                    state.copy(
+                        habits = habits,
+                        isLoading = false,
+                        showConfetti = canTrigger,
+                        confettiShownDates = if (canTrigger) state.confettiShownDates + date
+                                             else state.confettiShownDates,
+                    )
+                }
+                ShortcutHelper.updateShortcuts(context, habits.map { it.habit })
             }
             .launchIn(viewModelScope)
     }
@@ -125,6 +147,10 @@ class HabitListViewModel @Inject constructor(
 
     fun dismissUnSkip() {
         _uiState.update { it.copy(unSkipRequestId = null) }
+    }
+
+    fun hideConfetti() {
+        _uiState.update { it.copy(showConfetti = false) }
     }
 
     fun startTimer(habitId: Long) {

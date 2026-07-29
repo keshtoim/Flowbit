@@ -890,3 +890,100 @@ fun TimerSection(
         }
     }
 }
+
+@Composable
+fun RecurringReminderSection(
+    recurringEnabled: Boolean,
+    startHour: Int,
+    endHour: Int,
+    intervalHours: Int,
+    onToggle: () -> Unit,
+    onStartHourChange: (Int) -> Unit,
+    onEndHourChange: (Int) -> Unit,
+    onIntervalChange: (Int) -> Unit,
+) {
+    val intervals = listOf(1, 2, 3, 4, 6)
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Повторяющееся напоминание", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Напоминать несколько раз в день через равные интервалы",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(checked = recurringEnabled, onCheckedChange = { onToggle() })
+        }
+
+        if (recurringEnabled) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "С %02d:00".format(startHour),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Slider(
+                        value = startHour.toFloat(),
+                        onValueChange = { onStartHourChange(it.toInt()) },
+                        valueRange = 0f..22f,
+                        steps = 21,
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "До %02d:00".format(endHour),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Slider(
+                        value = endHour.toFloat(),
+                        onValueChange = { onEndHourChange(it.toInt()) },
+                        valueRange = 1f..23f,
+                        steps = 21,
+                    )
+                }
+            }
+
+            Text(
+                "Интервал (часов):",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                intervals.forEach { h ->
+                    FilterChip(
+                        selected = intervalHours == h,
+                        onClick = { onIntervalChange(h) },
+                        label = { Text("${h}ч", style = MaterialTheme.typography.labelSmall) },
+                    )
+                }
+            }
+
+            val times = buildList {
+                var h = startHour
+                while (h <= endHour) {
+                    add("%02d:00".format(h))
+                    h += intervalHours
+                }
+            }
+            if (times.isNotEmpty()) {
+                Text(
+                    text = "Напоминания: ${times.joinToString(", ")}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}

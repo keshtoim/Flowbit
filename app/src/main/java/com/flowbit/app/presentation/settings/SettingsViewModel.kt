@@ -221,6 +221,7 @@ class SettingsViewModel @Inject constructor(
         put("completedCount", e.completedCount)
         put("isSkipped", e.isSkipped)
         e.note?.let { put("note", it) }
+        e.markedAt?.let { put("markedAt", it) }
     }
 
     private fun reminderToJson(r: ReminderEntity) = JSONObject().apply {
@@ -263,6 +264,7 @@ class SettingsViewModel @Inject constructor(
         completedCount = j.getInt("completedCount"),
         isSkipped = j.optBoolean("isSkipped", false),
         note = j.optString("note").takeIf { it.isNotEmpty() },
+        markedAt = j.optString("markedAt").takeIf { it.isNotEmpty() },
     )
 
     private fun jsonToReminder(j: JSONObject) = ReminderEntity(

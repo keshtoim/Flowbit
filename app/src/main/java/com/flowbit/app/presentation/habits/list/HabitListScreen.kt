@@ -145,6 +145,7 @@ fun HabitListScreen(
         )
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -353,6 +354,10 @@ fun HabitListScreen(
             }
         }
     }
+    if (uiState.showConfetti) {
+        ConfettiOverlay(onDone = viewModel::hideConfetti)
+    }
+    } // end Box
 }
 
 private fun groupHabits(

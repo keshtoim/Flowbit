@@ -14,7 +14,7 @@ import com.flowbit.app.data.database.entity.TagEntity
 
 @Database(
     entities = [HabitEntity::class, HabitEntryEntity::class, ReminderEntity::class, TagEntity::class],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 abstract class FlowbitDatabase : RoomDatabase() {
@@ -76,6 +76,12 @@ abstract class FlowbitDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE habits ADD COLUMN unit TEXT")
                 database.execSQL("ALTER TABLE habits ADD COLUMN timerSeconds INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE habit_entries ADD COLUMN markedAt TEXT")
             }
         }
     }

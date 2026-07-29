@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -33,7 +34,10 @@ sealed class Screen(val route: String) {
 private const val ANIM_DURATION = 280
 
 @Composable
-fun FlowbitNavGraph(navController: NavHostController) {
+fun FlowbitNavGraph(
+    navController: NavHostController,
+    initialHabitId: Long? = null,
+) {
     NavHost(
         navController = navController,
         startDestination = Screen.HabitList.route,
@@ -56,6 +60,11 @@ fun FlowbitNavGraph(navController: NavHostController) {
     ) {
 
         composable(Screen.HabitList.route) {
+            LaunchedEffect(initialHabitId) {
+                if (initialHabitId != null) {
+                    navController.navigate(Screen.HabitDetail.createRoute(initialHabitId))
+                }
+            }
             HabitListScreen(
                 onAddHabit = { navController.navigate(Screen.AddHabit.route) },
                 onHabitClick = { id -> navController.navigate(Screen.HabitDetail.createRoute(id)) },

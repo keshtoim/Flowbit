@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" width="120" alt="Flowbit logo"/>
-
 # Flowbit
 
 ### A habit tracker that stays out of your way
@@ -66,13 +64,10 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 <td>
 
 ### 🪟 Home screen widgets
-| | |
-|---|---|
-| Weekly | all habits for 7 days |
-| Day summary | circular progress |
-| Single habit | counter + **"+"** button |
-
-All widgets adapt to Material You dynamic color.
+- 📅 Weekly — all habits for 7 days
+- 🔵 Day summary — circular progress
+- ➕ Single habit — counter + **"+"** button
+- 🎨 All adapt to Material You dynamic color
 
 </td>
 </tr>

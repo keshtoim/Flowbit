@@ -83,6 +83,16 @@ fun AddEditHabitScreen(
                 onRemoveReminder = viewModel::onRemoveReminder,
                 onToggleReminder = viewModel::onToggleReminder,
             )
+            RecurringReminderSection(
+                recurringEnabled = uiState.recurringEnabled,
+                startHour = uiState.recurringStartHour,
+                endHour = uiState.recurringEndHour,
+                intervalHours = uiState.recurringIntervalHours,
+                onToggle = viewModel::onRecurringToggle,
+                onStartHourChange = viewModel::onRecurringStartHour,
+                onEndHourChange = viewModel::onRecurringEndHour,
+                onIntervalChange = viewModel::onRecurringInterval,
+            )
             PhotoSection(
                 photoUri = uiState.photoUri,
                 isPhotoHidden = uiState.isPhotoHidden,

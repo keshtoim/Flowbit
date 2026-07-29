@@ -11,6 +11,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class HabitDoneReceiver : BroadcastReceiver() {
 
@@ -27,13 +29,18 @@ class HabitDoneReceiver : BroadcastReceiver() {
                     .database()
                 val habit = db.habitDao().getHabitById(habitId) ?: return@launch
                 val today = LocalDate.now().toString()
+                val now = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
                 val existing = db.habitDao().getEntryForDate(habitId, today)
-                val newEntry = existing?.copy(completedCount = habit.targetCount, isSkipped = false)
-                    ?: HabitEntryEntity(
-                        habitId = habitId,
-                        date = today,
-                        completedCount = habit.targetCount,
-                    )
+                val newEntry = existing?.copy(
+                    completedCount = habit.targetCount,
+                    isSkipped = false,
+                    markedAt = now,
+                ) ?: HabitEntryEntity(
+                    habitId = habitId,
+                    date = today,
+                    completedCount = habit.targetCount,
+                    markedAt = now,
+                )
                 db.habitDao().insertEntry(newEntry)
 
                 if (notificationId != -1) {

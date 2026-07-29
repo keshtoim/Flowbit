@@ -23,3 +23,23 @@ data class OverallStats(
     val todayCompleted: Int,
     val todayTotal: Int,
 )
+
+data class WeekdayInsight(
+    val weekdayRate: Float,
+    val weekendRate: Float,
+    val insightText: String,
+)
+
+data class PeriodComparison(
+    val thisWeekRate: Float,
+    val lastWeekRate: Float,
+    val thisMonthRate: Float,
+    val lastMonthRate: Float,
+    val thisWeekLabel: String,
+    val lastWeekLabel: String,
+)
+
+data class BestTimeData(
+    val hourCounts: Map<Int, Int>,
+    val peakHour: Int?,
+)

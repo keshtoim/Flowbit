@@ -27,6 +27,7 @@ data class HabitEntryEntity(
     val completedCount: Int,
     val note: String? = null,
     val isSkipped: Boolean = false,
+    val markedAt: String? = null,
 ) {
     fun toDomain(): HabitEntry = HabitEntry(
         id = id,
@@ -35,6 +36,7 @@ data class HabitEntryEntity(
         completedCount = completedCount,
         note = note,
         isSkipped = isSkipped,
+        markedAt = markedAt,
     )
 
     companion object {
@@ -45,6 +47,7 @@ data class HabitEntryEntity(
             completedCount = entry.completedCount,
             note = entry.note,
             isSkipped = entry.isSkipped,
+            markedAt = entry.markedAt,
         )
     }
 }
