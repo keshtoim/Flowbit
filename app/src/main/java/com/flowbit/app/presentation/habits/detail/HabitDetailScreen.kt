@@ -476,6 +476,9 @@ fun HabitDetailScreen(
                         }
                     }
                 }
+
+                // Weekly pattern
+                item { WeeklyPatternCard(stats.completedDates) }
             }
         }
     }
@@ -590,6 +593,87 @@ private fun DetailAudioPlayer(audioUri: String) {
                     contentDescription = if (isPlaying) "Пауза" else "Воспроизвести",
                     tint = MaterialTheme.colorScheme.primary,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyPatternCard(completedDates: List<LocalDate>) {
+    if (completedDates.isEmpty()) return
+    val dayLabels = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+    val counts = (1..7).map { dow ->
+        completedDates.count { it.dayOfWeek == DayOfWeek.of(dow) }
+    }
+    val maxCount = counts.maxOrNull()?.takeIf { it > 0 } ?: return
+    val bestIndex = counts.indexOf(maxCount)
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Паттерн по дням",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "Лучший: ${dayLabels[bestIndex]}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp),
+            ) {
+                val gap = 8.dp.toPx()
+                val barWidth = (size.width - gap * 6) / 7f
+                counts.forEachIndexed { i, count ->
+                    val x = i * (barWidth + gap)
+                    val barH = (count.toFloat() / maxCount) * size.height
+                    drawRoundRect(
+                        color = surfaceVariantColor,
+                        topLeft = Offset(x, 0f),
+                        size = Size(barWidth, size.height),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()),
+                    )
+                    if (barH > 0f) {
+                        drawRoundRect(
+                            color = if (i == bestIndex) primaryColor else primaryColor.copy(alpha = 0.45f),
+                            topLeft = Offset(x, size.height - barH),
+                            size = Size(barWidth, barH),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6.dp.toPx()),
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth()) {
+                dayLabels.forEachIndexed { i, label ->
+                    Text(
+                        text = label,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (i == bestIndex) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (i == bestIndex) FontWeight.Bold else FontWeight.Normal,
+                    )
+                }
             }
         }
     }

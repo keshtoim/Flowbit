@@ -123,7 +123,7 @@ fun HabitCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (!isCompleted && !isSkipped) 4.dp else 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Emoji-кружок
@@ -197,41 +197,6 @@ fun HabitCard(
                             )
                         }
 
-                        if (!isCompleted) {
-                            Spacer(Modifier.height(2.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                TextButton(
-                                    onClick = onGiveUp,
-                                    modifier = Modifier.height(34.dp),
-                                    contentPadding = PaddingValues(horizontal = 6.dp),
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.cant_today),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-                                    )
-                                }
-                                Text(
-                                    text = "·",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
-                                )
-                                TextButton(
-                                    onClick = onSkip,
-                                    modifier = Modifier.height(34.dp),
-                                    contentPadding = PaddingValues(horizontal = 6.dp),
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.skip),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
 
@@ -292,6 +257,40 @@ fun HabitCard(
                                 modifier = Modifier.size(24.dp),
                             )
                         }
+                    }
+                }
+            }
+            if (!isCompleted && !isSkipped) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 16.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(
+                        onClick = onGiveUp,
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cant_today),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                        )
+                    }
+                    Text(
+                        text = "·",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                    )
+                    TextButton(
+                        onClick = onSkip,
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.skip),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                        )
                     }
                 }
             }
