@@ -387,7 +387,10 @@ private fun SwipeableHabitCard(
     SwipeToDismissBox(
         state = swipeState,
         backgroundContent = {
-            val alpha = swipeState.progress.coerceIn(0f, 1f)
+            // progress == 1f when settled — show only while actively swiping StartToEnd
+            val alpha = if (swipeState.targetValue == SwipeToDismissBoxValue.StartToEnd)
+                swipeState.progress.coerceIn(0f, 1f)
+            else 0f
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -401,7 +404,7 @@ private fun SwipeableHabitCard(
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = alpha.coerceAtMost(1f)),
+                    tint = Color.White.copy(alpha = alpha),
                     modifier = Modifier.size(28.dp),
                 )
             }

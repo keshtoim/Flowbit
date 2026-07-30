@@ -76,11 +76,11 @@ fun HabitCard(
     }
     val surface = MaterialTheme.colorScheme.surface
 
-    val skippedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+    val skippedColor = MaterialTheme.colorScheme.errorContainer
     val cardColor by animateColorAsState(
         targetValue = when {
             isSkipped -> skippedColor
-            isCompleted -> habitColor.copy(alpha = 0.12f)
+            isCompleted -> habitColor.copy(alpha = 0.22f)
             else -> surface
         },
         animationSpec = tween(300),
