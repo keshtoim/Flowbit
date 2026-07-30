@@ -5,6 +5,7 @@
     <string name="widget_week_description">Weekly widget — all habits for 7 days with completion marks</string>
     <string name="widget_today_description">Day summary — circular progress of today\'s completed habits</string>
     <string name="widget_single_description">Single habit — emoji, counter and current streak 🔥 for the selected habit</string>
+    <string name="widget_scroll_description">Today\'s habits with scroll</string>
     <string name="widget_no_habits">No habits</string>
     <string name="widget_config_title">Select a habit for the widget</string>
 

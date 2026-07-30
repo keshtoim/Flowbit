@@ -477,6 +477,9 @@ fun HabitDetailScreen(
                     }
                 }
 
+                // Тепловая карта года (GitHub-style)
+                item { YearHeatmapCard(stats.completedDates) }
+
                 // Weekly pattern
                 item { WeeklyPatternCard(stats.completedDates) }
             }
@@ -593,6 +596,61 @@ private fun DetailAudioPlayer(audioUri: String) {
                     contentDescription = if (isPlaying) "Пауза" else "Воспроизвести",
                     tint = MaterialTheme.colorScheme.primary,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun YearHeatmapCard(completedDates: List<LocalDate>) {
+    if (completedDates.isEmpty()) return
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "Год активности",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(12.dp))
+            val completedSet = remember(completedDates) { completedDates.toHashSet() }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(88.dp),
+            ) {
+                val today = LocalDate.now()
+                val cols = 53
+                val rows = 7
+                val gap = 2.dp.toPx()
+                val cellW = (size.width - gap * (cols - 1)) / cols
+                val cellH = (size.height - gap * (rows - 1)) / rows
+                val radius = minOf(cellW, cellH) * 0.28f
+                val startDate = today
+                    .minusWeeks(52)
+                    .with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
+                for (col in 0 until cols) {
+                    for (row in 0 until rows) {
+                        val date = startDate.plusDays((col * 7 + row).toLong())
+                        if (date.isAfter(today)) continue
+                        val isDone = date in completedSet
+                        val x = col * (cellW + gap)
+                        val y = row * (cellH + gap)
+                        drawRoundRect(
+                            color = if (isDone) primaryColor else surfaceVariantColor,
+                            topLeft = Offset(x, y),
+                            size = Size(cellW, cellH),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius),
+                        )
+                    }
+                }
             }
         }
     }

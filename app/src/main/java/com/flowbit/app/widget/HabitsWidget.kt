@@ -17,6 +17,8 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.lazy.LazyColumn
+import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -215,68 +217,71 @@ private fun WidgetContent(
                 }
             }
         } else {
-            habits.forEach { habit ->
-                val habitEntries = entryMap[habit.id] ?: emptyMap()
-                val habitColor = parseHabitColor(habit.color.hex)
+            // Прокручиваемый список привычек
+            LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
+                items(habits, itemId = { it.id }) { habit ->
+                    val habitEntries = entryMap[habit.id] ?: emptyMap()
+                    val habitColor = parseHabitColor(habit.color.hex)
 
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth().height(rowH),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // Emoji-кружок
-                    Box(
-                        modifier = GlanceModifier
-                            .size(emojiCircle)
-                            .cornerRadius((emojiCircle.value / 2).dp)
-                            .background(ColorProvider(habitColor.copy(alpha = 0.22f))),
-                        contentAlignment = Alignment.Center,
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth().height(rowH),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = habit.emoji,
-                            style = TextStyle(fontSize = (emojiCircle.value * 0.5f).sp),
-                        )
-                    }
-
-                    Spacer(GlanceModifier.width(4.dp))
-
-                    // Название
-                    Box(
-                        modifier = GlanceModifier.width(nameWidth).height(rowH),
-                        contentAlignment = Alignment.CenterStart,
-                    ) {
-                        val maxChars = (nameWidth.value / 7f).toInt().coerceAtLeast(3)
-                        Text(
-                            text = if (habit.name.length > maxChars) habit.name.take(maxChars - 1) + "…"
-                                   else habit.name,
-                            style = TextStyle(
-                                fontSize = nameFontSize,
-                                color = GlanceTheme.colors.onSurface,
-                            ),
-                            maxLines = 1,
-                        )
-                    }
-
-                    // 7 ячеек дней
-                    weekDates.forEach { date ->
-                        val entry = habitEntries[date]
-                        val completedCount = entry?.completedCount ?: 0
-                        val isCompleted = completedCount >= habit.targetCount
-                        val isToday = date == today
-                        val isFuture = date.isAfter(today)
-
+                        // Emoji-кружок
                         Box(
-                            modifier = GlanceModifier.defaultWeight().height(rowH),
+                            modifier = GlanceModifier
+                                .size(emojiCircle)
+                                .cornerRadius((emojiCircle.value / 2).dp)
+                                .background(ColorProvider(habitColor.copy(alpha = 0.22f))),
                             contentAlignment = Alignment.Center,
                         ) {
-                            DayCircle(
-                                isCompleted = isCompleted,
-                                isToday = isToday,
-                                isFuture = isFuture,
-                                habitColor = habitColor,
-                                count = completedCount,
-                                target = habit.targetCount,
-                                size = circleSize,
+                            Text(
+                                text = habit.emoji,
+                                style = TextStyle(fontSize = (emojiCircle.value * 0.5f).sp),
                             )
+                        }
+
+                        Spacer(GlanceModifier.width(4.dp))
+
+                        // Название
+                        Box(
+                            modifier = GlanceModifier.width(nameWidth).height(rowH),
+                            contentAlignment = Alignment.CenterStart,
+                        ) {
+                            val maxChars = (nameWidth.value / 7f).toInt().coerceAtLeast(3)
+                            Text(
+                                text = if (habit.name.length > maxChars) habit.name.take(maxChars - 1) + "…"
+                                       else habit.name,
+                                style = TextStyle(
+                                    fontSize = nameFontSize,
+                                    color = GlanceTheme.colors.onSurface,
+                                ),
+                                maxLines = 1,
+                            )
+                        }
+
+                        // 7 ячеек дней
+                        weekDates.forEach { date ->
+                            val entry = habitEntries[date]
+                            val completedCount = entry?.completedCount ?: 0
+                            val isCompleted = completedCount >= habit.targetCount
+                            val isToday = date == today
+                            val isFuture = date.isAfter(today)
+
+                            Box(
+                                modifier = GlanceModifier.defaultWeight().height(rowH),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                DayCircle(
+                                    isCompleted = isCompleted,
+                                    isToday = isToday,
+                                    isFuture = isFuture,
+                                    habitColor = habitColor,
+                                    count = completedCount,
+                                    target = habit.targetCount,
+                                    size = circleSize,
+                                )
+                            }
                         }
                     }
                 }

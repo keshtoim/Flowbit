@@ -38,6 +38,7 @@ fun TodaySummaryCard(
     habits: List<HabitForDate>,
     selectedDate: LocalDate,
     modifier: Modifier = Modifier,
+    weekDelta: Int? = null,
 ) {
     val total = habits.size
     val done = habits.count { (it.entry?.completedCount ?: 0) >= it.habit.targetCount }
@@ -71,6 +72,8 @@ fun TodaySummaryCard(
 
     val primaryColor = MaterialTheme.colorScheme.primary
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val greenColor = MaterialTheme.colorScheme.tertiary
+    val redColor = MaterialTheme.colorScheme.error
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -129,6 +132,19 @@ fun TodaySummaryCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (weekDelta != null && isToday) {
+                    val sign = if (weekDelta >= 0) "+" else ""
+                    Text(
+                        text = "$sign$weekDelta vs прошлая неделя",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = when {
+                            weekDelta > 0 -> greenColor
+                            weekDelta < 0 -> redColor
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
             }
         }
     }

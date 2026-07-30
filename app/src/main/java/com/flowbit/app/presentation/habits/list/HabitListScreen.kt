@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
@@ -21,12 +22,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
@@ -39,10 +41,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.stringResource
@@ -234,6 +240,7 @@ fun HabitListScreen(
             TodaySummaryCard(
                 habits = uiState.habits,
                 selectedDate = uiState.selectedDate,
+                weekDelta = uiState.weekDelta,
                 modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 4.dp),
             )
 
@@ -294,7 +301,6 @@ fun HabitListScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     if (isGrouped) {
-                        // Группировка — без drag-and-drop
                         groups.forEach { (groupName, habits) ->
                             if (groupName != null) {
                                 stickyHeader(key = "header_$groupName") {
@@ -313,7 +319,7 @@ fun HabitListScreen(
                                 }
                             }
                             items(habits, key = { it.habit.id }) { habitForDate ->
-                                HabitCard(
+                                SwipeableHabitCard(
                                     habitForDate = habitForDate,
                                     onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
                                     onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
@@ -326,10 +332,9 @@ fun HabitListScreen(
                             }
                         }
                     } else {
-                        // Без группировки — drag-and-drop через удержание
                         items(draggableHabits, key = { it.habit.id }) { habitForDate ->
-                            ReorderableItem(reorderState, key = habitForDate.habit.id) { isDraggingItem ->
-                                HabitCard(
+                            ReorderableItem(reorderState, key = habitForDate.habit.id) { _ ->
+                                SwipeableHabitCard(
                                     habitForDate = habitForDate,
                                     onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
                                     onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
@@ -338,7 +343,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
-                                    modifier = Modifier.longPressDraggableHandle(
+                                    cardModifier = Modifier.longPressDraggableHandle(
                                         onDragStarted = { isDragging = true },
                                         onDragStopped = {
                                             isDragging = false
@@ -358,6 +363,64 @@ fun HabitListScreen(
         ConfettiOverlay(onDone = viewModel::hideConfetti)
     }
     } // end Box
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeableHabitCard(
+    habitForDate: HabitForDate,
+    onToggle: () -> Unit,
+    onDecrease: () -> Unit,
+    onGiveUp: () -> Unit,
+    onClick: () -> Unit,
+    onSkip: () -> Unit,
+    onUnSkipRequest: () -> Unit,
+    onTimer: () -> Unit,
+    cardModifier: Modifier = Modifier,
+) {
+    val swipeState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.StartToEnd) onToggle()
+            false  // always snap back
+        },
+    )
+    SwipeToDismissBox(
+        state = swipeState,
+        backgroundContent = {
+            val alpha = swipeState.progress.coerceIn(0f, 1f)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = Color(0xFF4CAF50).copy(alpha = (alpha * 1.2f).coerceAtMost(1f)),
+                        shape = RoundedCornerShape(20.dp),
+                    )
+                    .padding(start = 24.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = alpha.coerceAtMost(1f)),
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        },
+        enableDismissFromEndToStart = false,
+        enableDismissFromStartToEnd = true,
+    ) {
+        HabitCard(
+            habitForDate = habitForDate,
+            onToggle = onToggle,
+            onDecrease = onDecrease,
+            onGiveUp = onGiveUp,
+            onClick = onClick,
+            onSkip = onSkip,
+            onUnSkipRequest = onUnSkipRequest,
+            onTimer = onTimer,
+            modifier = cardModifier,
+        )
+    }
 }
 
 private fun groupHabits(

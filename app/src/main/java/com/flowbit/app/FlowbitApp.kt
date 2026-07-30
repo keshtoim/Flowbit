@@ -6,6 +6,8 @@ import android.app.NotificationManager
 import android.os.Build
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.flowbit.app.data.receiver.EveningCheckReceiver
+import com.flowbit.app.data.receiver.WeeklyReportReceiver
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -23,6 +25,8 @@ class FlowbitApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        EveningCheckReceiver.schedule(this)
+        WeeklyReportReceiver.schedule(this)
     }
 
     private fun createNotificationChannel() {
@@ -30,7 +34,7 @@ class FlowbitApp : Application(), Configuration.Provider {
             val channel = NotificationChannel(
                 REMINDER_CHANNEL_ID,
                 "Напоминания о привычках",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_HIGH,
             ).apply {
                 description = "Уведомления для напоминания о выполнении привычек"
             }

@@ -30,7 +30,7 @@
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
 
-        <!-- Widget: недельный трекер -->
+        <!-- Widget: недельный трекер 4×2 -->
         <receiver
             android:name=".widget.HabitsWidgetReceiver"
             android:exported="true">
@@ -66,6 +66,18 @@
                 android:resource="@xml/single_habit_widget_info" />
         </receiver>
 
+        <!-- Widget: сегодня с прокруткой 2×2 -->
+        <receiver
+            android:name=".widget.HabitScrollWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/habit_scroll_widget_info" />
+        </receiver>
+
         <!-- Config activity для SingleHabitWidget -->
         <activity
             android:name=".widget.SingleHabitWidgetConfigActivity"
@@ -85,9 +97,14 @@
             android:name=".data.receiver.HabitDoneReceiver"
             android:exported="false" />
 
-        <!-- Выполнение привычки из уведомления -->
+        <!-- Вечерняя напоминалка в 20:00 -->
         <receiver
-            android:name=".data.receiver.HabitDoneReceiver"
+            android:name=".data.receiver.EveningCheckReceiver"
+            android:exported="false" />
+
+        <!-- Воскресный отчёт в 20:00 -->
+        <receiver
+            android:name=".data.receiver.WeeklyReportReceiver"
             android:exported="false" />
 
         <!-- Boot receiver для восстановления будильников -->

@@ -8,14 +8,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.compose.rememberNavController
 import com.flowbit.app.presentation.navigation.FlowbitNavGraph
+import com.flowbit.app.presentation.settings.SettingsViewModel.Companion.THEME_MODE_KEY
 import com.flowbit.app.presentation.theme.FlowbitTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var dataStore: DataStore<Preferences>
 
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -31,7 +42,17 @@ class MainActivity : ComponentActivity() {
         else null
 
         setContent {
-            FlowbitTheme {
+            val themeModePref by dataStore.data
+                .map { it[THEME_MODE_KEY] ?: "system" }
+                .collectAsState(initial = "system")
+            val isSystemDark = isSystemInDarkTheme()
+            val isDark = when (themeModePref) {
+                "dark"  -> true
+                "light" -> false
+                else    -> isSystemDark
+            }
+
+            FlowbitTheme(darkTheme = isDark) {
                 val navController = rememberNavController()
                 FlowbitNavGraph(
                     navController = navController,

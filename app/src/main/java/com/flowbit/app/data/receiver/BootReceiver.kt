@@ -24,5 +24,8 @@ class BootReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             scheduleReminderUseCase.rescheduleAll()
         }
+
+        EveningCheckReceiver.schedule(context)
+        WeeklyReportReceiver.schedule(context)
     }
 }

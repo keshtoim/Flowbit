@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -42,6 +43,7 @@ data class HabitListUiState(
     val timerRemaining: Int = 0,
     val showConfetti: Boolean = false,
     val confettiShownDates: Set<LocalDate> = emptySet(),
+    val weekDelta: Int? = null,
 )
 
 @HiltViewModel
@@ -87,6 +89,27 @@ class HabitListViewModel @Inject constructor(
                 ShortcutHelper.updateShortcuts(context, habits.map { it.habit })
             }
             .launchIn(viewModelScope)
+
+        computeWeekDelta()
+    }
+
+    private fun computeWeekDelta() {
+        viewModelScope.launch {
+            val today = LocalDate.now()
+            val dow = today.dayOfWeek.value  // Mon=1...Sun=7
+            val thisWeekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
+            val lastWeekEnd = thisWeekStart.minusDays(1)
+            val lastWeekStart = lastWeekEnd.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
+
+            val thisEntries = habitRepository.getEntriesForDateRange(thisWeekStart, today)
+            val lastEntries = habitRepository.getEntriesForDateRange(lastWeekStart, lastWeekEnd)
+
+            val thisCount = thisEntries.count { it.completedCount > 0 && !it.isSkipped }
+            val lastCount = lastEntries.count { it.completedCount > 0 && !it.isSkipped }
+
+            val delta = if (lastCount > 0 || thisCount > 0) thisCount - lastCount else null
+            _uiState.update { it.copy(weekDelta = delta) }
+        }
     }
 
     fun onDateSelected(date: LocalDate) {

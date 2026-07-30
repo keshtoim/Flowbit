@@ -7,8 +7,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.BuildConfig
@@ -33,8 +33,10 @@ import org.json.JSONObject
 import java.time.LocalDate
 import javax.inject.Inject
 
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
 data class SettingsUiState(
-    val isDarkTheme: Boolean = false,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val habits: List<Habit> = emptyList(),
     val backupMessage: String? = null,
     val isImporting: Boolean = false,
@@ -58,8 +60,13 @@ class SettingsViewModel @Inject constructor(
     init {
         _uiState.update { it.copy(appVersion = BuildConfig.VERSION_NAME) }
         viewModelScope.launch {
-            dataStore.data.map { prefs -> prefs[DARK_THEME_KEY] ?: false }
-                .collect { isDark -> _uiState.update { it.copy(isDarkTheme = isDark) } }
+            dataStore.data.map { prefs ->
+                when (prefs[THEME_MODE_KEY]) {
+                    "light" -> ThemeMode.LIGHT
+                    "dark"  -> ThemeMode.DARK
+                    else    -> ThemeMode.SYSTEM
+                }
+            }.collect { mode -> _uiState.update { it.copy(themeMode = mode) } }
         }
         val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags()
             .let { if (it.contains("en")) "en" else "ru" }
@@ -75,9 +82,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setDarkTheme(enabled: Boolean) {
+    fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
-            dataStore.edit { it[DARK_THEME_KEY] = enabled }
+            val value = when (mode) {
+                ThemeMode.SYSTEM -> "system"
+                ThemeMode.LIGHT  -> "light"
+                ThemeMode.DARK   -> "dark"
+            }
+            dataStore.edit { it[THEME_MODE_KEY] = value }
         }
     }
 
@@ -276,6 +288,6 @@ class SettingsViewModel @Inject constructor(
     )
 
     companion object {
-        val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
+        val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
     }
 }
