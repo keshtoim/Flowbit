@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
@@ -68,7 +69,9 @@ fun HabitCard(
     val habit = habitForDate.habit
     val isSkipped = habitForDate.entry?.isSkipped ?: false
     val completedCount = if (isSkipped) 0 else (habitForDate.entry?.completedCount ?: 0)
-    val isCompleted = !isSkipped && completedCount >= habit.targetCount
+    // Для Табу: "выполнено" = не сорвался (нет записи или count == 0)
+    val isRelapsed = habit.isBadHabit && completedCount > 0
+    val isCompleted = if (habit.isBadHabit) !isRelapsed else !isSkipped && completedCount >= habit.targetCount
 
     val habitColor = remember(habit.color.hex) {
         try { Color(android.graphics.Color.parseColor(habit.color.hex)) }
@@ -79,6 +82,7 @@ fun HabitCard(
     val skippedColor = MaterialTheme.colorScheme.errorContainer
     val cardColor by animateColorAsState(
         targetValue = when {
+            isRelapsed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.40f)
             isSkipped -> skippedColor
             isCompleted -> habitColor.copy(alpha = 0.22f)
             else -> surface
@@ -140,13 +144,49 @@ fun HabitCard(
                 Spacer(Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = habit.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    if (isSkipped) {
+                    // Бейдж «Табу» рядом с названием
+                    if (habit.isBadHabit) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = habit.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.55f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                            ) {
+                                Text(
+                                    text = "🚫 Табу",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                )
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = habit.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+
+                    if (habit.isBadHabit) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = if (isRelapsed) "Сорвался 😞" else "Чисто сегодня ✓",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isRelapsed) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.tertiary,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    } else if (isSkipped) {
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = stringResource(R.string.skipped_label),
@@ -196,71 +236,96 @@ fun HabitCard(
                                 fontWeight = FontWeight.Medium,
                             )
                         }
-
                     }
                 }
 
                 Spacer(Modifier.width(8.dp))
 
-                // Кнопка "−" — появляется при completedCount > 0 и не пропущено
-                AnimatedVisibility(
-                    visible = completedCount > 0 && !isSkipped,
-                    enter = scaleIn(tween(180)) + fadeIn(tween(180)),
-                    exit = scaleOut(tween(180)) + fadeOut(tween(180)),
-                ) {
-                    IconButton(
-                        onClick = onDecrease,
-                        modifier = Modifier.size(36.dp),
-                    ) {
-                        Icon(
-                            Icons.Default.Remove,
-                            contentDescription = "Уменьшить",
-                            tint = habitColor,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-
-                // Кнопка таймера — показывается если таймер задан и не выполнено
-                if (habit.timerSeconds > 0 && !isCompleted && !isSkipped) {
-                    IconButton(
-                        onClick = onTimer,
-                        modifier = Modifier.size(36.dp),
-                    ) {
-                        Icon(
-                            Icons.Default.Timer,
-                            contentDescription = "Запустить таймер",
-                            tint = habitColor,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                }
-
-                Spacer(Modifier.width(4.dp))
-
-                // Главная кнопка-галочка (скрыта когда пропущено)
-                if (!isSkipped) {
+                if (habit.isBadHabit) {
+                    // Для Табу: кнопка «Сорвался» / «Отменить»
+                    val tabooButtonColor by animateColorAsState(
+                        targetValue = if (isRelapsed) MaterialTheme.colorScheme.error
+                                      else MaterialTheme.colorScheme.error.copy(alpha = 0.18f),
+                        animationSpec = tween(300), label = "tabooBtn",
+                    )
                     Box(
                         modifier = Modifier
                             .size(44.dp)
                             .scale(buttonScale)
                             .clip(CircleShape)
-                            .background(buttonColor)
+                            .background(tabooButtonColor)
                             .clickable(onClick = onToggle),
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (isCompleted) {
+                        Icon(
+                            if (isRelapsed) Icons.Default.Close else Icons.Default.Close,
+                            contentDescription = if (isRelapsed) "Отменить срыв" else "Сорвался",
+                            tint = if (isRelapsed) Color.White
+                                   else MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                } else {
+                    // Кнопка "−" — появляется при completedCount > 0 и не пропущено
+                    AnimatedVisibility(
+                        visible = completedCount > 0 && !isSkipped,
+                        enter = scaleIn(tween(180)) + fadeIn(tween(180)),
+                        exit = scaleOut(tween(180)) + fadeOut(tween(180)),
+                    ) {
+                        IconButton(
+                            onClick = onDecrease,
+                            modifier = Modifier.size(36.dp),
+                        ) {
                             Icon(
-                                Icons.Default.Check,
-                                contentDescription = "Выполнено",
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp),
+                                Icons.Default.Remove,
+                                contentDescription = "Уменьшить",
+                                tint = habitColor,
+                                modifier = Modifier.size(18.dp),
                             )
+                        }
+                    }
+
+                    // Кнопка таймера — показывается если таймер задан и не выполнено
+                    if (habit.timerSeconds > 0 && !isCompleted && !isSkipped) {
+                        IconButton(
+                            onClick = onTimer,
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.Timer,
+                                contentDescription = "Запустить таймер",
+                                tint = habitColor,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.width(4.dp))
+
+                    // Главная кнопка-галочка (скрыта когда пропущено)
+                    if (!isSkipped) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .scale(buttonScale)
+                                .clip(CircleShape)
+                                .background(buttonColor)
+                                .clickable(onClick = onToggle),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (isCompleted) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = "Выполнено",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
                         }
                     }
                 }
             }
-            if (!isCompleted && !isSkipped) {
+            if (!habit.isBadHabit && !isCompleted && !isSkipped) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
