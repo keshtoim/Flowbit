@@ -48,12 +48,17 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,12 +94,13 @@ fun HabitListScreen(
     val allTags by viewModel.allTags.collectAsState()
     var groupMenuExpanded by remember { mutableStateOf(false) }
 
-    // Drag-and-drop state
-    var draggableHabits by remember { mutableStateOf(uiState.habits) }
+    // Drag-and-drop state (только обычные привычки, без Табу)
+    var draggableHabits by remember { mutableStateOf(uiState.habits.filter { !it.habit.isBadHabit }) }
     var isDragging by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.habits) {
-        if (!isDragging) draggableHabits = uiState.habits
+        if (!isDragging) draggableHabits = uiState.habits.filter { !it.habit.isBadHabit }
     }
+    var tabooExpanded by rememberSaveable { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
     val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
         draggableHabits = draggableHabits.toMutableList().apply { add(to.index, removeAt(from.index)) }
@@ -286,9 +292,12 @@ fun HabitListScreen(
                 val strDone = stringResource(R.string.group_done)
                 val strNoTag = stringResource(R.string.group_no_tag)
                 val strUnknownTag = stringResource(R.string.group_unknown_tag)
-                val groups = remember(uiState.habits, uiState.groupingMode, allTags) {
+                // Табу — всегда в отдельной секции внизу
+                val normalHabits = uiState.habits.filter { !it.habit.isBadHabit }
+                val tabooHabits = uiState.habits.filter { it.habit.isBadHabit }
+                val groups = remember(normalHabits, uiState.groupingMode, allTags) {
                     groupHabits(
-                        uiState.habits,
+                        normalHabits,
                         uiState.groupingMode,
                         allTags.associateBy { it.id },
                         strDaily, strScheduled, strNotDone, strDone, strNoTag, strUnknownTag,
@@ -354,6 +363,57 @@ fun HabitListScreen(
                             }
                         }
                     }
+
+                    // ── Секция «Табу» ─────────────────────────────────────────
+                    if (tabooHabits.isNotEmpty()) {
+                        item(key = "taboo_header") {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.background,
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "🚫 Табу",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    IconButton(
+                                        onClick = { tabooExpanded = !tabooExpanded },
+                                        modifier = Modifier.size(32.dp),
+                                    ) {
+                                        Icon(
+                                            if (tabooExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                            contentDescription = if (tabooExpanded) "Свернуть" else "Развернуть",
+                                            tint = MaterialTheme.colorScheme.error,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        if (tabooExpanded) {
+                            items(tabooHabits, key = { "taboo_${it.habit.id}" }) { habitForDate ->
+                                SwipeableHabitCard(
+                                    habitForDate = habitForDate,
+                                    onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
+                                    onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
+                                    onGiveUp = { viewModel.showMotivation() },
+                                    onClick = { onHabitClick(habitForDate.habit.id) },
+                                    onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
+                                    onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
+                                    onTimer = { viewModel.startTimer(habitForDate.habit.id) },
+                                    enableSwipe = false,
+                                )
+                            }
+                        }
+                    }
+
                     item { Spacer(Modifier.height(80.dp)) }
                 }
             }
@@ -377,7 +437,22 @@ private fun SwipeableHabitCard(
     onUnSkipRequest: () -> Unit,
     onTimer: () -> Unit,
     cardModifier: Modifier = Modifier,
+    enableSwipe: Boolean = true,
 ) {
+    if (!enableSwipe) {
+        HabitCard(
+            habitForDate = habitForDate,
+            onToggle = onToggle,
+            onDecrease = onDecrease,
+            onGiveUp = onGiveUp,
+            onClick = onClick,
+            onSkip = onSkip,
+            onUnSkipRequest = onUnSkipRequest,
+            onTimer = onTimer,
+            modifier = cardModifier,
+        )
+        return
+    }
     val swipeState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.StartToEnd) onToggle()
