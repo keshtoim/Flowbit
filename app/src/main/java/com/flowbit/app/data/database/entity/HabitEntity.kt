@@ -32,6 +32,7 @@ data class HabitEntity(
     val periodGoalCount: Int = 0,
     val unit: String? = null,
     val timerSeconds: Int = 0,
+    val isBadHabit: Boolean = false,
 ) {
     fun toDomain(): Habit = Habit(
         id = id,
@@ -57,6 +58,7 @@ data class HabitEntity(
         periodGoalCount = periodGoalCount,
         unit = unit,
         timerSeconds = timerSeconds,
+        isBadHabit = isBadHabit,
     )
 
     companion object {
@@ -81,6 +83,7 @@ data class HabitEntity(
             periodGoalCount = habit.periodGoalCount,
             unit = habit.unit,
             timerSeconds = habit.timerSeconds,
+            isBadHabit = habit.isBadHabit,
         )
     }
 }
