@@ -41,7 +41,14 @@ fun TodaySummaryCard(
     weekDelta: Int? = null,
 ) {
     val total = habits.size
-    val done = habits.count { (it.entry?.completedCount ?: 0) >= it.habit.targetCount }
+    val done = habits.count { hfd ->
+        if (hfd.habit.isBadHabit) {
+            // Табу: «выполнено» = не сорвался (нет записи или count == 0)
+            (hfd.entry?.completedCount ?: 0) == 0
+        } else {
+            (hfd.entry?.completedCount ?: 0) >= hfd.habit.targetCount
+        }
+    }
     val progress = if (total > 0) done.toFloat() / total else 0f
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
