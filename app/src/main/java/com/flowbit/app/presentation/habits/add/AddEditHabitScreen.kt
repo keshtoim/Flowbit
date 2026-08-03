@@ -120,6 +120,10 @@ fun AddEditHabitScreen(
                 onCreateTag = viewModel::createTag,
                 onDeleteTag = viewModel::deleteTag,
             )
+            TabooSection(
+                isBadHabit = uiState.isBadHabit,
+                onIsBadHabitChange = viewModel::onIsBadHabitChange,
+            )
         }
     }
 }

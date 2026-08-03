@@ -44,6 +44,7 @@ data class AddEditHabitUiState(
     val periodGoalCount: Int = 4,
     val unit: String = "",
     val timerSeconds: Int = 0,
+    val isBadHabit: Boolean = false,
     val isSaved: Boolean = false,
     val nameError: String? = null,
     val recurringEnabled: Boolean = false,
@@ -93,6 +94,7 @@ class AddEditHabitViewModel @Inject constructor(
                     periodGoalCount = habit.periodGoalCount,
                     unit = habit.unit ?: "",
                     timerSeconds = habit.timerSeconds,
+                    isBadHabit = habit.isBadHabit,
                 )
             }
         }
@@ -113,6 +115,7 @@ class AddEditHabitViewModel @Inject constructor(
     fun onPeriodGoalCountChange(count: Int) = _uiState.update { it.copy(periodGoalCount = count.coerceIn(1, 31)) }
     fun onUnitChange(unit: String) = _uiState.update { it.copy(unit = unit.take(8)) }
     fun onTimerSecondsChange(seconds: Int) = _uiState.update { it.copy(timerSeconds = seconds.coerceIn(0, 7200)) }
+    fun onIsBadHabitChange(value: Boolean) = _uiState.update { it.copy(isBadHabit = value) }
 
     fun onRecurringToggle() = _uiState.update { it.copy(recurringEnabled = !it.recurringEnabled) }
     fun onRecurringStartHour(hour: Int) = _uiState.update { it.copy(recurringStartHour = hour.coerceIn(0, 23)) }
@@ -186,6 +189,7 @@ class AddEditHabitViewModel @Inject constructor(
                 periodGoalCount = if (state.periodGoalType == PeriodGoalType.NONE) 0 else state.periodGoalCount,
                 unit = state.unit.trim().takeIf { it.isNotEmpty() },
                 timerSeconds = state.timerSeconds,
+                isBadHabit = state.isBadHabit,
             )
 
             val savedId = if (editingHabitId == null) {
