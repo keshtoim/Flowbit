@@ -27,6 +27,9 @@ data class StatisticsUiState(
     val weekdayInsight: WeekdayInsight? = null,
     val periodComparison: PeriodComparison? = null,
     val bestTimeData: BestTimeData? = null,
+    val popularHabit: HabitStats? = null,
+    val rareHabit: HabitStats? = null,
+    val averageCompletionPct: Int = 0,
 )
 
 @HiltViewModel
@@ -49,6 +52,12 @@ class StatisticsViewModel @Inject constructor(
             val comparison = computePeriodComparison(stats)
             val bestTime = computeBestTime(markedTimes)
 
+            val activeStats = stats.filter { it.completionRate > 0f || it.totalCompletions >= 0 }
+            val popular = activeStats.maxByOrNull { it.completionRate }
+            val rare = activeStats.filter { it.totalCompletions > 0 }.minByOrNull { it.completionRate }
+            val avgPct = if (activeStats.isEmpty()) 0
+            else (activeStats.map { it.completionRate }.average() * 100).toInt()
+
             _uiState.update {
                 it.copy(
                     habitStats = stats,
@@ -56,6 +65,9 @@ class StatisticsViewModel @Inject constructor(
                     weekdayInsight = insight,
                     periodComparison = comparison,
                     bestTimeData = bestTime,
+                    popularHabit = popular,
+                    rareHabit = rare,
+                    averageCompletionPct = avgPct,
                 )
             }
         }

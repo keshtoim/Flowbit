@@ -97,6 +97,17 @@ fun StatisticsScreen(
                 item { OverallStatsSection(overall) }
             }
 
+            // Топ / редкая привычка + средний %
+            if (uiState.popularHabit != null || uiState.rareHabit != null) {
+                item {
+                    HabitHighlightsRow(
+                        popularHabit = uiState.popularHabit,
+                        rareHabit = uiState.rareHabit,
+                        averagePct = uiState.averageCompletionPct,
+                    )
+                }
+            }
+
             uiState.weekdayInsight?.let { insight ->
                 item { InsightsCard(insight) }
             }
@@ -555,6 +566,129 @@ private fun HabitStatsCard(stats: HabitStats, onClick: () -> Unit) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HabitHighlightsRow(
+    popularHabit: HabitStats?,
+    rareHabit: HabitStats?,
+    averagePct: Int,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Средний % — полная ширина
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+            ),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(
+                        text = "Средний %",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                    )
+                    Text(
+                        text = "$averagePct%",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+                Text("📊", style = MaterialTheme.typography.displaySmall)
+            }
+        }
+
+        // Две карточки рядом
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (popularHabit != null) {
+                HabitHighlightCard(
+                    modifier = Modifier.weight(1f),
+                    label = "Популярная",
+                    emoji = popularHabit.habitEmoji,
+                    name = popularHabit.habitName,
+                    pct = (popularHabit.completionRate * 100).toInt(),
+                    streak = popularHabit.longestStreak,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    onContainerColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    badge = "🏆",
+                )
+            }
+            if (rareHabit != null) {
+                HabitHighlightCard(
+                    modifier = Modifier.weight(1f),
+                    label = "Сложная",
+                    emoji = rareHabit.habitEmoji,
+                    name = rareHabit.habitName,
+                    pct = (rareHabit.completionRate * 100).toInt(),
+                    streak = rareHabit.longestStreak,
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    onContainerColor = MaterialTheme.colorScheme.onErrorContainer,
+                    badge = "💪",
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HabitHighlightCard(
+    modifier: Modifier = Modifier,
+    label: String,
+    emoji: String,
+    name: String,
+    pct: Int,
+    streak: Int,
+    containerColor: Color,
+    onContainerColor: Color,
+    badge: String,
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(badge, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "$pct%",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = onContainerColor,
+                )
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = onContainerColor.copy(alpha = 0.7f),
+            )
+            Text(
+                text = "$emoji $name",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = onContainerColor,
+                maxLines = 2,
+            )
+            Text(
+                text = "Серия: $streak дн.",
+                style = MaterialTheme.typography.labelSmall,
+                color = onContainerColor.copy(alpha = 0.7f),
+            )
         }
     }
 }
