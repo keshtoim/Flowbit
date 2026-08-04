@@ -8,6 +8,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.flowbit.app.data.receiver.EveningCheckReceiver
 import com.flowbit.app.data.receiver.WeeklyReportReceiver
+import com.flowbit.app.data.worker.InactivityCheckWorker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -27,6 +28,7 @@ class FlowbitApp : Application(), Configuration.Provider {
         createNotificationChannel()
         EveningCheckReceiver.schedule(this)
         WeeklyReportReceiver.schedule(this)
+        InactivityCheckWorker.schedule(this)
     }
 
     private fun createNotificationChannel() {

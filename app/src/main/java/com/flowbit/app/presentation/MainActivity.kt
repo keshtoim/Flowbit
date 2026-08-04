@@ -1,6 +1,7 @@
 package com.flowbit.app.presentation
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -15,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.compose.rememberNavController
+import com.flowbit.app.data.worker.InactivityCheckWorker
 import com.flowbit.app.presentation.navigation.FlowbitNavGraph
 import com.flowbit.app.presentation.settings.SettingsViewModel.Companion.THEME_MODE_KEY
 import com.flowbit.app.presentation.theme.FlowbitTheme
@@ -60,6 +62,14 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        getSharedPreferences(InactivityCheckWorker.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putLong(InactivityCheckWorker.KEY_LAST_OPEN, System.currentTimeMillis())
+            .apply()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
