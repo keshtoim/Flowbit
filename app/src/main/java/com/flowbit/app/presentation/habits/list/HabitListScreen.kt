@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
@@ -88,6 +89,7 @@ fun HabitListScreen(
     onHabitClick: (Long) -> Unit,
     onStatisticsClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onWeeklySummaryClick: () -> Unit = {},
     viewModel: HabitListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -247,7 +249,10 @@ fun HabitListScreen(
                 habits = uiState.habits,
                 selectedDate = uiState.selectedDate,
                 weekDelta = uiState.weekDelta,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 4.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 4.dp)
+                    .clickable { onWeeklySummaryClick() },
             )
 
             AnimatedVisibility(

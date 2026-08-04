@@ -17,6 +17,7 @@ import com.flowbit.app.presentation.habits.add.AddEditHabitScreen
 import com.flowbit.app.presentation.habits.detail.HabitDetailScreen
 import com.flowbit.app.presentation.statistics.StatisticsScreen
 import com.flowbit.app.presentation.settings.SettingsScreen
+import com.flowbit.app.presentation.weekly.WeeklySummaryScreen
 
 sealed class Screen(val route: String) {
     data object HabitList : Screen("habit_list")
@@ -29,6 +30,7 @@ sealed class Screen(val route: String) {
     }
     data object Statistics : Screen("statistics")
     data object Settings : Screen("settings")
+    data object WeeklySummary : Screen("weekly_summary")
 }
 
 private const val ANIM_DURATION = 280
@@ -70,7 +72,12 @@ fun FlowbitNavGraph(
                 onHabitClick = { id -> navController.navigate(Screen.HabitDetail.createRoute(id)) },
                 onStatisticsClick = { navController.navigate(Screen.Statistics.route) },
                 onSettingsClick = { navController.navigate(Screen.Settings.route) },
+                onWeeklySummaryClick = { navController.navigate(Screen.WeeklySummary.route) },
             )
+        }
+
+        composable(Screen.WeeklySummary.route) {
+            WeeklySummaryScreen(onBack = { navController.popBackStack() })
         }
 
         composable(Screen.AddHabit.route) {
