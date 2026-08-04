@@ -34,11 +34,22 @@ data class HabitEntity(
     val timerSeconds: Int = 0,
     val isBadHabit: Boolean = false,
 ) {
-    fun toDomain(): Habit = Habit(
+    fun toDomain(): Habit {
+        val matchedColor = HabitColor.entries
+            .filterNot { it == HabitColor.CUSTOM }
+            .find { it.hex == colorHex }
+        return toDomainWith(
+            color = matchedColor ?: HabitColor.CUSTOM,
+            customColorHex = if (matchedColor == null) colorHex else null,
+        )
+    }
+
+    private fun toDomainWith(color: HabitColor, customColorHex: String?) = Habit(
         id = id,
         name = name,
         emoji = emoji,
-        color = HabitColor.entries.find { it.hex == colorHex } ?: HabitColor.TEAL,
+        color = color,
+        customColorHex = customColorHex,
         targetCount = targetCount,
         frequency = HabitFrequency.valueOf(frequency),
         scheduledDays = scheduledDays.split(",")
@@ -66,7 +77,7 @@ data class HabitEntity(
             id = habit.id,
             name = habit.name,
             emoji = habit.emoji,
-            colorHex = habit.color.hex,
+            colorHex = habit.effectiveColorHex,
             targetCount = habit.targetCount,
             frequency = habit.frequency.name,
             scheduledDays = habit.scheduledDays.joinToString(",") { it.name },

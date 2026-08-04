@@ -189,18 +189,32 @@ fun EmojiPickerDialog(
 @Composable
 fun ColorPickerSection(
     selectedColor: HabitColor,
+    customColorHex: String?,
     onColorSelected: (HabitColor) -> Unit,
+    onCustomColorHexChange: (String) -> Unit,
 ) {
+    var showCustomDialog by remember { mutableStateOf(false) }
+    var hexInput by remember(customColorHex) { mutableStateOf(customColorHex ?: "#") }
+
+    val presetColors = HabitColor.entries.filterNot { it == HabitColor.CUSTOM }
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Цвет", style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            HabitColor.entries.forEach { color ->
-                val isSelected = color == selectedColor
+        // Скроллируемый ряд цветов + кнопка «своё»
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            presetColors.forEach { color ->
+                val isSelected = selectedColor == color
+                val parsedColor = remember(color.hex) {
+                    Color(android.graphics.Color.parseColor(color.hex))
+                }
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color(android.graphics.Color.parseColor(color.hex)))
+                        .background(parsedColor)
                         .then(
                             if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
                             else Modifier
@@ -208,7 +222,116 @@ fun ColorPickerSection(
                         .clickable { onColorSelected(color) },
                 )
             }
+            // Кнопка «🎨 Своё»
+            val isCustomSelected = selectedColor == HabitColor.CUSTOM
+            val displayColor = if (isCustomSelected && customColorHex != null) {
+                runCatching { Color(android.graphics.Color.parseColor(customColorHex)) }
+                    .getOrElse { Color.Gray }
+            } else Color.Gray
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(if (isCustomSelected) displayColor else MaterialTheme.colorScheme.surfaceVariant)
+                    .border(
+                        2.dp,
+                        if (isCustomSelected) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.outline,
+                        CircleShape,
+                    )
+                    .clickable { showCustomDialog = true },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("🎨", style = MaterialTheme.typography.labelMedium)
+            }
         }
+        // Показываем выбранный кастомный цвет
+        if (selectedColor == HabitColor.CUSTOM && customColorHex != null) {
+            Text(
+                text = "Свой цвет: $customColorHex",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+
+    // Диалог выбора произвольного цвета
+    if (showCustomDialog) {
+        AlertDialog(
+            onDismissRequest = { showCustomDialog = false },
+            title = { Text("Свой цвет") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = hexInput,
+                        onValueChange = { raw ->
+                            val clean = raw.trim()
+                            hexInput = if (clean.startsWith("#")) clean.take(7) else "#${clean.take(6)}"
+                        },
+                        label = { Text("HEX-код") },
+                        placeholder = { Text("#FF5733") },
+                        singleLine = true,
+                    )
+                    // Превью
+                    val previewColor = runCatching {
+                        if (hexInput.length == 7) Color(android.graphics.Color.parseColor(hexInput))
+                        else null
+                    }.getOrNull()
+                    if (previewColor != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(previewColor),
+                            )
+                            Text(hexInput, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    // Быстрые пресеты из расширенной палитры
+                    val quickColors = listOf(
+                        "#FF5733","#C70039","#900C3F","#581845",
+                        "#1ABC9C","#2980B9","#8E44AD","#F39C12",
+                        "#D35400","#27AE60","#2C3E50","#7F8C8D",
+                    )
+                    Text("Быстрый выбор", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                        columns = GridCells.Fixed(6),
+                        modifier = Modifier.height(80.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(quickColors.size) { idx ->
+                            val qc = quickColors[idx]
+                            val qParsed = runCatching { Color(android.graphics.Color.parseColor(qc)) }
+                                .getOrElse { Color.Gray }
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(qParsed)
+                                    .clickable { hexInput = qc },
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (hexInput.length == 7) {
+                        onCustomColorHexChange(hexInput)
+                        showCustomDialog = false
+                    }
+                }) { Text("Выбрать") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCustomDialog = false }) { Text("Отмена") }
+            },
+        )
     }
 }
 

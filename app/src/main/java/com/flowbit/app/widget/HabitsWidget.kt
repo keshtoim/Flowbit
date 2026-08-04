@@ -221,7 +221,7 @@ private fun WidgetContent(
             LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
                 items(habits, itemId = { it.id }) { habit ->
                     val habitEntries = entryMap[habit.id] ?: emptyMap()
-                    val habitColor = parseHabitColor(habit.color.hex)
+                    val habitColor = parseHabitColor(habit.effectiveColorHex)
 
                     Row(
                         modifier = GlanceModifier.fillMaxWidth().height(rowH),

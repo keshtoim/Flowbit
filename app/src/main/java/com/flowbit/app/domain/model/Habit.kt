@@ -27,7 +27,11 @@ data class Habit(
     val unit: String? = null,
     val timerSeconds: Int = 0,
     val isBadHabit: Boolean = false,
-)
+    val customColorHex: String? = null,
+) {
+    val effectiveColorHex: String
+        get() = if (color == HabitColor.CUSTOM) customColorHex ?: "#FFFFFF" else color.hex
+}
 
 data class HabitReminder(
     val id: Long = 0,
@@ -57,4 +61,13 @@ enum class HabitColor(val hex: String) {
     RED("#E74C3C"),
     PINK("#FF69B4"),
     YELLOW("#F1C40F"),
+    INDIGO("#5C6BC0"),
+    CYAN("#00BCD4"),
+    LIME("#8BC34A"),
+    CORAL("#FF7043"),
+    AMBER("#FFB300"),
+    DEEP_PURPLE("#7B1FA2"),
+    ROSE("#F06292"),
+    BROWN("#8D6E63"),
+    CUSTOM("#FFFFFF"),  // sentinel — реальный цвет в Habit.customColorHex
 }

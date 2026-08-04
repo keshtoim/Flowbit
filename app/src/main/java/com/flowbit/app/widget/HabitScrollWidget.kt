@@ -147,7 +147,7 @@ private fun ScrollWidgetContent(
                     val count = entry?.completedCount ?: 0
                     val isCompleted = count >= habit.targetCount
                     val isSkipped = entry?.isSkipped == true
-                    val habitColor = parseScrollWidgetColor(habit.color.hex)
+                    val habitColor = parseScrollWidgetColor(habit.effectiveColorHex)
 
                     Row(
                         modifier = GlanceModifier

@@ -73,8 +73,8 @@ fun HabitCard(
     val isRelapsed = habit.isBadHabit && completedCount > 0
     val isCompleted = if (habit.isBadHabit) !isRelapsed else !isSkipped && completedCount >= habit.targetCount
 
-    val habitColor = remember(habit.color.hex) {
-        try { Color(android.graphics.Color.parseColor(habit.color.hex)) }
+    val habitColor = remember(habit.effectiveColorHex) {
+        try { Color(android.graphics.Color.parseColor(habit.effectiveColorHex)) }
         catch (e: Exception) { Color(0xFF00E5C0) }
     }
     val surface = MaterialTheme.colorScheme.surface

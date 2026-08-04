@@ -55,7 +55,9 @@ fun AddEditHabitScreen(
             )
             ColorPickerSection(
                 selectedColor = uiState.color,
+                customColorHex = uiState.customColorHex,
                 onColorSelected = viewModel::onColorChange,
+                onCustomColorHexChange = viewModel::onCustomColorHexChange,
             )
             TargetCountSection(
                 targetCount = uiState.targetCount,
