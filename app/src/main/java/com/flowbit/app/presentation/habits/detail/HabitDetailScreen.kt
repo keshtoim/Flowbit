@@ -323,6 +323,49 @@ fun HabitDetailScreen(
                     }
                 }
 
+                // История заметок
+                if (uiState.noteHistory.isNotEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        ) {
+                            Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(
+                                    text = "📝 История заметок",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                uiState.noteHistory.take(10).forEach { (date, note) ->
+                                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text(
+                                            text = date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru"))),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Text(
+                                            text = note,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                        )
+                                        Spacer(Modifier.height(2.dp))
+                                        androidx.compose.material3.HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                        )
+                                    }
+                                }
+                                if (uiState.noteHistory.size > 10) {
+                                    Text(
+                                        text = "… ещё ${uiState.noteHistory.size - 10} заметок",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // График прогресса за 30 дней
                 item {
                     Card(

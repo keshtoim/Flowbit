@@ -120,6 +120,9 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun getAllMarkedAtTimes(): List<String?> =
         dao.getAllMarkedAtTimes()
 
+    override suspend fun getAllEntriesForHabit(habitId: Long): List<HabitEntry> =
+        dao.getAllEntriesForHabit(habitId).map { it.toDomain() }
+
     private fun countScheduledDays(habit: Habit): Int {
         val today = LocalDate.now()
         val start = habit.startDate

@@ -22,6 +22,7 @@ data class HabitDetailUiState(
     val isTodaySkipped: Boolean = false,
     val deleteConfirmOpen: Boolean = false,
     val unSkipConfirmOpen: Boolean = false,
+    val noteHistory: List<Pair<LocalDate, String>> = emptyList(),
 )
 
 @HiltViewModel
@@ -40,11 +41,16 @@ class HabitDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val stats = getHabitStats.forHabit(habitId)
             val entry = repository.getEntryForDate(habitId, LocalDate.now())
+            val history = repository.getAllEntriesForHabit(habitId)
+                .filter { !it.note.isNullOrBlank() }
+                .sortedByDescending { it.date }
+                .map { it.date to it.note!! }
             _uiState.update {
                 it.copy(
                     stats = stats,
                     todayNote = entry?.note,
                     isTodaySkipped = entry?.isSkipped ?: false,
+                    noteHistory = history,
                 )
             }
         }
@@ -70,7 +76,11 @@ class HabitDetailViewModel @Inject constructor(
             if (existing != null) {
                 repository.upsertEntry(existing.copy(note = note))
             }
-            _uiState.update { it.copy(todayNote = note, noteDialogOpen = false) }
+            val history = repository.getAllEntriesForHabit(currentHabitId)
+                .filter { !it.note.isNullOrBlank() }
+                .sortedByDescending { it.date }
+                .map { it.date to it.note!! }
+            _uiState.update { it.copy(todayNote = note, noteDialogOpen = false, noteHistory = history) }
         }
     }
 
