@@ -746,110 +746,127 @@ private fun HabitCalendar(
     val completedSet = remember(completedDates) { completedDates.toHashSet() }
     val today = LocalDate.now()
 
-    val monthFormatter = DateTimeFormatter.ofPattern("LLLL yyyy 'г.'", Locale("ru"))
-    val dayNames = listOf("пн", "вт", "ср", "чт", "пт", "сб", "вс")
+    val monthFormatter = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru"))
+    val dayNames = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+
+    // Статистика текущего отображаемого месяца
+    val monthStats = remember(displayMonth, completedSet) {
+        val daysInMonth = displayMonth.lengthOfMonth()
+        val lastDay = minOf(daysInMonth, if (displayMonth == YearMonth.now()) today.dayOfMonth else daysInMonth)
+        val doneDays = (1..lastDay).count { displayMonth.atDay(it) in completedSet }
+        Triple(doneDays, lastDay, if (lastDay > 0) doneDays * 100 / lastDay else 0)
+    }
+    val (doneDays, passedDays, pct) = monthStats
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
 
     Column(modifier = modifier) {
-        // Month navigation
+        // ── Навигация по месяцу ───────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            IconButton(onClick = { displayMonth = displayMonth.minusMonths(1) }) {
-                Icon(Icons.Default.ChevronLeft, "Предыдущий месяц")
+            IconButton(
+                onClick = { displayMonth = displayMonth.minusMonths(1) },
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(Icons.Default.ChevronLeft, "Предыдущий месяц", modifier = Modifier.size(20.dp))
             }
-            Text(
-                text = displayMonth.format(monthFormatter)
-                    .replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            IconButton(onClick = { displayMonth = displayMonth.plusMonths(1) }) {
-                Icon(Icons.Default.ChevronRight, "Следующий месяц")
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = displayMonth.format(monthFormatter).replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                // Строка статистики месяца
+                Text(
+                    text = "$doneDays из $passedDays дн. • $pct%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = primaryColor,
+                )
+            }
+            IconButton(
+                onClick = { displayMonth = displayMonth.plusMonths(1) },
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(Icons.Default.ChevronRight, "Следующий месяц", modifier = Modifier.size(20.dp))
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
-        // Day of week header
+        // ── Заголовки дней недели ─────────────────────────────────────────
         Row(modifier = Modifier.fillMaxWidth()) {
-            dayNames.forEach { name ->
+            dayNames.forEachIndexed { i, name ->
+                val isWeekend = i >= 5
                 Text(
                     text = name,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isWeekend)
+                        MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
 
-        // Calendar grid
+        // ── Сетка дней ───────────────────────────────────────────────────
         val firstDay = displayMonth.atDay(1)
-        // Monday=1 … Sunday=7 → offset 0..6
-        val offset = (firstDay.dayOfWeek.value - 1)
+        val offset = firstDay.dayOfWeek.value - 1   // Пн=0 … Вс=6
         val daysInMonth = displayMonth.lengthOfMonth()
-        val totalCells = offset + daysInMonth
-        val weeks = (totalCells + 6) / 7
+        val weeks = (offset + daysInMonth + 6) / 7
 
         repeat(weeks) { week ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
+            Row(modifier = Modifier.fillMaxWidth()) {
                 repeat(7) { col ->
                     val dayNum = week * 7 + col - offset + 1
                     if (dayNum < 1 || dayNum > daysInMonth) {
-                        Box(
-                            modifier = Modifier.weight(1f).height(46.dp),
-                        )
+                        Box(modifier = Modifier.weight(1f).height(44.dp))
                     } else {
                         val date = displayMonth.atDay(dayNum)
                         val isToday = date == today
+                        val isFuture = date.isAfter(today)
                         val isCompleted = date in completedSet
-                        val isWeekend = date.dayOfWeek == DayOfWeek.SATURDAY ||
-                                date.dayOfWeek == DayOfWeek.SUNDAY
+                        val isWeekend = col >= 5
 
-                        Column(
-                            modifier = Modifier.weight(1f).height(46.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(30.dp)
-                                    .then(
-                                        if (isToday) Modifier.border(
-                                            2.dp,
-                                            MaterialTheme.colorScheme.primary,
-                                            CircleShape,
-                                        ) else Modifier
-                                    ),
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .then(when {
+                                        isCompleted -> Modifier.background(primaryColor)
+                                        isToday -> Modifier.border(2.dp, primaryColor, CircleShape)
+                                        else -> Modifier
+                                    }),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
                                     text = dayNum.toString(),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = when {
-                                        isToday -> MaterialTheme.colorScheme.primary
-                                        isWeekend -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                        else -> MaterialTheme.colorScheme.onSurface
+                                    fontWeight = when {
+                                        isCompleted || isToday -> FontWeight.Bold
+                                        else -> FontWeight.Normal
                                     },
-                                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                                    color = when {
+                                        isCompleted -> onPrimaryColor
+                                        isFuture -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                        isToday -> primaryColor
+                                        isWeekend -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                                    },
                                 )
-                            }
-                            Spacer(Modifier.height(2.dp))
-                            if (isCompleted) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary),
-                                )
-                            } else {
-                                Box(modifier = Modifier.size(6.dp))
                             }
                         }
                     }
