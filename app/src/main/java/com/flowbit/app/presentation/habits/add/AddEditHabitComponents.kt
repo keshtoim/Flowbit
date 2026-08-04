@@ -7,13 +7,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,6 +43,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -853,7 +862,12 @@ fun TimerSection(
     timerSeconds: Int,
     onTimerSecondsChange: (Int) -> Unit,
 ) {
-    val presets = listOf(0 to "Нет", 300 to "5 мин", 600 to "10 мин", 900 to "15 мин", 1800 to "30 мин", 3600 to "1 час")
+    val presets = listOf(0 to "Нет", 300 to "5 мин", 600 to "10 мин", 900 to "15 мин", 1800 to "30 мин", 3600 to "1 ч")
+    val isCustom = timerSeconds > 0 && presets.none { it.first == timerSeconds }
+    var showCustom by remember(isCustom) { mutableStateOf(isCustom) }
+    var customText by remember(timerSeconds) {
+        mutableStateOf(if (isCustom) (timerSeconds / 60).toString() else "")
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Таймер привычки", style = MaterialTheme.typography.titleMedium)
@@ -862,15 +876,48 @@ fun TimerSection(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        // Пресеты + чип «Своё» в горизонтальном скролле
         Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth(),
         ) {
             presets.forEach { (secs, label) ->
                 FilterChip(
-                    selected = timerSeconds == secs,
-                    onClick = { onTimerSecondsChange(secs) },
+                    selected = timerSeconds == secs && !showCustom,
+                    onClick = { onTimerSecondsChange(secs); showCustom = false; customText = "" },
                     label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                )
+            }
+            FilterChip(
+                selected = showCustom,
+                onClick = { showCustom = true },
+                label = { Text("Своё", style = MaterialTheme.typography.labelSmall) },
+            )
+        }
+        // Поле ввода произвольного времени
+        AnimatedVisibility(
+            visible = showCustom,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedTextField(
+                    value = customText,
+                    onValueChange = { raw ->
+                        val digits = raw.filter { it.isDigit() }.take(4)
+                        customText = digits
+                        val mins = digits.toIntOrNull() ?: 0
+                        if (mins in 1..360) onTimerSecondsChange(mins * 60)
+                    },
+                    label = { Text("Минуты") },
+                    placeholder = { Text("25") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    suffix = { Text("мин", style = MaterialTheme.typography.bodySmall) },
                 )
             }
         }
@@ -884,7 +931,7 @@ fun TimerSection(
                 if (s > 0) append("${s} с")
             }.trim()
             Text(
-                text = "Таймер на $formatted",
+                text = "Таймер: $formatted",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
             )
