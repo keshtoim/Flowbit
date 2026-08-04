@@ -80,9 +80,11 @@ fun HabitCard(
     val surface = MaterialTheme.colorScheme.surface
 
     val skippedColor = MaterialTheme.colorScheme.errorContainer
+    val tabooCleanColor = MaterialTheme.colorScheme.tertiary
     val cardColor by animateColorAsState(
         targetValue = when {
             isRelapsed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.40f)
+            habit.isBadHabit -> tabooCleanColor.copy(alpha = 0.14f)  // зелёный тинт = чисто
             isSkipped -> skippedColor
             isCompleted -> habitColor.copy(alpha = 0.22f)
             else -> surface
@@ -242,28 +244,36 @@ fun HabitCard(
                 Spacer(Modifier.width(8.dp))
 
                 if (habit.isBadHabit) {
-                    // Для Табу: кнопка «Сорвался» / «Отменить»
-                    val tabooButtonColor by animateColorAsState(
-                        targetValue = if (isRelapsed) MaterialTheme.colorScheme.error
-                                      else MaterialTheme.colorScheme.error.copy(alpha = 0.18f),
-                        animationSpec = tween(300), label = "tabooBtn",
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .scale(buttonScale)
-                            .clip(CircleShape)
-                            .background(tabooButtonColor)
-                            .clickable(onClick = onToggle),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            if (isRelapsed) Icons.Default.Close else Icons.Default.Close,
-                            contentDescription = if (isRelapsed) "Отменить срыв" else "Сорвался",
-                            tint = if (isRelapsed) Color.White
-                                   else MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(22.dp),
-                        )
+                    if (isRelapsed) {
+                        // Сорвался → большая красная кнопка «отменить»
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .scale(buttonScale)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.error)
+                                .clickable(onClick = onToggle),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Отменить срыв",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
+                    } else {
+                        // Чисто → тихая кнопка «Сорвался» текстом
+                        TextButton(
+                            onClick = onToggle,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
+                            Text(
+                                text = "Сорвался",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.70f),
+                            )
+                        }
                     }
                 } else {
                     // Кнопка "−" — появляется при completedCount > 0 и не пропущено

@@ -40,15 +40,10 @@ fun TodaySummaryCard(
     modifier: Modifier = Modifier,
     weekDelta: Int? = null,
 ) {
-    val total = habits.size
-    val done = habits.count { hfd ->
-        if (hfd.habit.isBadHabit) {
-            // Табу: «выполнено» = не сорвался (нет записи или count == 0)
-            (hfd.entry?.completedCount ?: 0) == 0
-        } else {
-            (hfd.entry?.completedCount ?: 0) >= hfd.habit.targetCount
-        }
-    }
+    // Табу-привычки не включаются в счётчик дня — у них отдельная секция
+    val normalHabits = habits.filter { !it.habit.isBadHabit }
+    val total = normalHabits.size
+    val done = normalHabits.count { (it.entry?.completedCount ?: 0) >= it.habit.targetCount }
     val progress = if (total > 0) done.toFloat() / total else 0f
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
