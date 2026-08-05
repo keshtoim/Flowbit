@@ -37,8 +37,9 @@
 - Счётчик повторений (+ / −) с целью на день
 - Частота: каждый день или выбранные дни
 - **Числовые цели** — «выпить 2 л воды», «пробежать 5 км»
-- **Таймер** — обратный отсчёт, отмечает сам по завершении
+- **Таймер** — готовые пресеты или произвольное время, отмечает сам
 - Периодические цели — «4 раза в неделю»
+- **🚫 Табу-привычки** — «не курить»: выполнена по умолчанию, отметь срыв
 - Цветные теги и группировка
 
 </td>
@@ -48,7 +49,9 @@
 - 🔥 Текущая и лучшая серия
 - 📈 График активности за 30 дней
 - 🗓️ Тепловая карта за год
-- ✅ Процент выполнения по периодам
+- ✅ Процент выполнения: топ-привычка, сложная, средний %
+- 🔵 Анализ по периоду — 3 дня / неделя / месяц (связанные кружки)
+- 📅 **Экран итогов недели** — 7 точек по каждой привычке
 
 </td>
 </tr>
@@ -59,6 +62,7 @@
 - Точные уведомления в нужное время
 - Кнопка **«Выполнено ✓»** прямо в шторке — без открытия приложения
 - Восстановление после перезагрузки
+- **Напоминание при неактивности** — уведомление если не открывал > 25 ч
 
 </td>
 <td>
@@ -76,7 +80,7 @@
 
 ### 💡 Детали, которые важны
 - ⏭ Пропуск дня — намеренно, с подтверждением отмены
-- 📝 Заметка к каждому дню
+- 📝 Заметка к каждому дню + **история всех заметок**
 - 🖼️ Фото-баннер (с кадрированием)
 - 🎵 Аудио-мотивация
 - ↕️ Перетаскивание карточек для сортировки
@@ -87,7 +91,7 @@
 
 ### 🌗 Персонализация
 - Тёмная / светлая тема
-- 12 цветов акцента для привычки
+- 16 цветов акцента + произвольный по HEX-коду
 - Эмодзи-аватарка
 - Группировка по тегам / частоте / статусу
 - 💾 Экспорт и импорт данных в JSON (включая напоминания)
@@ -103,7 +107,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white)
 ![Compose](https://img.shields.io/badge/Jetpack_Compose-4285F4?logo=jetpackcompose&logoColor=white)
 ![Material3](https://img.shields.io/badge/Material_3-757575?logo=materialdesign&logoColor=white)
-![Room](https://img.shields.io/badge/Room_DB-v9-3DDC84?logo=android&logoColor=white)
+![Room](https://img.shields.io/badge/Room_DB-v11-3DDC84?logo=android&logoColor=white)
 ![Hilt](https://img.shields.io/badge/Hilt_DI-F6891F)
 ![Glance](https://img.shields.io/badge/Glance_Widgets-4285F4?logo=android&logoColor=white)
 ![WorkManager](https://img.shields.io/badge/WorkManager-3DDC84?logo=android&logoColor=white)
@@ -114,7 +118,7 @@
 | UI | Jetpack Compose + Material 3 |
 | Виджеты | Jetpack Glance 1.1 · `PreferencesGlanceStateDefinition` |
 | DI | Hilt |
-| БД | Room 2.6 · SQLite · миграции v1→v9 |
+| БД | Room 2.6 · SQLite · миграции v1→v11 |
 | Изображения | Coil 2.6 + android-image-cropper |
 | Фон | AlarmManager · WorkManager |
 | Настройки | DataStore Preferences |
@@ -143,9 +147,10 @@ APK → `app/build/outputs/apk/debug/app-debug.apk`
 ```
 app/
 ├── data/
-│   ├── database/       # Room: сущности, DAO, миграции (v1→v9)
+│   ├── database/       # Room: сущности, DAO, миграции (v1→v11)
 │   ├── receiver/       # AlarmManager BroadcastReceiver-ы
-│   └── repository/     # Реализации репозиториев
+│   ├── repository/     # Реализации репозиториев
+│   └── worker/         # WorkManager: InactivityCheckWorker
 ├── domain/
 │   ├── model/          # Habit, HabitEntry, HabitTag…
 │   ├── repository/     # Интерфейсы
@@ -153,6 +158,7 @@ app/
 ├── presentation/
 │   ├── habits/         # Список · редактор · детали
 │   ├── statistics/     # Графики и тепловая карта
+│   ├── weekly/         # Экран итогов недели
 │   ├── settings/       # Настройки · бекап · язык
 │   └── theme/          # Material You + тёмная тема
 └── widget/             # 3 Glance-виджета + IncrementHabitAction
