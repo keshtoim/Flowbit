@@ -1,5 +1,6 @@
 package com.flowbit.app.presentation.habits.list
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -77,10 +78,22 @@ fun TodaySummaryCard(
     val greenColor = MaterialTheme.colorScheme.tertiary
     val redColor = MaterialTheme.colorScheme.error
 
+    // Градиентный фон: серый → зелёный по мере выполнения
+    val cardContainerColor by animateColorAsState(
+        targetValue = when {
+            total == 0 -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            done == total -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
+            progress >= 0.5f -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+            else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.30f)
+        },
+        animationSpec = tween(600),
+        label = "cardBg",
+    )
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+        colors = CardDefaults.cardColors(containerColor = cardContainerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(

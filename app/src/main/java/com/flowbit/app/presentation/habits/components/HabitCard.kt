@@ -2,6 +2,7 @@ package com.flowbit.app.presentation.habits.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -10,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,9 +41,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -52,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.flowbit.app.R
+import kotlinx.coroutines.launch
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 
 @Composable
@@ -78,6 +84,26 @@ fun HabitCard(
         catch (e: Exception) { Color(0xFF00E5C0) }
     }
     val surface = MaterialTheme.colorScheme.surface
+
+    // Bounce + частицы при выполнении
+    val cardScale = remember { Animatable(1f) }
+    val particleProgress = remember { Animatable(0f) }
+    val prevCompleted = remember { mutableStateOf(isCompleted) }
+    LaunchedEffect(isCompleted) {
+        val was = prevCompleted.value
+        prevCompleted.value = isCompleted
+        if (isCompleted && !was) {
+            launch {
+                cardScale.animateTo(0.96f, tween(70))
+                cardScale.animateTo(1.05f, spring(Spring.DampingRatioLowBouncy, Spring.StiffnessMediumLow))
+                cardScale.animateTo(1f, spring(Spring.DampingRatioMediumBouncy))
+            }
+            launch {
+                particleProgress.snapTo(0f)
+                particleProgress.animateTo(1f, tween(550))
+            }
+        }
+    }
 
     val skippedColor = MaterialTheme.colorScheme.errorContainer
     val tabooCleanColor = MaterialTheme.colorScheme.tertiary
@@ -107,7 +133,7 @@ fun HabitCard(
     )
 
     Card(
-        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().scale(cardScale.value).clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp),
@@ -314,22 +340,47 @@ fun HabitCard(
 
                     // Главная кнопка-галочка (скрыта когда пропущено)
                     if (!isSkipped) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .scale(buttonScale)
-                                .clip(CircleShape)
-                                .background(buttonColor)
-                                .clickable(onClick = onToggle),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            if (isCompleted) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = "Выполнено",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(24.dp),
-                                )
+                        Box(contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .scale(buttonScale)
+                                    .clip(CircleShape)
+                                    .background(buttonColor)
+                                    .clickable(onClick = onToggle),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                if (isCompleted) {
+                                    Icon(
+                                        Icons.Default.Check,
+                                        contentDescription = "Выполнено",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                }
+                            }
+                            // Частицы при выполнении
+                            val prog = particleProgress.value
+                            if (prog > 0f && prog < 1f) {
+                                Canvas(modifier = Modifier.size(110.dp)) {
+                                    val cx = size.width / 2f
+                                    val cy = size.height / 2f
+                                    val maxDist = 48.dp.toPx()
+                                    repeat(8) { i ->
+                                        val angle = i * 2.0 * Math.PI / 8.0
+                                        val dist = maxDist * prog
+                                        val alpha = (1f - prog * 1.3f).coerceIn(0f, 1f)
+                                        val r = (3.5f + i % 3).dp.toPx()
+                                        drawCircle(
+                                            color = habitColor.copy(alpha = alpha),
+                                            radius = r,
+                                            center = Offset(
+                                                cx + (kotlin.math.cos(angle) * dist).toFloat(),
+                                                cy + (kotlin.math.sin(angle) * dist).toFloat(),
+                                            ),
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

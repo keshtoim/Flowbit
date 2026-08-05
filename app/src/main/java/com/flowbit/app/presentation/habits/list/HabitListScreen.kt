@@ -61,6 +61,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -76,6 +77,7 @@ import com.flowbit.app.domain.model.GroupingMode
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.presentation.habits.components.HabitCard
+import com.flowbit.app.presentation.habits.components.ShimmerHabitCard
 import com.flowbit.app.presentation.habits.components.WeekDatePicker
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -95,6 +97,13 @@ fun HabitListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val allTags by viewModel.allTags.collectAsState()
     var groupMenuExpanded by remember { mutableStateOf(false) }
+
+    // Shimmer: показываем 750 мс при первой загрузке пока список пустой
+    var showShimmer by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(750)
+        showShimmer = false
+    }
 
     // Drag-and-drop state (только обычные привычки, без Табу)
     var draggableHabits by remember { mutableStateOf(uiState.habits.filter { !it.habit.isBadHabit }) }
@@ -255,8 +264,18 @@ fun HabitListScreen(
                     .clickable { onWeeklySummaryClick() },
             )
 
+            // Shimmer-скелетон при первой загрузке
+            if (showShimmer && uiState.habits.isEmpty()) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    repeat(4) { ShimmerHabitCard() }
+                }
+            }
+
             AnimatedVisibility(
-                visible = uiState.habits.isEmpty(),
+                visible = uiState.habits.isEmpty() && !showShimmer,
                 enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 4 },
                 exit = fadeOut(tween(200)),
             ) {
@@ -342,6 +361,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
+                                    cardModifier = Modifier.animateItem(),
                                 )
                             }
                         }

@@ -50,6 +50,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +67,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -404,9 +409,19 @@ fun HabitDetailScreen(
                             modifier = Modifier.padding(24.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            val fireScale by rememberInfiniteTransition(label = "fire").animateFloat(
+                                initialValue = 1f,
+                                targetValue = if (stats.currentStreak >= 3) 1.18f else 1f,
+                                animationSpec = infiniteRepeatable(
+                                    tween(900),
+                                    repeatMode = RepeatMode.Reverse,
+                                ),
+                                label = "fireScale",
+                            )
                             Text(
                                 text = "🔥",
                                 style = MaterialTheme.typography.displaySmall,
+                                modifier = Modifier.scale(fireScale),
                             )
                             Spacer(Modifier.width(20.dp))
                             Column {
