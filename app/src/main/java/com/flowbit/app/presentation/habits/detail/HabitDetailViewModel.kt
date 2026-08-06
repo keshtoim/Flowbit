@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -23,6 +24,8 @@ data class HabitDetailUiState(
     val deleteConfirmOpen: Boolean = false,
     val unSkipConfirmOpen: Boolean = false,
     val noteHistory: List<Pair<LocalDate, String>> = emptyList(),
+    val isFrozenToday: Boolean = false,
+    val freezeCountThisWeek: Int = 0,
 )
 
 @HiltViewModel
@@ -40,17 +43,29 @@ class HabitDetailViewModel @Inject constructor(
         currentHabitId = habitId
         viewModelScope.launch {
             val stats = getHabitStats.forHabit(habitId)
-            val entry = repository.getEntryForDate(habitId, LocalDate.now())
-            val history = repository.getAllEntriesForHabit(habitId)
+            val today = LocalDate.now()
+            val entry = repository.getEntryForDate(habitId, today)
+            val allEntries = repository.getAllEntriesForHabit(habitId)
+            val history = allEntries
                 .filter { !it.note.isNullOrBlank() }
                 .sortedByDescending { it.date }
                 .map { it.date to it.note!! }
+
+            // Считаем заморозки за текущую неделю (Пн–Вс)
+            val dow = today.dayOfWeek.value
+            val weekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
+            val freezeCountThisWeek = allEntries.count {
+                it.isFrozen && !it.date.isBefore(weekStart) && !it.date.isAfter(today)
+            }
+
             _uiState.update {
                 it.copy(
                     stats = stats,
                     todayNote = entry?.note,
                     isTodaySkipped = entry?.isSkipped ?: false,
                     noteHistory = history,
+                    isFrozenToday = entry?.isFrozen ?: false,
+                    freezeCountThisWeek = freezeCountThisWeek,
                 )
             }
         }
@@ -114,6 +129,13 @@ class HabitDetailViewModel @Inject constructor(
 
     fun dismissUnSkip() {
         _uiState.update { it.copy(unSkipConfirmOpen = false) }
+    }
+
+    fun freezeStreak() {
+        viewModelScope.launch {
+            repository.freezeStreak(currentHabitId, LocalDate.now())
+            load(currentHabitId)
+        }
     }
 
     fun openDeleteConfirm() {

@@ -31,4 +31,6 @@ interface HabitRepository {
     suspend fun getOverallStats(): OverallStats
     suspend fun getAllMarkedAtTimes(): List<String?>
     suspend fun getAllEntriesForHabit(habitId: Long): List<HabitEntry>
+
+    suspend fun freezeStreak(habitId: Long, date: LocalDate)
 }

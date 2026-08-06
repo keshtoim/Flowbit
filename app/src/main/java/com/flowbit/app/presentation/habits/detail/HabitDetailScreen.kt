@@ -250,6 +250,48 @@ fun HabitDetailScreen(
                 }
             }
 
+            // ── Щит серии (заморозка) ─────────────────────────────────────────
+            // Показываем если: серия > 0, сегодня не заморожено, лимит в неделю не исчерпан
+            val canFreeze = stats.currentStreak > 0
+                && !uiState.isFrozenToday
+                && !uiState.isTodaySkipped
+                && uiState.freezeCountThisWeek == 0
+            if (canFreeze || uiState.isFrozenToday) {
+                item {
+                    if (uiState.isFrozenToday) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            ),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "🛡 Серия заморожена на сегодня",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
+                    } else {
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = viewModel::freezeStreak,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            Text("🛡 Заморозить серию (${stats.currentStreak} дней)")
+                        }
+                    }
+                }
+            }
+
             // ── Календарь ─────────────────────────────────────────────────────
             item {
                 Card(

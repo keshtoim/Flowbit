@@ -85,10 +85,11 @@ class HabitRepositoryImpl @Inject constructor(
             .filter { it.completedCount >= habit.targetCount }
             .map { it.date }
             .sorted()
+        val frozenDates = entries.filter { it.isFrozen }.map { it.date }.toHashSet()
 
         val totalDays = countScheduledDays(habit)
         val completionRate = if (totalDays > 0) completedDates.size.toFloat() / totalDays else 0f
-        val currentStreak = calculateCurrentStreak(habit, completedDates)
+        val currentStreak = calculateCurrentStreak(habit, completedDates, frozenDates)
         val longestStreak = calculateLongestStreak(habit, completedDates)
 
         return HabitStats(
@@ -103,6 +104,13 @@ class HabitRepositoryImpl @Inject constructor(
             photoUri = habit.photoUri,
             audioUri = habit.audioUri,
         )
+    }
+
+    override suspend fun freezeStreak(habitId: Long, date: LocalDate) {
+        val existing = dao.getEntryForDate(habitId, date.toString())?.toDomain()
+        val entry = existing?.copy(isFrozen = true)
+            ?: HabitEntry(habitId = habitId, date = date, completedCount = 0, isFrozen = true)
+        dao.insertEntry(HabitEntryEntity.fromDomain(entry))
     }
 
     override suspend fun getOverallStats(): OverallStats {
@@ -138,7 +146,11 @@ class HabitRepositoryImpl @Inject constructor(
         return count
     }
 
-    private fun calculateCurrentStreak(habit: Habit, completedDates: List<LocalDate>): Int {
+    private fun calculateCurrentStreak(
+        habit: Habit,
+        completedDates: List<LocalDate>,
+        frozenDates: Set<LocalDate> = emptySet(),
+    ): Int {
         val today = LocalDate.now()
         val datesSet = completedDates.toHashSet()
         var streak = 0
@@ -151,12 +163,18 @@ class HabitRepositoryImpl @Inject constructor(
                 if (current.isBefore(habit.startDate)) break
                 continue
             }
-            if (current in datesSet) {
-                streak++
-                current = current.minusDays(1)
-                if (current.isBefore(habit.startDate)) break
-            } else {
-                break
+            when {
+                current in datesSet -> {
+                    streak++
+                    current = current.minusDays(1)
+                    if (current.isBefore(habit.startDate)) break
+                }
+                // Замороженный день не разрывает серию, но и не увеличивает счётчик
+                current in frozenDates -> {
+                    current = current.minusDays(1)
+                    if (current.isBefore(habit.startDate)) break
+                }
+                else -> break
             }
         }
         return streak
