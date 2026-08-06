@@ -54,6 +54,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -248,6 +249,16 @@ fun SettingsScreen(
                                         label = { Text("Тёмная") },
                                     )
                                 }
+                            }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingsRow(
+                                title = "Компактный режим",
+                                subtitle = "Скрыть фото и прогресс-бар в карточках",
+                            ) {
+                                Switch(
+                                    checked = uiState.isCompactMode,
+                                    onCheckedChange = viewModel::setCompactMode,
+                                )
                             }
                         }
                     }
