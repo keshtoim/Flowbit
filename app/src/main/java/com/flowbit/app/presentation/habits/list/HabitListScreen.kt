@@ -362,6 +362,7 @@ fun HabitListScreen(
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     cardModifier = Modifier.animateItem(),
+                                    compact = uiState.isCompactMode,
                                 )
                             }
                         }
@@ -384,6 +385,7 @@ fun HabitListScreen(
                                             viewModel.persistReorder(draggableHabits)
                                         },
                                     ),
+                                    compact = uiState.isCompactMode,
                                 )
                             }
                         }
@@ -434,6 +436,7 @@ fun HabitListScreen(
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     enableSwipe = false,
+                                    compact = uiState.isCompactMode,
                                 )
                             }
                         }
@@ -463,6 +466,7 @@ private fun SwipeableHabitCard(
     onTimer: () -> Unit,
     cardModifier: Modifier = Modifier,
     enableSwipe: Boolean = true,
+    compact: Boolean = false,
 ) {
     if (!enableSwipe) {
         HabitCard(
@@ -475,6 +479,7 @@ private fun SwipeableHabitCard(
             onUnSkipRequest = onUnSkipRequest,
             onTimer = onTimer,
             modifier = cardModifier,
+            compact = compact,
         )
         return
     }
@@ -522,6 +527,7 @@ private fun SwipeableHabitCard(
             onUnSkipRequest = onUnSkipRequest,
             onTimer = onTimer,
             modifier = cardModifier,
+            compact = compact,
         )
     }
 }
