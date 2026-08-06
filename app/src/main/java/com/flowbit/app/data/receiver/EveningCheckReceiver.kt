@@ -68,9 +68,22 @@ class EveningCheckReceiver : BroadcastReceiver() {
     companion object {
         private const val NOTIF_ID = 10001
 
+        const val PREFS_NAME = "flowbit_prefs"
+        const val KEY_EVENING_ENABLED = "evening_enabled"
+        const val KEY_EVENING_HOUR = "evening_hour"
+        const val KEY_EVENING_MINUTE = "evening_minute"
+
         fun schedule(context: Context) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val enabled = prefs.getBoolean(KEY_EVENING_ENABLED, true)
+            if (!enabled) {
+                cancel(context)
+                return
+            }
+            val hour = prefs.getInt(KEY_EVENING_HOUR, 20)
+            val minute = prefs.getInt(KEY_EVENING_MINUTE, 0)
             val now = LocalDateTime.now()
-            var trigger = now.toLocalDate().atTime(20, 0)
+            var trigger = now.toLocalDate().atTime(hour, minute)
             if (!trigger.isAfter(now)) trigger = trigger.plusDays(1)
             val millis = trigger.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val am = context.getSystemService(AlarmManager::class.java)
@@ -80,6 +93,10 @@ class EveningCheckReceiver : BroadcastReceiver() {
             } else {
                 am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, millis, pi)
             }
+        }
+
+        fun cancel(context: Context) {
+            context.getSystemService(AlarmManager::class.java).cancel(pendingIntent(context))
         }
 
         private fun pendingIntent(context: Context) = PendingIntent.getBroadcast(

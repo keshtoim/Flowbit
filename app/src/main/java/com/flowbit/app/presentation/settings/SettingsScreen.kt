@@ -54,9 +54,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Switch
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -385,6 +389,37 @@ fun SettingsScreen(
                                     context.startActivity(i)
                                 }) { Text(stringResource(R.string.open)) }
                             }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingsRow(
+                                title = "Вечерний дайджест",
+                                subtitle = "Напоминание о невыполненных привычках",
+                            ) {
+                                Switch(
+                                    checked = uiState.eveningEnabled,
+                                    onCheckedChange = viewModel::setEveningEnabled,
+                                )
+                            }
+                            if (uiState.eveningEnabled) {
+                                var showTimePicker by remember { mutableStateOf(false) }
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                SettingsRow(
+                                    title = "Время дайджеста",
+                                    subtitle = "%02d:%02d".format(uiState.eveningHour, uiState.eveningMinute),
+                                ) {
+                                    TextButton(onClick = { showTimePicker = true }) { Text("Изменить") }
+                                }
+                                if (showTimePicker) {
+                                    EveningTimePickerDialog(
+                                        initialHour = uiState.eveningHour,
+                                        initialMinute = uiState.eveningMinute,
+                                        onConfirm = { h, m ->
+                                            viewModel.setEveningTime(h, m)
+                                            showTimePicker = false
+                                        },
+                                        onDismiss = { showTimePicker = false },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -577,6 +612,55 @@ private fun SettingsRow(title: String, subtitle: String, action: @Composable () 
         }
         action()
     }
+}
+
+@Composable
+private fun EveningTimePickerDialog(
+    initialHour: Int,
+    initialMinute: Int,
+    onConfirm: (Int, Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var hourText by remember { mutableStateOf(initialHour.toString()) }
+    var minuteText by remember { mutableStateOf("%02d".format(initialMinute)) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Время дайджеста") },
+        text = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    value = hourText,
+                    onValueChange = { if (it.length <= 2) hourText = it.filter { c -> c.isDigit() } },
+                    label = { Text("Час") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+                Text(":", style = MaterialTheme.typography.headlineMedium)
+                OutlinedTextField(
+                    value = minuteText,
+                    onValueChange = { if (it.length <= 2) minuteText = it.filter { c -> c.isDigit() } },
+                    label = { Text("Минута") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val h = hourText.toIntOrNull()?.coerceIn(0, 23) ?: initialHour
+                val m = minuteText.toIntOrNull()?.coerceIn(0, 59) ?: initialMinute
+                onConfirm(h, m)
+            }) { Text("Сохранить") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Отмена") }
+        },
+    )
 }
 
 @Composable

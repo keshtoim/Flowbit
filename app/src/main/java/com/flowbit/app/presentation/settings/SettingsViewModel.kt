@@ -14,6 +14,7 @@ import androidx.lifecycle.viewModelScope
 import com.flowbit.app.BuildConfig
 import com.flowbit.app.R
 import com.flowbit.app.data.database.dao.HabitDao
+import com.flowbit.app.data.receiver.EveningCheckReceiver
 import com.flowbit.app.data.database.dao.ReminderDao
 import com.flowbit.app.data.database.entity.HabitEntity
 import com.flowbit.app.data.database.entity.HabitEntryEntity
@@ -43,6 +44,9 @@ data class SettingsUiState(
     val appVersion: String = "",
     val currentLanguage: String = "ru",
     val needsRecreate: Boolean = false,
+    val eveningEnabled: Boolean = true,
+    val eveningHour: Int = 20,
+    val eveningMinute: Int = 0,
 )
 
 @HiltViewModel
@@ -71,6 +75,17 @@ class SettingsViewModel @Inject constructor(
         val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags()
             .let { if (it.contains("en")) "en" else "ru" }
         _uiState.update { it.copy(currentLanguage = currentLang) }
+
+        // Загружаем настройки вечернего дайджеста из SharedPreferences
+        val prefs = context.getSharedPreferences(EveningCheckReceiver.PREFS_NAME, Context.MODE_PRIVATE)
+        _uiState.update {
+            it.copy(
+                eveningEnabled = prefs.getBoolean(EveningCheckReceiver.KEY_EVENING_ENABLED, true),
+                eveningHour = prefs.getInt(EveningCheckReceiver.KEY_EVENING_HOUR, 20),
+                eveningMinute = prefs.getInt(EveningCheckReceiver.KEY_EVENING_MINUTE, 0),
+            )
+        }
+
         loadHabits()
     }
 
@@ -126,6 +141,23 @@ class SettingsViewModel @Inject constructor(
         ordered.forEachIndexed { index, habit ->
             dao.updateSortOrder(habit.id, index)
         }
+    }
+
+    fun setEveningEnabled(enabled: Boolean) {
+        context.getSharedPreferences(EveningCheckReceiver.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(EveningCheckReceiver.KEY_EVENING_ENABLED, enabled).apply()
+        _uiState.update { it.copy(eveningEnabled = enabled) }
+        if (enabled) EveningCheckReceiver.schedule(context) else EveningCheckReceiver.cancel(context)
+    }
+
+    fun setEveningTime(hour: Int, minute: Int) {
+        val h = hour.coerceIn(0, 23)
+        val m = minute.coerceIn(0, 59)
+        context.getSharedPreferences(EveningCheckReceiver.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putInt(EveningCheckReceiver.KEY_EVENING_HOUR, h)
+            .putInt(EveningCheckReceiver.KEY_EVENING_MINUTE, m).apply()
+        _uiState.update { it.copy(eveningHour = h, eveningMinute = m) }
+        if (_uiState.value.eveningEnabled) EveningCheckReceiver.schedule(context)
     }
 
     fun backupData(uri: Uri) {
