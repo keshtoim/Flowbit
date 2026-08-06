@@ -175,8 +175,8 @@ Clean Architecture: `presentation → domain ← data`. ViewModel не знае�
 | `POST_NOTIFICATIONS` | Уведомления-напоминания (Android 13+) |
 | `SCHEDULE_EXACT_ALARM` | Точное время напоминания |
 | `RECEIVE_BOOT_COMPLETED` | Восстановление будильников после перезагрузки |
-| `READ_MEDIA_IMAGES` | Выбор фото из галереи |
-| `READ_MEDIA_AUDIO` | Выбор аудиофайла |
+| `READ_MEDIA_IMAGES` | Выбор фото из галереи (Android 13+) |
+| `READ_MEDIA_AUDIO` | Выбор аудиофайла из галереи (Android 13+) |
 
 ---
 
