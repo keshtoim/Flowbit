@@ -10,6 +10,7 @@ data class HabitEntry(
     val note: String? = null,
     val isSkipped: Boolean = false,
     val markedAt: String? = null,
+    val isFrozen: Boolean = false,
 )
 
 data class HabitWithEntries(
