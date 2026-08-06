@@ -1,6 +1,8 @@
 package com.flowbit.app.presentation.habits.list
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.GroupingMode
@@ -14,6 +16,7 @@ import com.flowbit.app.domain.usecase.habit.GetHabitsForDateUseCase
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.domain.usecase.habit.ToggleHabitEntryUseCase
 import com.flowbit.app.presentation.ShortcutHelper
+import com.flowbit.app.presentation.settings.SettingsViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -44,6 +48,7 @@ data class HabitListUiState(
     val showConfetti: Boolean = false,
     val confettiShownDates: Set<LocalDate> = emptySet(),
     val weekDelta: Int? = null,
+    val isCompactMode: Boolean = false,
 )
 
 @HiltViewModel
@@ -54,6 +59,7 @@ class HabitListViewModel @Inject constructor(
     private val decreaseHabitEntry: DecreaseHabitEntryUseCase,
     private val tagRepository: TagRepository,
     private val habitRepository: HabitRepository,
+    private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
 
     val allTags: StateFlow<List<HabitTag>> = tagRepository.getAllTags()
@@ -91,6 +97,11 @@ class HabitListViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         computeWeekDelta()
+
+        viewModelScope.launch {
+            dataStore.data.map { prefs -> prefs[SettingsViewModel.COMPACT_MODE_KEY] ?: false }
+                .collect { compact -> _uiState.update { it.copy(isCompactMode = compact) } }
+        }
     }
 
     private fun computeWeekDelta() {

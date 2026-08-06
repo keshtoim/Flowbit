@@ -8,6 +8,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -47,6 +48,7 @@ data class SettingsUiState(
     val eveningEnabled: Boolean = true,
     val eveningHour: Int = 20,
     val eveningMinute: Int = 0,
+    val isCompactMode: Boolean = false,
 )
 
 @HiltViewModel
@@ -72,6 +74,10 @@ class SettingsViewModel @Inject constructor(
                 }
             }.collect { mode -> _uiState.update { it.copy(themeMode = mode) } }
         }
+        viewModelScope.launch {
+            dataStore.data.map { prefs -> prefs[COMPACT_MODE_KEY] ?: false }
+                .collect { compact -> _uiState.update { it.copy(isCompactMode = compact) } }
+        }
         val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags()
             .let { if (it.contains("en")) "en" else "ru" }
         _uiState.update { it.copy(currentLanguage = currentLang) }
@@ -94,6 +100,12 @@ class SettingsViewModel @Inject constructor(
             repository.getAllHabits().collect { habits ->
                 _uiState.update { it.copy(habits = habits) }
             }
+        }
+    }
+
+    fun setCompactMode(enabled: Boolean) {
+        viewModelScope.launch {
+            dataStore.edit { it[COMPACT_MODE_KEY] = enabled }
         }
     }
 
@@ -321,5 +333,6 @@ class SettingsViewModel @Inject constructor(
 
     companion object {
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+        val COMPACT_MODE_KEY = booleanPreferencesKey("compact_mode")
     }
 }

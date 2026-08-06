@@ -253,6 +253,16 @@ fun SettingsScreen(
                                     )
                                 }
                             }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingsRow(
+                                title = "Компактный режим",
+                                subtitle = "Скрыть фото и прогресс-бар в карточках",
+                            ) {
+                                Switch(
+                                    checked = uiState.isCompactMode,
+                                    onCheckedChange = viewModel::setCompactMode,
+                                )
+                            }
                         }
                     }
                 }

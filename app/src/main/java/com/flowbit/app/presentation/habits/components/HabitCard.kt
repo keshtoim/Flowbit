@@ -76,6 +76,7 @@ fun HabitCard(
     onUnSkipRequest: () -> Unit = {},
     onTimer: () -> Unit = {},
     onLongClick: () -> Unit = {},
+    compact: Boolean = false,
 ) {
     val habit = habitForDate.habit
     val isSkipped = habitForDate.entry?.isSkipped ?: false
@@ -145,8 +146,8 @@ fun HabitCard(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp),
     ) {
         Column {
-            // Фото-баннер — показывается если задано и не скрыто
-            if (habit.photoUri != null && !habit.isPhotoHidden) {
+            // Фото-баннер — скрывается в компактном режиме
+            if (!compact && habit.photoUri != null && !habit.isPhotoHidden) {
                 AsyncImage(
                     model = habit.photoUri,
                     contentDescription = "Фото привычки",
@@ -161,13 +162,18 @@ fun HabitCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = if (!isCompleted && !isSkipped) 4.dp else 14.dp),
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = if (compact) 8.dp else 14.dp,
+                        bottom = if (compact) 8.dp else if (!isCompleted && !isSkipped) 4.dp else 14.dp,
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Emoji-кружок
+                // Emoji-кружок (меньше в компактном режиме)
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(if (compact) 38.dp else 50.dp)
                         .clip(CircleShape)
                         .background(habitColor.copy(alpha = 0.18f)),
                     contentAlignment = Alignment.Center,
@@ -240,27 +246,29 @@ fun HabitCard(
                         }
                     } else {
                         if (habit.targetCount > 1) {
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                text = buildString {
-                                    append("$completedCount / ${habit.targetCount}")
-                                    if (!habit.unit.isNullOrEmpty()) append(" ${habit.unit}")
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (isCompleted) habitColor
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            LinearProgressIndicator(
-                                progress = { completedCount.toFloat() / habit.targetCount },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp)),
-                                color = habitColor,
-                                trackColor = habitColor.copy(alpha = 0.2f),
-                            )
+                            if (!compact) {
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    text = buildString {
+                                        append("$completedCount / ${habit.targetCount}")
+                                        if (!habit.unit.isNullOrEmpty()) append(" ${habit.unit}")
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (isCompleted) habitColor
+                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
+                                )
+                                Spacer(Modifier.height(6.dp))
+                                LinearProgressIndicator(
+                                    progress = { completedCount.toFloat() / habit.targetCount },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(3.dp)),
+                                    color = habitColor,
+                                    trackColor = habitColor.copy(alpha = 0.2f),
+                                )
+                            }
                         } else if (isCompleted) {
                             Spacer(Modifier.height(2.dp))
                             Text(

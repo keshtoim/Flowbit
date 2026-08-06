@@ -390,6 +390,7 @@ fun HabitListScreen(
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     onLongClick = { contextMenuHabit = habitForDate },
                                     cardModifier = Modifier.animateItem(),
+                                    compact = uiState.isCompactMode,
                                 )
                             }
                         }
@@ -413,6 +414,7 @@ fun HabitListScreen(
                                             viewModel.persistReorder(draggableHabits)
                                         },
                                     ),
+                                    compact = uiState.isCompactMode,
                                 )
                             }
                         }
@@ -464,6 +466,7 @@ fun HabitListScreen(
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     onLongClick = { contextMenuHabit = habitForDate },
                                     enableSwipe = false,
+                                    compact = uiState.isCompactMode,
                                 )
                             }
                         }
@@ -494,6 +497,7 @@ private fun SwipeableHabitCard(
     cardModifier: Modifier = Modifier,
     enableSwipe: Boolean = true,
     onLongClick: () -> Unit = {},
+    compact: Boolean = false,
 ) {
     if (!enableSwipe) {
         HabitCard(
@@ -507,6 +511,7 @@ private fun SwipeableHabitCard(
             onTimer = onTimer,
             onLongClick = onLongClick,
             modifier = cardModifier,
+            compact = compact,
         )
         return
     }
@@ -555,6 +560,7 @@ private fun SwipeableHabitCard(
             onTimer = onTimer,
             onLongClick = onLongClick,
             modifier = cardModifier,
+            compact = compact,
         )
     }
 }
