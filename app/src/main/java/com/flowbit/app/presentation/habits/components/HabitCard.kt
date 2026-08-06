@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -269,6 +270,13 @@ fun HabitCard(
 
                 Spacer(Modifier.width(8.dp))
 
+                // Прогресс дуги вычисляется всегда, чтобы не нарушать порядок composable-вызовов
+                val arcProgress by animateFloatAsState(
+                    targetValue = if (habit.targetCount > 1) completedCount.toFloat() / habit.targetCount else 0f,
+                    animationSpec = tween(300),
+                    label = "arcProgress",
+                )
+
                 if (habit.isBadHabit) {
                     if (isRelapsed) {
                         // Сорвался → большая красная кнопка «отменить»
@@ -341,25 +349,66 @@ fun HabitCard(
                     // Главная кнопка-галочка (скрыта когда пропущено)
                     if (!isSkipped) {
                         Box(contentAlignment = Alignment.Center) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .scale(buttonScale)
-                                    .clip(CircleShape)
-                                    .background(buttonColor)
-                                    .clickable(onClick = onToggle),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                if (isCompleted) {
-                                    Icon(
-                                        Icons.Default.Check,
-                                        contentDescription = "Выполнено",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(24.dp),
-                                    )
+                            if (habit.targetCount > 1 && !isCompleted) {
+                                // Секторное заполнение: кружок «наполняется» по мере нажатий
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .scale(buttonScale)
+                                        .clickable(onClick = onToggle),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Canvas(modifier = Modifier.size(44.dp)) {
+                                        // Фоновый круг
+                                        drawCircle(color = habitColor.copy(alpha = 0.15f))
+                                        // Закрашенный сектор прогресса (от 12 часов по часовой)
+                                        if (arcProgress > 0f) {
+                                            drawArc(
+                                                color = habitColor,
+                                                startAngle = -90f,
+                                                sweepAngle = 360f * arcProgress,
+                                                useCenter = true,
+                                            )
+                                        }
+                                        // Обводка для чёткой границы кнопки
+                                        drawCircle(
+                                            color = habitColor.copy(alpha = 0.45f),
+                                            style = Stroke(width = 2.dp.toPx()),
+                                        )
+                                    }
+                                    // Счётчик внутри — показываем только при частичном прогрессе
+                                    if (completedCount > 0) {
+                                        Text(
+                                            text = "$completedCount",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            // Белый текст когда сектор занимает > 50% (иначе плохо читается)
+                                            color = if (arcProgress >= 0.5f) Color.White else habitColor,
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Стандартный кружок: пустой → полный с галочкой
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .scale(buttonScale)
+                                        .clip(CircleShape)
+                                        .background(buttonColor)
+                                        .clickable(onClick = onToggle),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (isCompleted) {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = "Выполнено",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                    }
                                 }
                             }
-                            // Частицы при выполнении
+                            // Частицы при выполнении (поверх любого варианта кнопки)
                             val prog = particleProgress.value
                             if (prog > 0f && prog < 1f) {
                                 Canvas(modifier = Modifier.size(110.dp)) {
