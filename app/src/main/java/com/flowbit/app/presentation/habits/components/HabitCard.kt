@@ -12,8 +12,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +63,7 @@ import com.flowbit.app.R
 import kotlinx.coroutines.launch
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HabitCard(
     habitForDate: HabitForDate,
@@ -72,6 +75,7 @@ fun HabitCard(
     onSkip: () -> Unit = {},
     onUnSkipRequest: () -> Unit = {},
     onTimer: () -> Unit = {},
+    onLongClick: () -> Unit = {},
 ) {
     val habit = habitForDate.habit
     val isSkipped = habitForDate.entry?.isSkipped ?: false
@@ -134,7 +138,8 @@ fun HabitCard(
     )
 
     Card(
-        modifier = modifier.fillMaxWidth().scale(cardScale.value).clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().scale(cardScale.value)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp),

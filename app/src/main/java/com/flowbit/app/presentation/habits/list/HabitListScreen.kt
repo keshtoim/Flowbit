@@ -53,6 +53,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +64,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -112,6 +116,29 @@ fun HabitListScreen(
         if (!isDragging) draggableHabits = uiState.habits.filter { !it.habit.isBadHabit }
     }
     var tabooExpanded by rememberSaveable { mutableStateOf(false) }
+
+    // Long-press контекстное меню
+    var contextMenuHabit by remember { mutableStateOf<HabitForDate?>(null) }
+    var numberInputHabit by remember { mutableStateOf<HabitForDate?>(null) }
+
+    contextMenuHabit?.let { hfd ->
+        HabitContextMenu(
+            habit = hfd,
+            onDismiss = { contextMenuHabit = null },
+            onToggle = { viewModel.toggleHabit(hfd.habit.id) },
+            onSkip = { viewModel.skipHabit(hfd.habit.id) },
+            onEnterCount = { numberInputHabit = hfd },
+        )
+    }
+
+    numberInputHabit?.let { hfd ->
+        HabitNumberInputDialog(
+            habit = hfd,
+            onDismiss = { numberInputHabit = null },
+            onConfirm = { count -> viewModel.setCount(hfd.habit.id, count) },
+        )
+    }
+
     val lazyListState = rememberLazyListState()
     val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
         draggableHabits = draggableHabits.toMutableList().apply { add(to.index, removeAt(from.index)) }
@@ -361,6 +388,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
+                                    onLongClick = { contextMenuHabit = habitForDate },
                                     cardModifier = Modifier.animateItem(),
                                 )
                             }
@@ -377,6 +405,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
+                                    onLongClick = { contextMenuHabit = habitForDate },
                                     cardModifier = Modifier.longPressDraggableHandle(
                                         onDragStarted = { isDragging = true },
                                         onDragStopped = {
@@ -433,6 +462,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
+                                    onLongClick = { contextMenuHabit = habitForDate },
                                     enableSwipe = false,
                                 )
                             }
@@ -463,6 +493,7 @@ private fun SwipeableHabitCard(
     onTimer: () -> Unit,
     cardModifier: Modifier = Modifier,
     enableSwipe: Boolean = true,
+    onLongClick: () -> Unit = {},
 ) {
     if (!enableSwipe) {
         HabitCard(
@@ -474,6 +505,7 @@ private fun SwipeableHabitCard(
             onSkip = onSkip,
             onUnSkipRequest = onUnSkipRequest,
             onTimer = onTimer,
+            onLongClick = onLongClick,
             modifier = cardModifier,
         )
         return
@@ -521,9 +553,104 @@ private fun SwipeableHabitCard(
             onSkip = onSkip,
             onUnSkipRequest = onUnSkipRequest,
             onTimer = onTimer,
+            onLongClick = onLongClick,
             modifier = cardModifier,
         )
     }
+}
+
+// ── Контекстное меню по долгому нажатию ──────────────────────────────────────
+
+@Composable
+private fun HabitContextMenu(
+    habit: HabitForDate,
+    onDismiss: () -> Unit,
+    onToggle: () -> Unit,
+    onSkip: () -> Unit,
+    onEnterCount: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "${habit.habit.emoji}  ${habit.habit.name}",
+                style = MaterialTheme.typography.titleMedium,
+            )
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                TextButton(
+                    onClick = { onToggle(); onDismiss() },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("✓ +1 выполнение", modifier = Modifier.fillMaxWidth())
+                }
+                if (habit.habit.targetCount > 1) {
+                    HorizontalDivider()
+                    TextButton(
+                        onClick = { onEnterCount(); onDismiss() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("🔢 Ввести число", modifier = Modifier.fillMaxWidth())
+                    }
+                }
+                HorizontalDivider()
+                TextButton(
+                    onClick = { onSkip(); onDismiss() },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "⏭ Пропустить сегодня",
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Закрыть") } },
+    )
+}
+
+// ── Диалог быстрого ввода числа для счётчиков ────────────────────────────────
+
+@Composable
+private fun HabitNumberInputDialog(
+    habit: HabitForDate,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit,
+) {
+    var value by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Введи количество") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "${habit.habit.emoji} ${habit.habit.name}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { v -> if (v.length <= 5 && v.all { it.isDigit() }) value = v },
+                    placeholder = {
+                        Text("из ${habit.habit.targetCount}${habit.habit.unit?.let { " $it" } ?: ""}")
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { value.toIntOrNull()?.let(onConfirm); onDismiss() },
+                enabled = value.isNotEmpty(),
+            ) { Text("Сохранить") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
+    )
 }
 
 private fun groupHabits(

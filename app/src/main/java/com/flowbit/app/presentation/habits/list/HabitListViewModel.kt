@@ -199,6 +199,17 @@ class HabitListViewModel @Inject constructor(
         _uiState.update { it.copy(timerHabitId = null, timerRemaining = 0) }
     }
 
+    fun setCount(habitId: Long, count: Int) {
+        viewModelScope.launch {
+            val date = _uiState.value.selectedDate
+            val clamped = count.coerceAtLeast(0)
+            val existing = habitRepository.getEntryForDate(habitId, date)
+            val entry = existing?.copy(completedCount = clamped, isSkipped = false)
+                ?: HabitEntry(habitId = habitId, date = date, completedCount = clamped, isSkipped = false)
+            habitRepository.upsertEntry(entry)
+        }
+    }
+
     fun persistReorder(habits: List<HabitForDate>) {
         viewModelScope.launch {
             habits.forEachIndexed { index, habitForDate ->
