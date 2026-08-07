@@ -81,10 +81,25 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun getHabitStats(habitId: Long): HabitStats? {
         val habit = dao.getHabitById(habitId)?.toDomain() ?: return null
         val entries = dao.getAllEntriesForHabit(habitId).map { it.toDomain() }
-        val completedDates = entries
-            .filter { it.completedCount >= habit.targetCount }
-            .map { it.date }
-            .sorted()
+        val completedDates = if (habit.isBadHabit) {
+            // Для табу «выполненный» день = запланированный день БЕЗ срыва
+            val relapsedDates = entries.filter { it.completedCount > 0 }.map { it.date }.toHashSet()
+            val today = LocalDate.now()
+            buildList {
+                var d = habit.startDate
+                while (!d.isAfter(today)) {
+                    val scheduled = habit.frequency == HabitFrequency.DAILY ||
+                        d.dayOfWeek in habit.scheduledDays
+                    if (scheduled && d !in relapsedDates) add(d)
+                    d = d.plusDays(1)
+                }
+            }.sorted()
+        } else {
+            entries
+                .filter { it.completedCount >= habit.targetCount }
+                .map { it.date }
+                .sorted()
+        }
         val frozenDates = entries.filter { it.isFrozen }.map { it.date }.toHashSet()
 
         val totalDays = countScheduledDays(habit)
