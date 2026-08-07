@@ -14,7 +14,7 @@ import com.flowbit.app.data.database.entity.TagEntity
 
 @Database(
     entities = [HabitEntity::class, HabitEntryEntity::class, ReminderEntity::class, TagEntity::class],
-    version = 12,
+    version = 13,
     exportSchema = false,
 )
 abstract class FlowbitDatabase : RoomDatabase() {
@@ -94,6 +94,16 @@ abstract class FlowbitDatabase : RoomDatabase() {
         val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE habit_entries ADD COLUMN isFrozen INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        // Чистим ложные «выполнения» табу-привычек: старая логика считала completedCount≥1 как успех,
+        // новая считает это срывом. Удаляем такие записи, чтобы серия посчиталась верно.
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "DELETE FROM habit_entries WHERE completedCount > 0 AND habitId IN (SELECT id FROM habits WHERE isBadHabit = 1)"
+                )
             }
         }
     }
