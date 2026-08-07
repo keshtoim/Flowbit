@@ -3,6 +3,7 @@ package com.flowbit.app.presentation.habits.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -121,12 +122,12 @@ fun HabitCard(
             isCompleted -> habitColor.copy(alpha = 0.22f)
             else -> surface
         },
-        animationSpec = tween(300),
+        animationSpec = tween(380, easing = FastOutSlowInEasing),
         label = "cardColor",
     )
     val buttonColor by animateColorAsState(
         targetValue = if (isCompleted) habitColor else habitColor.copy(alpha = 0.15f),
-        animationSpec = tween(300),
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
         label = "buttonColor",
     )
     val buttonScale by animateFloatAsState(
@@ -286,7 +287,10 @@ fun HabitCard(
                 // Прогресс дуги вычисляется всегда, чтобы не нарушать порядок composable-вызовов
                 val arcProgress by animateFloatAsState(
                     targetValue = if (habit.targetCount > 1) completedCount.toFloat() / habit.targetCount else 0f,
-                    animationSpec = tween(300),
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow,
+                    ),
                     label = "arcProgress",
                 )
 
@@ -326,8 +330,10 @@ fun HabitCard(
                     // Кнопка "−" — появляется при completedCount > 0 и не пропущено
                     AnimatedVisibility(
                         visible = completedCount > 0 && !isSkipped,
-                        enter = scaleIn(tween(180)) + fadeIn(tween(180)),
-                        exit = scaleOut(tween(180)) + fadeOut(tween(180)),
+                        enter = scaleIn(
+                            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+                        ) + fadeIn(tween(150)),
+                        exit = scaleOut(tween(150)) + fadeOut(tween(150)),
                     ) {
                         IconButton(
                             onClick = onDecrease,
