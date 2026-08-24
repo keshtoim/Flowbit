@@ -1,19 +1,24 @@
 package com.flowbit.app.presentation.habits.detail
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +30,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
+import java.util.Locale
 
 // ── Гистограмма активности за 30 дней ─────────────────────────────────────────
 
@@ -69,6 +76,39 @@ internal fun YearHeatmapCard(completedDates: List<LocalDate>) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
 
+    val today = LocalDate.now()
+    val cols = 53
+    val rows = 7
+    val cellSize = 13.dp
+    val gap = 3.dp
+    val colWidth = cellSize + gap
+    val totalWidth = colWidth * cols - gap   // ширина всей сетки
+
+    val startDate = remember(today) {
+        today.minusWeeks(52).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    }
+    val completedSet = remember(completedDates) { completedDates.toHashSet() }
+
+    // Метки месяцев: col → аббревиатура месяца, только при смене
+    val monthLabels = remember(startDate) {
+        buildList {
+            var lastMonth = -1
+            for (col in 0 until cols) {
+                val weekStart = startDate.plusDays((col * 7).toLong())
+                if (weekStart.monthValue != lastMonth) {
+                    lastMonth = weekStart.monthValue
+                    add(col to weekStart.month.getDisplayName(TextStyle.SHORT, Locale("ru"))
+                        .replaceFirstChar { it.uppercase() })
+                } else {
+                    add(col to null)
+                }
+            }
+        }
+    }
+
+    val scrollState = rememberScrollState()
+    LaunchedEffect(Unit) { scrollState.scrollTo(scrollState.maxValue) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -81,35 +121,54 @@ internal fun YearHeatmapCard(completedDates: List<LocalDate>) {
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(12.dp))
-            val completedSet = remember(completedDates) { completedDates.toHashSet() }
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(88.dp),
-            ) {
-                val today = LocalDate.now()
-                val cols = 53
-                val rows = 7
-                val gap = 2.dp.toPx()
-                val cellW = (size.width - gap * (cols - 1)) / cols
-                val cellH = (size.height - gap * (rows - 1)) / rows
-                val radius = minOf(cellW, cellH) * 0.28f
-                // Начало сетки — понедельник 52 недели назад
-                val startDate = today
-                    .minusWeeks(52)
-                    .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-                for (col in 0 until cols) {
-                    for (row in 0 until rows) {
-                        val date = startDate.plusDays((col * 7 + row).toLong())
-                        if (date.isAfter(today)) continue
-                        val isDone = date in completedSet
-                        drawRoundRect(
-                            color = if (isDone) primaryColor else surfaceVariantColor,
-                            topLeft = Offset(col * (cellW + gap), row * (cellH + gap)),
-                            size = Size(cellW, cellH),
-                            cornerRadius = CornerRadius(radius),
-                        )
+            Box(modifier = Modifier.horizontalScroll(scrollState)) {
+                Column {
+                    // Метки месяцев
+                    Row(modifier = Modifier.width(totalWidth)) {
+                        monthLabels.forEach { (_, label) ->
+                            Box(modifier = Modifier.width(colWidth)) {
+                                if (label != null) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+
+                    // Сетка ячеек
+                    Canvas(
+                        modifier = Modifier
+                            .width(totalWidth)
+                            .height(cellSize * rows + gap * (rows - 1)),
+                    ) {
+                        val cellPx = cellSize.toPx()
+                        val gapPx = gap.toPx()
+                        val radius = cellPx * 0.3f
+                        for (col in 0 until cols) {
+                            for (row in 0 until rows) {
+                                val date = startDate.plusDays((col * 7 + row).toLong())
+                                if (date.isAfter(today)) continue
+                                val isDone = date in completedSet
+                                val alpha = if (isDone) 1f else 0.18f
+                                drawRoundRect(
+                                    color = if (isDone) primaryColor
+                                            else surfaceVariantColor,
+                                    topLeft = Offset(
+                                        col * (cellPx + gapPx),
+                                        row * (cellPx + gapPx),
+                                    ),
+                                    size = Size(cellPx, cellPx),
+                                    cornerRadius = CornerRadius(radius),
+                                    alpha = alpha,
+                                )
+                            }
+                        }
                     }
                 }
             }

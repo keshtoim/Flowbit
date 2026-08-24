@@ -128,11 +128,12 @@ internal fun ConnectedDotsChart(
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp),
+                .height(80.dp),
         ) {
             if (days.isEmpty()) return@Canvas
-            val dotR = 10.dp.toPx()
             val step = size.width / days.size.coerceAtLeast(1)
+            // Радиус не больше половины шага минус зазор, и не меньше 3dp
+            val dotR = (step / 2f - 2.dp.toPx()).coerceIn(3.dp.toPx(), 10.dp.toPx())
             val cy = size.height / 2f
 
             // Соединительные линии — рисуем первыми, чтобы кружки перекрывали их
