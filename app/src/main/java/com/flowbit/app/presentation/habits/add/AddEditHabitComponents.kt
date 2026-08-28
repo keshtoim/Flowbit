@@ -1205,3 +1205,50 @@ fun TabooSection(
         }
     }
 }
+
+@Composable
+fun StreakSkipSection(
+    allowStreakSkip: Boolean,
+    onAllowStreakSkipChange: (Boolean) -> Unit,
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (allowStreakSkip)
+                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.40f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🛡️", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Пропуск без потери серии",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = "Разрешает пропуск через меню привычки без обнуления серии.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Switch(
+                checked = allowStreakSkip,
+                onCheckedChange = onAllowStreakSkipChange,
+            )
+        }
+    }
+}

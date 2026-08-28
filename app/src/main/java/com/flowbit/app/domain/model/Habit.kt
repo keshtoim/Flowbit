@@ -27,6 +27,7 @@ data class Habit(
     val unit: String? = null,
     val timerSeconds: Int = 0,
     val isBadHabit: Boolean = false,
+    val allowStreakSkip: Boolean = false,
     val customColorHex: String? = null,
 ) {
     val effectiveColorHex: String

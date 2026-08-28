@@ -127,6 +127,7 @@ fun HabitListScreen(
             onDismiss = { contextMenuHabit = null },
             onToggle = { viewModel.toggleHabit(hfd.habit.id) },
             onSkip = { viewModel.skipHabit(hfd.habit.id) },
+            onStreakSafeSkip = { viewModel.streakSafeSkipHabit(hfd.habit.id) },
             onEnterCount = { numberInputHabit = hfd },
         )
     }
@@ -573,6 +574,7 @@ private fun HabitContextMenu(
     onDismiss: () -> Unit,
     onToggle: () -> Unit,
     onSkip: () -> Unit,
+    onStreakSafeSkip: () -> Unit,
     onEnterCount: () -> Unit,
 ) {
     AlertDialog(
@@ -610,6 +612,19 @@ private fun HabitContextMenu(
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                if (habit.habit.allowStreakSkip) {
+                    HorizontalDivider()
+                    TextButton(
+                        onClick = { onStreakSafeSkip(); onDismiss() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = "🛡 Пропустить (серия сохраняется)",
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
                 }
             }
         },

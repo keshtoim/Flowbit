@@ -153,6 +153,12 @@ class HabitListViewModel @Inject constructor(
         _uiState.update { it.copy(groupingMode = mode) }
     }
 
+    fun streakSafeSkipHabit(habitId: Long) {
+        viewModelScope.launch {
+            habitRepository.streakSafeSkip(habitId, _uiState.value.selectedDate)
+        }
+    }
+
     fun skipHabit(habitId: Long) {
         viewModelScope.launch {
             val date = _uiState.value.selectedDate

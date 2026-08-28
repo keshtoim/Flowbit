@@ -11,6 +11,7 @@ data class HabitEntry(
     val isSkipped: Boolean = false,
     val markedAt: String? = null,
     val isFrozen: Boolean = false,
+    val isStreakSafeSkip: Boolean = false,
 )
 
 data class HabitWithEntries(

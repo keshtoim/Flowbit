@@ -33,4 +33,5 @@ interface HabitRepository {
     suspend fun getAllEntriesForHabit(habitId: Long): List<HabitEntry>
 
     suspend fun freezeStreak(habitId: Long, date: LocalDate)
+    suspend fun streakSafeSkip(habitId: Long, date: LocalDate)
 }
