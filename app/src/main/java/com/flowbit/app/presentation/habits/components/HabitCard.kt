@@ -80,11 +80,12 @@ fun HabitCard(
     compact: Boolean = false,
 ) {
     val habit = habitForDate.habit
+    val isStreakSafeSkipped = habitForDate.entry?.isStreakSafeSkip ?: false
     val isSkipped = habitForDate.entry?.isSkipped ?: false
-    val completedCount = if (isSkipped) 0 else (habitForDate.entry?.completedCount ?: 0)
+    val completedCount = if (isSkipped || isStreakSafeSkipped) 0 else (habitForDate.entry?.completedCount ?: 0)
     // Для Табу: "выполнено" = не сорвался (нет записи или count == 0)
     val isRelapsed = habit.isBadHabit && completedCount > 0
-    val isCompleted = if (habit.isBadHabit) !isRelapsed else !isSkipped && completedCount >= habit.targetCount
+    val isCompleted = if (habit.isBadHabit) !isRelapsed else !isSkipped && !isStreakSafeSkipped && completedCount >= habit.targetCount
 
     val habitColor = remember(habit.effectiveColorHex) {
         try { Color(android.graphics.Color.parseColor(habit.effectiveColorHex)) }
@@ -114,10 +115,12 @@ fun HabitCard(
 
     val skippedColor = MaterialTheme.colorScheme.errorContainer
     val tabooCleanColor = MaterialTheme.colorScheme.tertiary
+    val streakSafeColor = MaterialTheme.colorScheme.tertiaryContainer
     val cardColor by animateColorAsState(
         targetValue = when {
             isRelapsed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.40f)
             habit.isBadHabit -> tabooCleanColor.copy(alpha = 0.14f)  // зелёный тинт = чисто
+            isStreakSafeSkipped -> streakSafeColor.copy(alpha = 0.35f)
             isSkipped -> skippedColor
             isCompleted -> habitColor.copy(alpha = 0.22f)
             else -> surface
@@ -225,6 +228,14 @@ fun HabitCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isRelapsed) MaterialTheme.colorScheme.error
                                     else MaterialTheme.colorScheme.tertiary,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    } else if (isStreakSafeSkipped) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "🛡 Пропущено (серия сохранена)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary,
                             fontWeight = FontWeight.Medium,
                         )
                     } else if (isSkipped) {
@@ -365,8 +376,8 @@ fun HabitCard(
 
                     Spacer(Modifier.width(4.dp))
 
-                    // Главная кнопка-галочка (скрыта когда пропущено)
-                    if (!isSkipped) {
+                    // Главная кнопка-галочка (скрыта когда пропущено или защищённый пропуск)
+                    if (!isSkipped && !isStreakSafeSkipped) {
                         Box(contentAlignment = Alignment.Center) {
                             if (habit.targetCount > 1 && !isCompleted) {
                                 // Секторное заполнение: кружок «наполняется» по мере нажатий
@@ -454,7 +465,7 @@ fun HabitCard(
                     }
                 }
             }
-            if (!habit.isBadHabit && !isCompleted && !isSkipped) {
+            if (!habit.isBadHabit && !isCompleted && !isSkipped && !isStreakSafeSkipped) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

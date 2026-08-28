@@ -45,6 +45,7 @@ data class AddEditHabitUiState(
     val unit: String = "",
     val timerSeconds: Int = 0,
     val isBadHabit: Boolean = false,
+    val allowStreakSkip: Boolean = false,
     val customColorHex: String? = null,
     val isSaved: Boolean = false,
     val nameError: String? = null,
@@ -96,6 +97,7 @@ class AddEditHabitViewModel @Inject constructor(
                     unit = habit.unit ?: "",
                     timerSeconds = habit.timerSeconds,
                     isBadHabit = habit.isBadHabit,
+                    allowStreakSkip = habit.allowStreakSkip,
                     customColorHex = habit.customColorHex,
                 )
             }
@@ -118,6 +120,7 @@ class AddEditHabitViewModel @Inject constructor(
     fun onUnitChange(unit: String) = _uiState.update { it.copy(unit = unit.take(8)) }
     fun onTimerSecondsChange(seconds: Int) = _uiState.update { it.copy(timerSeconds = seconds.coerceIn(0, 7200)) }
     fun onIsBadHabitChange(value: Boolean) = _uiState.update { it.copy(isBadHabit = value) }
+    fun onAllowStreakSkipChange(value: Boolean) = _uiState.update { it.copy(allowStreakSkip = value) }
     fun onCustomColorHexChange(hex: String) = _uiState.update { it.copy(color = HabitColor.CUSTOM, customColorHex = hex) }
 
     fun onRecurringToggle() = _uiState.update { it.copy(recurringEnabled = !it.recurringEnabled) }
@@ -193,6 +196,7 @@ class AddEditHabitViewModel @Inject constructor(
                 unit = state.unit.trim().takeIf { it.isNotEmpty() },
                 timerSeconds = state.timerSeconds,
                 isBadHabit = state.isBadHabit,
+                allowStreakSkip = state.allowStreakSkip,
                 customColorHex = state.customColorHex,
             )
 

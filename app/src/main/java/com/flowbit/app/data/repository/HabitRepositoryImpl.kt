@@ -100,7 +100,7 @@ class HabitRepositoryImpl @Inject constructor(
                 .map { it.date }
                 .sorted()
         }
-        val frozenDates = entries.filter { it.isFrozen }.map { it.date }.toHashSet()
+        val frozenDates = entries.filter { it.isFrozen || it.isStreakSafeSkip }.map { it.date }.toHashSet()
 
         val totalDays = countScheduledDays(habit)
         val completionRate = if (totalDays > 0) completedDates.size.toFloat() / totalDays else 0f
@@ -125,6 +125,13 @@ class HabitRepositoryImpl @Inject constructor(
         val existing = dao.getEntryForDate(habitId, date.toString())?.toDomain()
         val entry = existing?.copy(isFrozen = true)
             ?: HabitEntry(habitId = habitId, date = date, completedCount = 0, isFrozen = true)
+        dao.insertEntry(HabitEntryEntity.fromDomain(entry))
+    }
+
+    override suspend fun streakSafeSkip(habitId: Long, date: LocalDate) {
+        val existing = dao.getEntryForDate(habitId, date.toString())?.toDomain()
+        val entry = existing?.copy(isStreakSafeSkip = true, completedCount = 0, isSkipped = false)
+            ?: HabitEntry(habitId = habitId, date = date, completedCount = 0, isStreakSafeSkip = true)
         dao.insertEntry(HabitEntryEntity.fromDomain(entry))
     }
 

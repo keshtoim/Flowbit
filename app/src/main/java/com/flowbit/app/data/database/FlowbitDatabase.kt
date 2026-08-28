@@ -14,7 +14,7 @@ import com.flowbit.app.data.database.entity.TagEntity
 
 @Database(
     entities = [HabitEntity::class, HabitEntryEntity::class, ReminderEntity::class, TagEntity::class],
-    version = 13,
+    version = 14,
     exportSchema = false,
 )
 abstract class FlowbitDatabase : RoomDatabase() {
@@ -99,6 +99,13 @@ abstract class FlowbitDatabase : RoomDatabase() {
 
         // Чистим ложные «выполнения» табу-привычек: старая логика считала completedCount≥1 как успех,
         // новая считает это срывом. Удаляем такие записи, чтобы серия посчиталась верно.
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE habits ADD COLUMN allowStreakSkip INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE habit_entries ADD COLUMN isStreakSafeSkip INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         val MIGRATION_12_13 = object : Migration(12, 13) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(

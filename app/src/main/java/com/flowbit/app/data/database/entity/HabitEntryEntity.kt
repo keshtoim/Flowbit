@@ -29,6 +29,7 @@ data class HabitEntryEntity(
     val isSkipped: Boolean = false,
     val markedAt: String? = null,
     val isFrozen: Boolean = false,
+    val isStreakSafeSkip: Boolean = false,
 ) {
     fun toDomain(): HabitEntry = HabitEntry(
         id = id,
@@ -39,6 +40,7 @@ data class HabitEntryEntity(
         isSkipped = isSkipped,
         markedAt = markedAt,
         isFrozen = isFrozen,
+        isStreakSafeSkip = isStreakSafeSkip,
     )
 
     companion object {
@@ -51,6 +53,7 @@ data class HabitEntryEntity(
             isSkipped = entry.isSkipped,
             markedAt = entry.markedAt,
             isFrozen = entry.isFrozen,
+            isStreakSafeSkip = entry.isStreakSafeSkip,
         )
     }
 }

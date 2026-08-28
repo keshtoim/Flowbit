@@ -126,6 +126,10 @@ fun AddEditHabitScreen(
                 isBadHabit = uiState.isBadHabit,
                 onIsBadHabitChange = viewModel::onIsBadHabitChange,
             )
+            StreakSkipSection(
+                allowStreakSkip = uiState.allowStreakSkip,
+                onAllowStreakSkipChange = viewModel::onAllowStreakSkipChange,
+            )
         }
     }
 }
