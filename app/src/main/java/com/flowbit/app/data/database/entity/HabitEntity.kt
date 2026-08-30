@@ -34,6 +34,7 @@ data class HabitEntity(
     val timerSeconds: Int = 0,
     val isBadHabit: Boolean = false,
     val allowStreakSkip: Boolean = false,
+    val stackAfterHabitId: Long? = null,
 ) {
     fun toDomain(): Habit {
         val matchedColor = HabitColor.entries
@@ -72,6 +73,7 @@ data class HabitEntity(
         timerSeconds = timerSeconds,
         isBadHabit = isBadHabit,
         allowStreakSkip = allowStreakSkip,
+        stackAfterHabitId = stackAfterHabitId,
     )
 
     companion object {
@@ -98,6 +100,7 @@ data class HabitEntity(
             timerSeconds = habit.timerSeconds,
             isBadHabit = habit.isBadHabit,
             allowStreakSkip = habit.allowStreakSkip,
+            stackAfterHabitId = habit.stackAfterHabitId,
         )
     }
 }
