@@ -26,6 +26,7 @@ data class HabitDetailUiState(
     val noteHistory: List<Pair<LocalDate, String>> = emptyList(),
     val isFrozenToday: Boolean = false,
     val freezeCountThisWeek: Int = 0,
+    val hourlyCompletions: Map<Int, Int> = emptyMap(),
 )
 
 @HiltViewModel
@@ -51,6 +52,13 @@ class HabitDetailViewModel @Inject constructor(
                 .sortedByDescending { it.date }
                 .map { it.date to it.note!! }
 
+            val hourlyCompletions = buildMap<Int, Int> {
+                allEntries.forEach { e ->
+                    val hour = e.markedAt?.substringBefore(":")?.toIntOrNull() ?: return@forEach
+                    if (e.completedCount > 0) put(hour, (get(hour) ?: 0) + 1)
+                }
+            }
+
             // Считаем заморозки за текущую неделю (Пн–Вс)
             val dow = today.dayOfWeek.value
             val weekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
@@ -66,6 +74,7 @@ class HabitDetailViewModel @Inject constructor(
                     noteHistory = history,
                     isFrozenToday = entry?.isFrozen ?: false,
                     freezeCountThisWeek = freezeCountThisWeek,
+                    hourlyCompletions = hourlyCompletions,
                 )
             }
         }

@@ -21,6 +21,17 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
+data class HabitCorrelation(
+    val habitA: String,
+    val habitB: String,
+    val emojiA: String,
+    val emojiB: String,
+    val sharedDays: Int,
+    val totalDays: Int,
+) {
+    val rate: Float get() = if (totalDays > 0) sharedDays.toFloat() / totalDays else 0f
+}
+
 data class StatisticsUiState(
     val habitStats: List<HabitStats> = emptyList(),
     val overallStats: OverallStats? = null,
@@ -30,6 +41,7 @@ data class StatisticsUiState(
     val popularHabit: HabitStats? = null,
     val rareHabit: HabitStats? = null,
     val averageCompletionPct: Int = 0,
+    val topCorrelations: List<HabitCorrelation> = emptyList(),
 )
 
 @HiltViewModel
@@ -58,6 +70,8 @@ class StatisticsViewModel @Inject constructor(
             val avgPct = if (activeStats.isEmpty()) 0
             else (activeStats.map { it.completionRate }.average() * 100).toInt()
 
+            val correlations = computeCorrelations(stats)
+
             _uiState.update {
                 it.copy(
                     habitStats = stats,
@@ -68,6 +82,7 @@ class StatisticsViewModel @Inject constructor(
                     popularHabit = popular,
                     rareHabit = rare,
                     averageCompletionPct = avgPct,
+                    topCorrelations = correlations,
                 )
             }
         }
@@ -131,6 +146,31 @@ class StatisticsViewModel @Inject constructor(
             thisWeekLabel = "${thisWeekStart.format(fmt)} – ${today.format(fmt)}",
             lastWeekLabel = "${lastWeekStart.format(fmt)} – ${lastWeekEnd.format(fmt)}",
         )
+    }
+
+    private fun computeCorrelations(stats: List<HabitStats>): List<HabitCorrelation> {
+        if (stats.size < 2) return emptyList()
+        val result = mutableListOf<HabitCorrelation>()
+        for (i in stats.indices) {
+            for (j in i + 1 until stats.size) {
+                val a = stats[i]
+                val b = stats[j]
+                val setA = a.completedDates.toHashSet()
+                val setB = b.completedDates.toHashSet()
+                val shared = setA.count { it in setB }
+                val total = (setA + setB).size
+                if (total >= 7 && shared > 0) {
+                    result.add(
+                        HabitCorrelation(
+                            habitA = a.habitName, habitB = b.habitName,
+                            emojiA = a.habitEmoji, emojiB = b.habitEmoji,
+                            sharedDays = shared, totalDays = total,
+                        )
+                    )
+                }
+            }
+        }
+        return result.sortedByDescending { it.rate }.take(3)
     }
 
     private fun computeBestTime(times: List<String?>): BestTimeData? {
