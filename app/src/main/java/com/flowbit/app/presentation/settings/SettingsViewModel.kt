@@ -241,6 +241,29 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun exportCsv(uri: Uri) {
+        viewModelScope.launch {
+            try {
+                val habits = dao.getAllHabitsList().associateBy { it.id }
+                val entries = dao.getAllEntries()
+                val sb = StringBuilder()
+                sb.appendLine("habit_id,habit_name,date,completed_count,target_count,is_skipped,note,marked_at")
+                entries.forEach { e ->
+                    val h = habits[e.habitId]
+                    val name = (h?.name ?: "").replace(",", ";").replace("\n", " ")
+                    val note = (e.note ?: "").replace(",", ";").replace("\n", " ")
+                    sb.appendLine("${e.habitId},\"$name\",${e.date},${e.completedCount},${h?.targetCount ?: 1},${e.isSkipped},\"$note\",${e.markedAt ?: ""}")
+                }
+                context.contentResolver.openOutputStream(uri)?.use { stream ->
+                    stream.write(sb.toString().toByteArray(Charsets.UTF_8))
+                }
+                _uiState.update { it.copy(backupMessage = "CSV экспортирован") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(backupMessage = "Ошибка экспорта CSV: ${e.message}") }
+            }
+        }
+    }
+
     fun clearMessage() {
         _uiState.update { it.copy(backupMessage = null) }
     }

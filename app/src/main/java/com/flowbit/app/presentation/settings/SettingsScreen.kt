@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -156,6 +157,10 @@ fun SettingsScreen(
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? -> uri?.let { viewModel.importData(it) } }
+
+    val csvExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri: Uri? -> uri?.let { viewModel.exportCsv(it) } }
 
     LaunchedEffect(uiState.backupMessage) {
         uiState.backupMessage?.let {
@@ -477,6 +482,21 @@ fun SettingsScreen(
                                     Icon(
                                         Icons.Default.Download,
                                         contentDescription = stringResource(R.string.import_title),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingsRow(
+                                title = "Экспорт в CSV",
+                                subtitle = "Выгрузить историю выполнений в таблицу",
+                            ) {
+                                IconButton(onClick = {
+                                    csvExportLauncher.launch("flowbit_${LocalDate.now()}.csv")
+                                }) {
+                                    Icon(
+                                        Icons.Default.TableChart,
+                                        contentDescription = "Экспорт CSV",
                                         tint = MaterialTheme.colorScheme.primary,
                                     )
                                 }
