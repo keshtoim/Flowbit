@@ -1252,3 +1252,77 @@ fun StreakSkipSection(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StackingSection(
+    allHabits: List<com.flowbit.app.domain.model.Habit>,
+    stackAfterHabitId: Long?,
+    currentHabitId: Long?,
+    onStackAfterChange: (Long?) -> Unit,
+) {
+    val options = allHabits.filter { it.id != (currentHabitId ?: -1L) }
+    if (options.isEmpty()) return
+
+    var expanded by remember { mutableStateOf(false) }
+    val selected = options.find { it.id == stackAfterHabitId }
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (stackAfterHabitId != null)
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ),
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("🔗", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Habit Stacking",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "Выполнять сразу после другой привычки",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = it },
+            ) {
+                OutlinedTextField(
+                    value = selected?.let { "${it.emoji} ${it.name}" } ?: "Не выбрано",
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    label = { Text("После привычки") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("— Не привязывать") },
+                        onClick = { onStackAfterChange(null); expanded = false },
+                    )
+                    options.forEach { habit ->
+                        DropdownMenuItem(
+                            text = { Text("${habit.emoji} ${habit.name}") },
+                            onClick = { onStackAfterChange(habit.id); expanded = false },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

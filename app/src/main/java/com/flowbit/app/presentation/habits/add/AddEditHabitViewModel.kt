@@ -46,6 +46,8 @@ data class AddEditHabitUiState(
     val timerSeconds: Int = 0,
     val isBadHabit: Boolean = false,
     val allowStreakSkip: Boolean = false,
+    val stackAfterHabitId: Long? = null,
+    val allHabits: List<Habit> = emptyList(),
     val customColorHex: String? = null,
     val isSaved: Boolean = false,
     val nameError: String? = null,
@@ -70,6 +72,14 @@ class AddEditHabitViewModel @Inject constructor(
     val uiState: StateFlow<AddEditHabitUiState> = _uiState.asStateFlow()
 
     private var editingHabitId: Long? = null
+
+    init {
+        viewModelScope.launch {
+            habitRepository.getActiveHabits().collect { habits ->
+                _uiState.update { it.copy(allHabits = habits) }
+            }
+        }
+    }
 
     fun loadHabit(habitId: Long?) {
         if (habitId == null) return
@@ -98,6 +108,7 @@ class AddEditHabitViewModel @Inject constructor(
                     timerSeconds = habit.timerSeconds,
                     isBadHabit = habit.isBadHabit,
                     allowStreakSkip = habit.allowStreakSkip,
+                    stackAfterHabitId = habit.stackAfterHabitId,
                     customColorHex = habit.customColorHex,
                 )
             }
@@ -121,6 +132,7 @@ class AddEditHabitViewModel @Inject constructor(
     fun onTimerSecondsChange(seconds: Int) = _uiState.update { it.copy(timerSeconds = seconds.coerceIn(0, 7200)) }
     fun onIsBadHabitChange(value: Boolean) = _uiState.update { it.copy(isBadHabit = value) }
     fun onAllowStreakSkipChange(value: Boolean) = _uiState.update { it.copy(allowStreakSkip = value) }
+    fun onStackAfterHabitChange(habitId: Long?) = _uiState.update { it.copy(stackAfterHabitId = habitId) }
     fun onCustomColorHexChange(hex: String) = _uiState.update { it.copy(color = HabitColor.CUSTOM, customColorHex = hex) }
 
     fun onRecurringToggle() = _uiState.update { it.copy(recurringEnabled = !it.recurringEnabled) }
@@ -197,6 +209,7 @@ class AddEditHabitViewModel @Inject constructor(
                 timerSeconds = state.timerSeconds,
                 isBadHabit = state.isBadHabit,
                 allowStreakSkip = state.allowStreakSkip,
+                stackAfterHabitId = state.stackAfterHabitId,
                 customColorHex = state.customColorHex,
             )
 

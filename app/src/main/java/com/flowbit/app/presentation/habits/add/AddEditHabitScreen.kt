@@ -130,6 +130,12 @@ fun AddEditHabitScreen(
                 allowStreakSkip = uiState.allowStreakSkip,
                 onAllowStreakSkipChange = viewModel::onAllowStreakSkipChange,
             )
+            StackingSection(
+                allHabits = uiState.allHabits,
+                stackAfterHabitId = uiState.stackAfterHabitId,
+                currentHabitId = habitId,
+                onStackAfterChange = viewModel::onStackAfterHabitChange,
+            )
         }
     }
 }
