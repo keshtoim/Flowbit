@@ -56,6 +56,7 @@ import com.flowbit.app.domain.model.HabitStats
 import com.flowbit.app.domain.model.OverallStats
 import com.flowbit.app.domain.model.PeriodComparison
 import com.flowbit.app.domain.model.WeekdayInsight
+import com.flowbit.app.presentation.statistics.HabitCorrelation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,6 +119,10 @@ fun StatisticsScreen(
 
             uiState.bestTimeData?.let { bestTime ->
                 item { BestTimeCard(bestTime) }
+            }
+
+            if (uiState.topCorrelations.isNotEmpty()) {
+                item { CorrelationCard(correlations = uiState.topCorrelations) }
             }
 
             if (uiState.habitStats.isNotEmpty()) {
@@ -485,6 +490,87 @@ private fun OverallStatsSection(stats: OverallStats) {
                         color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CorrelationCard(correlations: List<HabitCorrelation>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.SwapHoriz,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Связанные привычки",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Чаще всего выполняются в один день",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(14.dp))
+            correlations.forEachIndexed { i, cor ->
+                if (i > 0) Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "${cor.emojiA} ${cor.habitA}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                    )
+                    Text(
+                        text = "+",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 6.dp),
+                    )
+                    Text(
+                        text = "${cor.emojiB} ${cor.habitB}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                    ) {
+                        Text(
+                            text = "${(cor.rate * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                LinearProgressIndicator(
+                    progress = { cor.rate },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp)),
+                )
             }
         }
     }

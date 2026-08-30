@@ -508,6 +508,18 @@ fun HabitDetailScreen(
 
             // ── Паттерн по дням недели ────────────────────────────────────────
             item { WeeklyPatternCard(completedDates = stats.completedDates) }
+
+            // ── Паттерн по часам суток ────────────────────────────────────────
+            item { HourlyPatternCard(hourlyCompletions = uiState.hourlyCompletions) }
+
+            // ── Прогноз серии ─────────────────────────────────────────────────
+            item {
+                StreakForecastCard(
+                    currentStreak = stats.currentStreak,
+                    longestStreak = stats.longestStreak,
+                    completionRate = stats.completionRate,
+                )
+            }
         }
     }
 }
