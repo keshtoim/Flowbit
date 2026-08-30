@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.clip
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
