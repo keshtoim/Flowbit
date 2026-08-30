@@ -121,6 +121,16 @@ class AddEditHabitViewModel @Inject constructor(
     fun onTimerSecondsChange(seconds: Int) = _uiState.update { it.copy(timerSeconds = seconds.coerceIn(0, 7200)) }
     fun onIsBadHabitChange(value: Boolean) = _uiState.update { it.copy(isBadHabit = value) }
     fun onAllowStreakSkipChange(value: Boolean) = _uiState.update { it.copy(allowStreakSkip = value) }
+
+    fun applyTemplate(template: HabitTemplate) = _uiState.update {
+        it.copy(
+            name = template.name,
+            emoji = template.emoji,
+            color = template.color,
+            targetCount = template.targetCount,
+            unit = template.unit ?: "",
+        )
+    }
     fun onCustomColorHexChange(hex: String) = _uiState.update { it.copy(color = HabitColor.CUSTOM, customColorHex = hex) }
 
     fun onRecurringToggle() = _uiState.update { it.copy(recurringEnabled = !it.recurringEnabled) }

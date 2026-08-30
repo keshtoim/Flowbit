@@ -20,9 +20,17 @@ fun AddEditHabitScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val allTags by viewModel.allTags.collectAsState()
+    var showTemplatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(habitId) { viewModel.loadHabit(habitId) }
     LaunchedEffect(uiState.isSaved) { if (uiState.isSaved) onBack() }
+
+    if (showTemplatePicker) {
+        TemplatePickerDialog(
+            onDismiss = { showTemplatePicker = false },
+            onSelect = { viewModel.applyTemplate(it) },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -34,6 +42,9 @@ fun AddEditHabitScreen(
                     }
                 },
                 actions = {
+                    if (habitId == null) {
+                        TextButton(onClick = { showTemplatePicker = true }) { Text("Шаблон") }
+                    }
                     TextButton(onClick = viewModel::save) { Text("Сохранить") }
                 },
             )

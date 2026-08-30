@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -58,6 +59,98 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.TextStyle
 import java.util.Locale
+
+// ── Шаблоны привычек ─────────────────────────────────────────────────────────
+
+data class HabitTemplate(
+    val emoji: String,
+    val name: String,
+    val targetCount: Int = 1,
+    val unit: String? = null,
+    val color: HabitColor = HabitColor.TEAL,
+    val category: String,
+)
+
+val HABIT_TEMPLATES = listOf(
+    HabitTemplate("🏃", "Пробежка", 1, null, HabitColor.GREEN, "Спорт"),
+    HabitTemplate("💪", "Тренировка", 1, null, HabitColor.RED, "Спорт"),
+    HabitTemplate("🧘", "Медитация", 10, "мин", HabitColor.VIOLET, "Здоровье"),
+    HabitTemplate("💧", "Вода", 8, "стак.", HabitColor.BLUE, "Здоровье"),
+    HabitTemplate("📚", "Чтение", 20, "стр.", HabitColor.ORANGE, "Развитие"),
+    HabitTemplate("✍️", "Дневник", 1, null, HabitColor.YELLOW, "Развитие"),
+    HabitTemplate("🛌", "Сон до 23:00", 1, null, HabitColor.INDIGO, "Режим"),
+    HabitTemplate("🥗", "Овощи в рационе", 2, "порц.", HabitColor.GREEN, "Питание"),
+    HabitTemplate("📵", "Без соц.сетей", 1, null, HabitColor.TEAL, "Цифровой детокс"),
+    HabitTemplate("🧹", "Уборка", 1, null, HabitColor.ORANGE, "Дом"),
+    HabitTemplate("💊", "Витамины", 1, null, HabitColor.RED, "Здоровье"),
+    HabitTemplate("🚶", "10 000 шагов", 10000, "шаг.", HabitColor.GREEN, "Спорт"),
+    HabitTemplate("🌍", "Иностранный язык", 15, "мин", HabitColor.BLUE, "Развитие"),
+    HabitTemplate("🎸", "Музыкальный инструмент", 20, "мин", HabitColor.VIOLET, "Хобби"),
+    HabitTemplate("🚭", "Не курить", 1, null, HabitColor.TEAL, "Здоровье"),
+)
+
+@Composable
+fun TemplatePickerDialog(
+    onDismiss: () -> Unit,
+    onSelect: (HabitTemplate) -> Unit,
+) {
+    val categories = HABIT_TEMPLATES.map { it.category }.distinct()
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
+    val filtered = if (selectedCategory == null) HABIT_TEMPLATES
+                   else HABIT_TEMPLATES.filter { it.category == selectedCategory }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Выбрать шаблон") },
+        text = {
+            Column {
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    item {
+                        FilterChip(
+                            selected = selectedCategory == null,
+                            onClick = { selectedCategory = null },
+                            label = { Text("Все") },
+                        )
+                    }
+                    items(categories) { cat ->
+                        FilterChip(
+                            selected = selectedCategory == cat,
+                            onClick = { selectedCategory = cat },
+                            label = { Text(cat) },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                filtered.forEach { template ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(template); onDismiss() }
+                            .padding(vertical = 10.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(template.emoji, style = MaterialTheme.typography.titleLarge)
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(template.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                            val hint = buildString {
+                                append(template.category)
+                                if (template.targetCount > 1) append(" · ${template.targetCount}${template.unit?.let { " $it" } ?: ""}")
+                            }
+                            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    HorizontalDivider()
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
+    )
+}
 
 private val PRESET_EMOJIS = listOf(
     // Спорт и здоровье
