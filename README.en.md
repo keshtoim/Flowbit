@@ -40,6 +40,9 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 - **Built-in timer** — presets or custom time, auto-completes when done
 - Period goals — "4 times a week"
 - **🚫 Taboo habits** — "don't smoke": completed by default, mark a relapse
+- **📋 Templates** — 15 ready-made habits with category filter
+- **🔗 Habit Stacking** — link a habit to run "after" another
+- **🛡 Streak-safe skip** — skip once without breaking your streak
 - Color-coded tags and grouping
 
 </td>
@@ -52,6 +55,9 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 - ✅ Completion rate: top habit, hardest habit, average %
 - 🔵 Period analysis — 3 days / week / month (connected dots)
 - 📅 **Weekly summary screen** — 7 dots per habit
+- 🕐 **Time-of-day pattern** — morning / afternoon / evening / night
+- 🎯 **Streak forecast** — progress to next milestone (7 / 14 / 21 / 30 / 90 / 365 days)
+- 🔗 **Habit correlations** — pairs of habits completed together
 
 </td>
 </tr>
@@ -72,6 +78,7 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 - 🔵 Day summary — circular progress
 - ➕ Single habit — counter + **"+"** button
 - 🎨 All adapt to Material You dynamic color
+- 👆 Tap opens the app
 
 </td>
 </tr>
@@ -95,6 +102,7 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 - Emoji avatar
 - Group by tag / frequency / status
 - 💾 JSON export & import (including reminders)
+- 📤 **CSV export** — full log table for Excel / Google Sheets
 
 </td>
 </tr>
@@ -107,7 +115,7 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white)
 ![Compose](https://img.shields.io/badge/Jetpack_Compose-4285F4?logo=jetpackcompose&logoColor=white)
 ![Material3](https://img.shields.io/badge/Material_3-757575?logo=materialdesign&logoColor=white)
-![Room](https://img.shields.io/badge/Room_DB-v11-3DDC84?logo=android&logoColor=white)
+![Room](https://img.shields.io/badge/Room_DB-v15-3DDC84?logo=android&logoColor=white)
 ![Hilt](https://img.shields.io/badge/Hilt_DI-F6891F)
 ![Glance](https://img.shields.io/badge/Glance_Widgets-4285F4?logo=android&logoColor=white)
 
@@ -116,7 +124,7 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 | UI | Jetpack Compose + Material 3 |
 | Widgets | Jetpack Glance 1.1 · `PreferencesGlanceStateDefinition` |
 | DI | Hilt |
-| Database | Room 2.6 · SQLite · migrations v1→v11 |
+| Database | Room 2.6 · SQLite · migrations v1→v15 |
 | Images | Coil 2.6 + android-image-cropper |
 | Background | AlarmManager · WorkManager |
 | Preferences | DataStore |
@@ -145,7 +153,7 @@ APK → `app/build/outputs/apk/debug/app-debug.apk`
 ```
 app/
 ├── data/
-│   ├── database/       # Room: entities, DAOs, migrations (v1→v11)
+│   ├── database/       # Room: entities, DAOs, migrations (v1→v15)
 │   ├── receiver/       # AlarmManager BroadcastReceivers
 │   ├── repository/     # Repository implementations
 │   └── worker/         # WorkManager: InactivityCheckWorker
