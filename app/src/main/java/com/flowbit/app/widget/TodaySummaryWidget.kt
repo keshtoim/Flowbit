@@ -29,7 +29,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.flowbit.app.presentation.MainActivity
-import com.flowbit.app.widget.ObsidianGlanceColors
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -50,8 +49,10 @@ class TodaySummaryWidget : GlanceAppWidget() {
             (entries[h.id]?.completedCount ?: 0) >= h.targetCount
         }
 
+        val glanceColors = buildGlanceColors(context)
+
         provideContent {
-            GlanceTheme(colors = ObsidianGlanceColors) {
+            GlanceTheme(colors = glanceColors) {
                 val bg = GlanceTheme.colors.surface
                 val primary = GlanceTheme.colors.primary
                 val onSurface = GlanceTheme.colors.onSurface

@@ -39,7 +39,6 @@ import androidx.glance.unit.ColorProvider
 import com.flowbit.app.data.database.entity.HabitEntryEntity
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.presentation.MainActivity
-import com.flowbit.app.widget.ObsidianGlanceColors
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -58,8 +57,10 @@ class HabitScrollWidget : GlanceAppWidget() {
         val entriesForToday = db.habitDao().getEntriesForDate(today.toString()).first()
             .associateBy { it.habitId }
 
+        val glanceColors = buildGlanceColors(context)
+
         provideContent {
-            GlanceTheme(colors = ObsidianGlanceColors) {
+            GlanceTheme(colors = glanceColors) {
                 ScrollWidgetContent(context, habits, entriesForToday, today)
             }
         }
