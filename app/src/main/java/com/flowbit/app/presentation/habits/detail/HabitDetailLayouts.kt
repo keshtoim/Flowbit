@@ -341,12 +341,12 @@ internal fun DetailLayoutB(
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = primary),
                     ) {
-                        val fireScale by rememberInfiniteTransition(label = "fire").animateFloat(
+                        val fireScale = rememberInfiniteTransition(label = "fire").animateFloat(
                             initialValue = 1f,
                             targetValue = if (stats.currentStreak >= 3) 1.18f else 1f,
                             animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
                             label = "fs",
-                        )
+                        ).value
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("🔥", fontSize = 24.sp, modifier = Modifier.scale(fireScale))
                             Spacer(Modifier.height(8.dp))
