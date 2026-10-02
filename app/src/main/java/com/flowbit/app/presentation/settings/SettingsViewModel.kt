@@ -50,6 +50,7 @@ data class SettingsUiState(
     val eveningMinute: Int = 0,
     val isCompactMode: Boolean = false,
     val formStyle: String = "A",
+    val analyticsStyle: String = "A",
 )
 
 @HiltViewModel
@@ -82,6 +83,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStore.data.map { prefs -> prefs[FORM_STYLE_KEY] ?: "A" }
                 .collect { style -> _uiState.update { it.copy(formStyle = style) } }
+        }
+        viewModelScope.launch {
+            dataStore.data.map { prefs -> prefs[ANALYTICS_STYLE_KEY] ?: "A" }
+                .collect { style -> _uiState.update { it.copy(analyticsStyle = style) } }
         }
         val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags()
             .let { if (it.contains("en")) "en" else "ru" }
@@ -117,6 +122,12 @@ class SettingsViewModel @Inject constructor(
     fun setFormStyle(style: String) {
         viewModelScope.launch {
             dataStore.edit { it[FORM_STYLE_KEY] = style }
+        }
+    }
+
+    fun setAnalyticsStyle(style: String) {
+        viewModelScope.launch {
+            dataStore.edit { it[ANALYTICS_STYLE_KEY] = style }
         }
     }
 
@@ -369,5 +380,6 @@ class SettingsViewModel @Inject constructor(
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val COMPACT_MODE_KEY = booleanPreferencesKey("compact_mode")
         val FORM_STYLE_KEY = stringPreferencesKey("form_style")
+        val ANALYTICS_STYLE_KEY = stringPreferencesKey("analytics_style")
     }
 }

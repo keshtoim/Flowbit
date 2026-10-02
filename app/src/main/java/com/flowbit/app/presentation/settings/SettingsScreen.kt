@@ -297,6 +297,35 @@ fun SettingsScreen(
                                     )
                                 }
                             }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            androidx.compose.foundation.layout.Column(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            ) {
+                                Text("Стиль экрана аналитики", style = MaterialTheme.typography.bodyLarge)
+                                Text(
+                                    text = "Как выглядит экран детализации привычки",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    FilterChip(
+                                        selected = uiState.analyticsStyle == "A",
+                                        onClick = { viewModel.setAnalyticsStyle("A") },
+                                        label = { Text("A · Dashboard") },
+                                    )
+                                    FilterChip(
+                                        selected = uiState.analyticsStyle == "B",
+                                        onClick = { viewModel.setAnalyticsStyle("B") },
+                                        label = { Text("B · Timeline") },
+                                    )
+                                    FilterChip(
+                                        selected = uiState.analyticsStyle == "C",
+                                        onClick = { viewModel.setAnalyticsStyle("C") },
+                                        label = { Text("C · История") },
+                                    )
+                                }
+                            }
                         }
                     }
                 }

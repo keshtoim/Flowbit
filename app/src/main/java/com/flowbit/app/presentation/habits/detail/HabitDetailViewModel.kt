@@ -1,14 +1,20 @@
 package com.flowbit.app.presentation.habits.detail
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.HabitStats
 import com.flowbit.app.domain.repository.HabitRepository
 import com.flowbit.app.domain.usecase.stats.GetHabitStatsUseCase
+import com.flowbit.app.presentation.settings.SettingsViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -33,7 +39,12 @@ data class HabitDetailUiState(
 class HabitDetailViewModel @Inject constructor(
     private val getHabitStats: GetHabitStatsUseCase,
     private val repository: HabitRepository,
+    private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
+
+    val analyticsStyle: StateFlow<String> = dataStore.data
+        .map { prefs -> prefs[SettingsViewModel.ANALYTICS_STYLE_KEY] ?: "A" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "A")
 
     private val _uiState = MutableStateFlow(HabitDetailUiState())
     val uiState: StateFlow<HabitDetailUiState> = _uiState.asStateFlow()
