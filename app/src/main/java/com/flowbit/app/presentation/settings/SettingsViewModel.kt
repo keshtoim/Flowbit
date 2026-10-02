@@ -51,6 +51,7 @@ data class SettingsUiState(
     val isCompactMode: Boolean = false,
     val formStyle: String = "A",
     val analyticsStyle: String = "A",
+    val accentColorHex: String? = null,
 )
 
 @HiltViewModel
@@ -87,6 +88,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStore.data.map { prefs -> prefs[ANALYTICS_STYLE_KEY] ?: "A" }
                 .collect { style -> _uiState.update { it.copy(analyticsStyle = style) } }
+        }
+        viewModelScope.launch {
+            dataStore.data.map { prefs -> prefs[ACCENT_COLOR_KEY] }
+                .collect { hex -> _uiState.update { it.copy(accentColorHex = hex) } }
         }
         val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags()
             .let { if (it.contains("en")) "en" else "ru" }
@@ -128,6 +133,18 @@ class SettingsViewModel @Inject constructor(
     fun setAnalyticsStyle(style: String) {
         viewModelScope.launch {
             dataStore.edit { it[ANALYTICS_STYLE_KEY] = style }
+        }
+    }
+
+    fun setAccentColor(hex: String) {
+        viewModelScope.launch {
+            dataStore.edit { it[ACCENT_COLOR_KEY] = hex }
+        }
+    }
+
+    fun clearAccentColor() {
+        viewModelScope.launch {
+            dataStore.edit { it.remove(ACCENT_COLOR_KEY) }
         }
     }
 
@@ -381,5 +398,6 @@ class SettingsViewModel @Inject constructor(
         val COMPACT_MODE_KEY = booleanPreferencesKey("compact_mode")
         val FORM_STYLE_KEY = stringPreferencesKey("form_style")
         val ANALYTICS_STYLE_KEY = stringPreferencesKey("analytics_style")
+        val ACCENT_COLOR_KEY = stringPreferencesKey("accent_color")
     }
 }

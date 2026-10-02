@@ -456,19 +456,19 @@ fun TargetCountSection(
             OutlinedTextField(
                 value = unit,
                 onValueChange = onUnitChange,
-                placeholder = { Text("ед.") },
-                label = { Text("Единица") },
-                modifier = Modifier.width(110.dp),
+                placeholder = { Text("км, мл…") },
+                label = { Text("Ед. измерения") },
+                modifier = Modifier.width(120.dp),
                 singleLine = true,
+                supportingText = { Text("необяз.") },
             )
         }
-        if (unit.isNotBlank()) {
-            Text(
-                text = "Отображение: $targetCount $unit в день",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Text(
+            text = if (unit.isNotBlank()) "Отображение: $targetCount $unit в день"
+                   else "Необязательно — напр.: км, стаканов, страниц",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

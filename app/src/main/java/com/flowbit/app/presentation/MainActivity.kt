@@ -18,6 +18,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.compose.rememberNavController
 import com.flowbit.app.data.worker.InactivityCheckWorker
 import com.flowbit.app.presentation.navigation.FlowbitNavGraph
+import com.flowbit.app.presentation.settings.SettingsViewModel.Companion.ACCENT_COLOR_KEY
 import com.flowbit.app.presentation.settings.SettingsViewModel.Companion.THEME_MODE_KEY
 import com.flowbit.app.presentation.theme.FlowbitTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,6 +48,9 @@ class MainActivity : AppCompatActivity() {
             val themeModePref by dataStore.data
                 .map { it[THEME_MODE_KEY] ?: "system" }
                 .collectAsState(initial = "system")
+            val accentColorHex by dataStore.data
+                .map { it[ACCENT_COLOR_KEY] }
+                .collectAsState(initial = null)
             val isSystemDark = isSystemInDarkTheme()
             val isDark = when (themeModePref) {
                 "dark"  -> true
@@ -54,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                 else    -> isSystemDark
             }
 
-            FlowbitTheme(darkTheme = isDark) {
+            FlowbitTheme(darkTheme = isDark, customAccentHex = accentColorHex) {
                 val navController = rememberNavController()
                 FlowbitNavGraph(
                     navController = navController,
