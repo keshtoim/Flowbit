@@ -40,6 +40,7 @@ import androidx.glance.unit.ColorProvider
 import com.flowbit.app.data.database.entity.HabitEntryEntity
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.presentation.MainActivity
+import com.flowbit.app.widget.ObsidianGlanceColors
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.time.DayOfWeek
@@ -69,7 +70,7 @@ class HabitsWidget : GlanceAppWidget() {
 
         provideContent {
             val widgetSize = LocalSize.current
-            GlanceTheme {
+            GlanceTheme(colors = ObsidianGlanceColors) {
                 WidgetContent(
                     context = context,
                     habits = habits,
@@ -342,5 +343,5 @@ private fun DayCircle(
 private fun parseHabitColor(hex: String): Color = try {
     Color(android.graphics.Color.parseColor(hex))
 } catch (e: Exception) {
-    Color(0xFF00E5C0)
+    Color(0xFFFF6B4A)
 }

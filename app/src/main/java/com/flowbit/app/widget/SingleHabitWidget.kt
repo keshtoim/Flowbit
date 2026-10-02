@@ -35,6 +35,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.flowbit.app.data.database.entity.HabitEntity
 import com.flowbit.app.presentation.MainActivity
+import com.flowbit.app.widget.ObsidianGlanceColors
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -91,8 +92,8 @@ class SingleHabitWidget : GlanceAppWidget() {
             val isDone = stats?.isDone ?: false
             val streak = stats?.streak ?: 0
 
-            GlanceTheme {
-                val bg = GlanceTheme.colors.widgetBackground
+            GlanceTheme(colors = ObsidianGlanceColors) {
+                val bg = GlanceTheme.colors.surface
                 val primary = GlanceTheme.colors.primary
                 val onSurface = GlanceTheme.colors.onSurface
                 val onSurfaceVariant = GlanceTheme.colors.onSurfaceVariant
