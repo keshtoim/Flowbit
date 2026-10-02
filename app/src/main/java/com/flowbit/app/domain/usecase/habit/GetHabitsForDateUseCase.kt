@@ -12,6 +12,7 @@ data class HabitForDate(
     val habit: Habit,
     val entry: HabitEntry?,
     val isScheduledForDate: Boolean,
+    val recentDays: List<Boolean> = emptyList(),
 )
 
 class GetHabitsForDateUseCase @Inject constructor(

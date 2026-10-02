@@ -77,22 +77,38 @@ class HabitListViewModel @Inject constructor(
             .flatMapLatest { date -> getHabitsForDate(date) }
             .onEach { habits ->
                 val date = selectedDate.value
+                val weekEntries = habitRepository.getEntriesForDateRange(date.minusDays(6), date)
+                val weekMap: Map<Long, Map<LocalDate, HabitEntry>> = weekEntries
+                    .groupBy { it.habitId }
+                    .mapValues { (_, entries) -> entries.associateBy { it.date } }
+
+                val enriched = habits.map { hfd ->
+                    val dayMap = weekMap[hfd.habit.id] ?: emptyMap()
+                    val recentDays = (6 downTo 0).map { daysBack ->
+                        val d = date.minusDays(daysBack.toLong())
+                        val e = dayMap[d]
+                        e != null && e.isSkipped != true && !e.isStreakSafeSkip &&
+                            e.completedCount >= hfd.habit.targetCount
+                    }
+                    hfd.copy(recentDays = recentDays)
+                }
+
                 val isToday = date == LocalDate.now()
-                val allDone = habits.isNotEmpty() && habits.all { hfd ->
+                val allDone = enriched.isNotEmpty() && enriched.all { hfd ->
                     hfd.entry?.isSkipped == true ||
                         (hfd.entry?.completedCount ?: 0) >= hfd.habit.targetCount
                 }
                 _uiState.update { state ->
                     val canTrigger = isToday && allDone && date !in state.confettiShownDates
                     state.copy(
-                        habits = habits,
+                        habits = enriched,
                         isLoading = false,
                         showConfetti = canTrigger,
                         confettiShownDates = if (canTrigger) state.confettiShownDates + date
                                              else state.confettiShownDates,
                     )
                 }
-                ShortcutHelper.updateShortcuts(context, habits.map { it.habit })
+                ShortcutHelper.updateShortcuts(context, enriched.map { it.habit })
             }
             .launchIn(viewModelScope)
 

@@ -15,6 +15,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,6 +60,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.flowbit.app.R
 import kotlinx.coroutines.launch
@@ -83,9 +85,14 @@ fun HabitCard(
     val isStreakSafeSkipped = habitForDate.entry?.isStreakSafeSkip ?: false
     val isSkipped = habitForDate.entry?.isSkipped ?: false
     val completedCount = if (isSkipped || isStreakSafeSkipped) 0 else (habitForDate.entry?.completedCount ?: 0)
-    // Для Табу: "выполнено" = не сорвался (нет записи или count == 0)
     val isRelapsed = habit.isBadHabit && completedCount > 0
-    val isCompleted = if (habit.isBadHabit) !isRelapsed else !isSkipped && !isStreakSafeSkipped && completedCount >= habit.targetCount
+    val isCompleted = if (habit.isBadHabit) !isRelapsed
+                      else !isSkipped && !isStreakSafeSkipped && completedCount >= habit.targetCount
+
+    val streak = habitForDate.entry?.let { _ ->
+        // streak shown if habit has a positive series — approximated from recentDays
+        habitForDate.recentDays.takeLastWhile { it }.size
+    } ?: 0
 
     val habitColor = remember(habit.effectiveColorHex) {
         try { Color(android.graphics.Color.parseColor(habit.effectiveColorHex)) }
@@ -102,8 +109,8 @@ fun HabitCard(
         prevCompleted.value = isCompleted
         if (isCompleted && !was) {
             launch {
-                cardScale.animateTo(0.96f, tween(70))
-                cardScale.animateTo(1.05f, spring(Spring.DampingRatioLowBouncy, Spring.StiffnessMediumLow))
+                cardScale.animateTo(0.97f, tween(70))
+                cardScale.animateTo(1.04f, spring(Spring.DampingRatioLowBouncy, Spring.StiffnessMediumLow))
                 cardScale.animateTo(1f, spring(Spring.DampingRatioMediumBouncy))
             }
             launch {
@@ -119,46 +126,45 @@ fun HabitCard(
     val cardColor by animateColorAsState(
         targetValue = when {
             isRelapsed -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.40f)
-            habit.isBadHabit -> tabooCleanColor.copy(alpha = 0.14f)  // зелёный тинт = чисто
+            habit.isBadHabit -> tabooCleanColor.copy(alpha = 0.14f)
             isStreakSafeSkipped -> streakSafeColor.copy(alpha = 0.35f)
             isSkipped -> skippedColor
-            isCompleted -> habitColor.copy(alpha = 0.22f)
+            isCompleted -> habitColor.copy(alpha = 0.18f)
             else -> surface
         },
         animationSpec = tween(380, easing = FastOutSlowInEasing),
         label = "cardColor",
     )
     val buttonColor by animateColorAsState(
-        targetValue = if (isCompleted) habitColor else habitColor.copy(alpha = 0.15f),
+        targetValue = if (isCompleted) habitColor else habitColor.copy(alpha = 0.12f),
         animationSpec = tween(300, easing = FastOutSlowInEasing),
         label = "buttonColor",
     )
     val buttonScale by animateFloatAsState(
         targetValue = if (isCompleted) 1f else 0.95f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
         label = "buttonScale",
     )
 
     Card(
-        modifier = modifier.fillMaxWidth().scale(cardScale.value)
+        modifier = modifier
+            .fillMaxWidth()
+            .scale(cardScale.value)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp),
     ) {
         Column {
-            // Фото-баннер — скрывается в компактном режиме
+            // Фото-баннер (скрывается в компактном режиме)
             if (!compact && habit.photoUri != null && !habit.isPhotoHidden) {
                 AsyncImage(
                     model = habit.photoUri,
-                    contentDescription = "Фото привычки",
+                    contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp)
-                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+                        .height(110.dp)
+                        .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)),
                     contentScale = ContentScale.Crop,
                 )
             }
@@ -167,43 +173,50 @@ fun HabitCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = if (compact) 8.dp else 14.dp,
-                        bottom = if (compact) 8.dp else if (!isCompleted && !isSkipped) 4.dp else 14.dp,
+                        start = 14.dp,
+                        end = 14.dp,
+                        top = if (compact) 8.dp else 11.dp,
+                        bottom = if (compact) 8.dp else 10.dp,
                     ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Emoji-кружок (меньше в компактном режиме)
+                // ── Emoji-квадрат ──
                 Box(
                     modifier = Modifier
-                        .size(if (compact) 38.dp else 50.dp)
-                        .clip(CircleShape)
-                        .background(habitColor.copy(alpha = 0.18f)),
+                        .size(if (compact) 36.dp else 42.dp)
+                        .clip(RoundedCornerShape(if (compact) 10.dp else 12.dp))
+                        .background(habitColor.copy(alpha = if (isCompleted) 0.28f else 0.14f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = habit.emoji, style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        text = habit.emoji,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = if (compact) 17.sp else 20.sp,
+                    )
                 }
 
-                Spacer(Modifier.width(14.dp))
+                Spacer(Modifier.width(12.dp))
 
+                // ── Название + метаинфо ──
                 Column(modifier = Modifier.weight(1f)) {
-                    // Бейдж «Табу» рядом с названием
-                    if (habit.isBadHabit) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Название + streak
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        if (habit.isBadHabit) {
                             Text(
                                 text = habit.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f, fill = false),
                             )
-                            Spacer(Modifier.width(6.dp))
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.55f))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                    .padding(horizontal = 5.dp, vertical = 1.dp),
                             ) {
                                 Text(
                                     text = "🚫 Табу",
@@ -211,121 +224,125 @@ fun HabitCard(
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
                             }
+                        } else {
+                            Text(
+                                text = habit.name,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isCompleted || isSkipped)
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                                else
+                                    MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            // Streak badge рядом с названием
+                            if (streak > 0 && !isSkipped && !isStreakSafeSkipped) {
+                                Text(
+                                    text = "🔥$streak",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFFFF6B2B),
+                                )
+                            }
                         }
-                    } else {
-                        Text(
-                            text = habit.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
                     }
 
-                    if (habit.isBadHabit) {
-                        Spacer(Modifier.height(2.dp))
-                        Text(
+                    // Подстрока: статус / прогресс
+                    Spacer(Modifier.height(2.dp))
+                    when {
+                        habit.isBadHabit -> Text(
                             text = if (isRelapsed) "Сорвался 😞" else "Чисто сегодня ✓",
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isRelapsed) MaterialTheme.colorScheme.error
                                     else MaterialTheme.colorScheme.tertiary,
                             fontWeight = FontWeight.Medium,
                         )
-                    } else if (isStreakSafeSkipped) {
-                        Spacer(Modifier.height(2.dp))
-                        Text(
+                        isStreakSafeSkipped -> Text(
                             text = "🛡 Пропущено (серия сохранена)",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.tertiary,
                             fontWeight = FontWeight.Medium,
                         )
-                    } else if (isSkipped) {
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.skipped_label),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        )
-                        TextButton(
-                            onClick = onUnSkipRequest,
-                            modifier = Modifier.height(32.dp),
-                            contentPadding = PaddingValues(horizontal = 2.dp),
-                        ) {
+                        isSkipped -> {
                             Text(
-                                text = stringResource(R.string.cancel_skip),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                                text = stringResource(R.string.skipped_label),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                             )
-                        }
-                    } else {
-                        if (habit.targetCount > 1) {
-                            if (!compact) {
-                                Spacer(Modifier.height(6.dp))
+                            TextButton(
+                                onClick = onUnSkipRequest,
+                                modifier = Modifier.height(26.dp),
+                                contentPadding = PaddingValues(horizontal = 0.dp),
+                            ) {
                                 Text(
-                                    text = buildString {
-                                        append("$completedCount / ${habit.targetCount}")
-                                        if (!habit.unit.isNullOrEmpty()) append(" ${habit.unit}")
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (isCompleted) habitColor
-                                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal,
+                                    text = stringResource(R.string.cancel_skip),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                                 )
-                                Spacer(Modifier.height(6.dp))
+                            }
+                        }
+                        habit.targetCount > 1 -> {
+                            Text(
+                                text = buildString {
+                                    append("$completedCount / ${habit.targetCount}")
+                                    if (!habit.unit.isNullOrEmpty()) append(" ${habit.unit}")
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isCompleted) habitColor
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (isCompleted) FontWeight.SemiBold else FontWeight.Normal,
+                            )
+                            if (!compact) {
+                                Spacer(Modifier.height(4.dp))
                                 LinearProgressIndicator(
                                     progress = { completedCount.toFloat() / habit.targetCount },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp)),
+                                        .height(4.dp)
+                                        .clip(RoundedCornerShape(2.dp)),
                                     color = habitColor,
-                                    trackColor = habitColor.copy(alpha = 0.2f),
+                                    trackColor = habitColor.copy(alpha = 0.15f),
                                 )
                             }
-                        } else if (isCompleted) {
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                text = stringResource(R.string.done_check),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = habitColor,
-                                fontWeight = FontWeight.Medium,
-                            )
                         }
+                        isCompleted -> Text(
+                            text = stringResource(R.string.done_check),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = habitColor,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        else -> Text(
+                            text = "Не выполнено",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
                     }
                 }
 
                 Spacer(Modifier.width(8.dp))
 
-                // Прогресс дуги вычисляется всегда, чтобы не нарушать порядок composable-вызовов
+                // Прогресс дуги для multi-count
                 val arcProgress by animateFloatAsState(
                     targetValue = if (habit.targetCount > 1) completedCount.toFloat() / habit.targetCount else 0f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMediumLow,
-                    ),
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow),
                     label = "arcProgress",
                 )
 
+                // ── Кнопки справа ──
                 if (habit.isBadHabit) {
                     if (isRelapsed) {
-                        // Сорвался → большая красная кнопка «отменить»
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(40.dp)
                                 .scale(buttonScale)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.error)
                                 .clickable(onClick = onToggle),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Отменить срыв",
-                                tint = Color.White,
-                                modifier = Modifier.size(22.dp),
-                            )
+                            Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(20.dp))
                         }
                     } else {
-                        // Чисто → тихая кнопка «Сорвался» текстом
                         TextButton(
                             onClick = onToggle,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
@@ -338,60 +355,40 @@ fun HabitCard(
                         }
                     }
                 } else {
-                    // Кнопка "−" — появляется при completedCount > 0 и не пропущено
+                    // Кнопка "−"
                     AnimatedVisibility(
                         visible = completedCount > 0 && !isSkipped,
-                        enter = scaleIn(
-                            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
-                        ) + fadeIn(tween(150)),
+                        enter = scaleIn(spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium)) + fadeIn(tween(150)),
                         exit = scaleOut(tween(150)) + fadeOut(tween(150)),
                     ) {
-                        IconButton(
-                            onClick = onDecrease,
-                            modifier = Modifier.size(36.dp),
-                        ) {
-                            Icon(
-                                Icons.Default.Remove,
-                                contentDescription = "Уменьшить",
-                                tint = habitColor,
-                                modifier = Modifier.size(18.dp),
-                            )
+                        IconButton(onClick = onDecrease, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Remove, null, tint = habitColor, modifier = Modifier.size(16.dp))
                         }
                     }
 
-                    // Кнопка таймера — показывается если таймер задан и не выполнено
+                    // Кнопка таймера
                     if (habit.timerSeconds > 0 && !isCompleted && !isSkipped) {
-                        IconButton(
-                            onClick = onTimer,
-                            modifier = Modifier.size(36.dp),
-                        ) {
-                            Icon(
-                                Icons.Default.Timer,
-                                contentDescription = "Запустить таймер",
-                                tint = habitColor,
-                                modifier = Modifier.size(20.dp),
-                            )
+                        IconButton(onClick = onTimer, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Timer, null, tint = habitColor, modifier = Modifier.size(18.dp))
                         }
                     }
 
                     Spacer(Modifier.width(4.dp))
 
-                    // Главная кнопка-галочка (скрыта когда пропущено или защищённый пропуск)
+                    // Главная кнопка-галочка
                     if (!isSkipped && !isStreakSafeSkipped) {
                         Box(contentAlignment = Alignment.Center) {
                             if (habit.targetCount > 1 && !isCompleted) {
-                                // Секторное заполнение: кружок «наполняется» по мере нажатий
+                                // Кружок с дугой прогресса
                                 Box(
                                     modifier = Modifier
-                                        .size(44.dp)
+                                        .size(40.dp)
                                         .scale(buttonScale)
                                         .clickable(onClick = onToggle),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    Canvas(modifier = Modifier.size(44.dp)) {
-                                        // Фоновый круг
-                                        drawCircle(color = habitColor.copy(alpha = 0.15f))
-                                        // Закрашенный сектор прогресса (от 12 часов по часовой)
+                                    Canvas(modifier = Modifier.size(40.dp)) {
+                                        drawCircle(color = habitColor.copy(alpha = 0.14f))
                                         if (arcProgress > 0f) {
                                             drawArc(
                                                 color = habitColor,
@@ -400,56 +397,54 @@ fun HabitCard(
                                                 useCenter = true,
                                             )
                                         }
-                                        // Обводка для чёткой границы кнопки
                                         drawCircle(
-                                            color = habitColor.copy(alpha = 0.45f),
-                                            style = Stroke(width = 2.dp.toPx()),
+                                            color = habitColor.copy(alpha = 0.4f),
+                                            style = Stroke(width = 1.5.dp.toPx()),
                                         )
                                     }
-                                    // Счётчик внутри — показываем только при частичном прогрессе
                                     if (completedCount > 0) {
                                         Text(
                                             text = "$completedCount",
-                                            style = MaterialTheme.typography.labelMedium,
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
-                                            // Белый текст когда сектор занимает > 50% (иначе плохо читается)
                                             color = if (arcProgress >= 0.5f) Color.White else habitColor,
                                         )
                                     }
                                 }
                             } else {
-                                // Стандартный кружок: пустой → полный с галочкой
+                                // Круглая кнопка с бордером / заливкой
                                 Box(
                                     modifier = Modifier
-                                        .size(44.dp)
+                                        .size(40.dp)
                                         .scale(buttonScale)
                                         .clip(CircleShape)
                                         .background(buttonColor)
+                                        .then(
+                                            if (!isCompleted) Modifier.border(
+                                                1.5.dp, habitColor.copy(alpha = 0.5f), CircleShape
+                                            ) else Modifier
+                                        )
                                         .clickable(onClick = onToggle),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     if (isCompleted) {
-                                        Icon(
-                                            Icons.Default.Check,
-                                            contentDescription = "Выполнено",
-                                            tint = Color.White,
-                                            modifier = Modifier.size(24.dp),
-                                        )
+                                        Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(20.dp))
                                     }
                                 }
                             }
-                            // Частицы при выполнении (поверх любого варианта кнопки)
+
+                            // Частицы при выполнении
                             val prog = particleProgress.value
                             if (prog > 0f && prog < 1f) {
-                                Canvas(modifier = Modifier.size(110.dp)) {
+                                Canvas(modifier = Modifier.size(100.dp)) {
                                     val cx = size.width / 2f
                                     val cy = size.height / 2f
-                                    val maxDist = 48.dp.toPx()
+                                    val maxDist = 44.dp.toPx()
                                     repeat(8) { i ->
                                         val angle = i * 2.0 * Math.PI / 8.0
                                         val dist = maxDist * prog
                                         val alpha = (1f - prog * 1.3f).coerceIn(0f, 1f)
-                                        val r = (3.5f + i % 3).dp.toPx()
+                                        val r = (3f + i % 3).dp.toPx()
                                         drawCircle(
                                             color = habitColor.copy(alpha = alpha),
                                             radius = r,
@@ -465,11 +460,65 @@ fun HabitCard(
                     }
                 }
             }
+
+            // ── История 7 дней ──
+            if (!compact && habitForDate.recentDays.size == 7) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 14.dp, end = 14.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val dayLabels = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+                    // index 0 = 6 дней назад, index 6 = сегодня
+                    // Вычислим смещение начала: 6 дней назад
+                    val today = java.time.LocalDate.now()
+                    val startDay = today.minusDays(6)
+                    val startDow = startDay.dayOfWeek.value - 1 // 0=Пн
+
+                    habitForDate.recentDays.forEachIndexed { i, done ->
+                        val isToday = i == 6
+                        val dotColor = if (done) habitColor
+                                       else if (isToday) habitColor.copy(alpha = 0.2f)
+                                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                        val label = dayLabels[(startDow + i) % 7]
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 9.sp,
+                                color = if (isToday) habitColor
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                            )
+                            Spacer(Modifier.height(3.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(dotColor)
+                                    .then(
+                                        if (isToday && !done) Modifier.border(
+                                            1.5.dp, habitColor.copy(alpha = 0.5f), RoundedCornerShape(5.dp)
+                                        ) else Modifier
+                                    ),
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── Нижняя строка действий (только для невыполненных / нескипнутых) ──
             if (!habit.isBadHabit && !isCompleted && !isSkipped && !isStreakSafeSkipped) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 8.dp, end = 16.dp, bottom = 8.dp),
+                        .padding(start = 8.dp, end = 14.dp, bottom = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(
@@ -479,13 +528,13 @@ fun HabitCard(
                         Text(
                             text = stringResource(R.string.cant_today),
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
                         )
                     }
                     Text(
                         text = "·",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                     )
                     TextButton(
                         onClick = onSkip,
@@ -494,7 +543,7 @@ fun HabitCard(
                         Text(
                             text = stringResource(R.string.skip),
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
                         )
                     }
                 }
