@@ -224,7 +224,10 @@ private fun WidgetContent(
                     val habitColor = parseHabitColor(habit.effectiveColorHex)
 
                     Row(
-                        modifier = GlanceModifier.fillMaxWidth().height(rowH),
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                            .height(rowH)
+                            .clickable(actionStartActivity(openIntent)),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         // Emoji-кружок

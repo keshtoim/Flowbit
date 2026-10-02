@@ -153,7 +153,8 @@ private fun ScrollWidgetContent(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                             .height(38.dp)
-                            .padding(horizontal = 12.dp),
+                            .padding(horizontal = 12.dp)
+                            .clickable(actionStartActivity(openIntent)),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
