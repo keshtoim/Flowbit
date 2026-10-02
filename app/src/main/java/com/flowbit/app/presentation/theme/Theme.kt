@@ -1,41 +1,71 @@
 package com.flowbit.app.presentation.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-internal val LightColorScheme = lightColorScheme(
-    primary = md_theme_light_primary,
-    onPrimary = md_theme_light_onPrimary,
-    primaryContainer = md_theme_light_primaryContainer,
-    onPrimaryContainer = md_theme_light_onPrimaryContainer,
-    background = md_theme_light_background,
-    onBackground = md_theme_light_onBackground,
-    surface = md_theme_light_surface,
-    onSurface = md_theme_light_onSurface,
-    surfaceVariant = md_theme_light_surfaceVariant,
-    onSurfaceVariant = md_theme_light_onSurfaceVariant,
-    outline = md_theme_light_outline,
+internal val ObsidianDarkColorScheme = darkColorScheme(
+    primary                = ObsidianCoral,
+    onPrimary              = ObsidianOnError,           // white text on coral
+    primaryContainer       = Color(0xFF5E1A0D),
+    onPrimaryContainer     = Color(0xFFFFD0C5),
+
+    secondary              = Color(0xFF9B7FF5),         // фиолетовый — для мульти-счётчика
+    onSecondary            = Color(0xFFFFFFFF),
+    secondaryContainer     = Color(0xFF2E1A6E),
+    onSecondaryContainer   = Color(0xFFE5DAFF),
+
+    tertiary               = ObsidianTertiary,          // зелёный — "чисто" / streak-safe
+    onTertiary             = Color(0xFFFFFFFF),
+    tertiaryContainer      = ObsidianTertiaryContainer,
+    onTertiaryContainer    = Color(0xFFB7F5DA),
+
+    error                  = ObsidianError,
+    onError                = ObsidianOnError,
+    errorContainer         = ObsidianErrorContainer,
+    onErrorContainer       = ObsidianOnErrorContainer,
+
+    background             = ObsidianBg,
+    onBackground           = ObsidianOnBg,
+
+    surface                = ObsidianSurface,
+    onSurface              = ObsidianOnBg,
+    surfaceVariant         = ObsidianSurface2,
+    onSurfaceVariant       = ObsidianMuted,
+    outline                = ObsidianDivider,
 )
 
-internal val DarkColorScheme = darkColorScheme(
-    primary = md_theme_dark_primary,
-    onPrimary = md_theme_dark_onPrimary,
-    primaryContainer = md_theme_dark_primaryContainer,
-    onPrimaryContainer = md_theme_dark_onPrimaryContainer,
-    background = md_theme_dark_background,
-    onBackground = md_theme_dark_onBackground,
-    surface = md_theme_dark_surface,
-    onSurface = md_theme_dark_onSurface,
-    surfaceVariant = md_theme_dark_surfaceVariant,
-    onSurfaceVariant = md_theme_dark_onSurfaceVariant,
-    outline = md_theme_dark_outline,
+internal val ObsidianLightColorScheme = lightColorScheme(
+    primary                = LightPrimary,
+    onPrimary              = LightOnPrimary,
+    primaryContainer       = LightPrimaryContainer,
+    onPrimaryContainer     = LightOnPrimaryContainer,
+
+    secondary              = Color(0xFF7850FF),
+    onSecondary            = Color(0xFFFFFFFF),
+    secondaryContainer     = Color(0xFFEAE0FF),
+    onSecondaryContainer   = Color(0xFF22005D),
+
+    tertiary               = Color(0xFF4CAF8A),
+    onTertiary             = Color(0xFFFFFFFF),
+    tertiaryContainer      = Color(0xFFCCF5E5),
+    onTertiaryContainer    = Color(0xFF003825),
+
+    error                  = Color(0xFFBA1A1A),
+    onError                = Color(0xFFFFFFFF),
+    errorContainer         = Color(0xFFFFDAD6),
+    onErrorContainer       = Color(0xFF410002),
+
+    background             = LightBg,
+    onBackground           = LightOnBg,
+    surface                = LightSurface,
+    onSurface              = LightOnSurface,
+    surfaceVariant         = LightSurfaceVariant,
+    onSurfaceVariant       = LightOnSurfaceVariant,
+    outline                = LightOutline,
 )
 
 @Composable
@@ -43,14 +73,8 @@ fun FlowbitTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    // Dynamic Color (Material You) намеренно отключён — используем фиксированную Obsidian-палитру
+    val colorScheme = if (darkTheme) ObsidianDarkColorScheme else ObsidianLightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
