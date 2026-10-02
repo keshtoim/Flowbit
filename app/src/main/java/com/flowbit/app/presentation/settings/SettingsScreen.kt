@@ -268,6 +268,35 @@ fun SettingsScreen(
                                     onCheckedChange = viewModel::setCompactMode,
                                 )
                             }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            androidx.compose.foundation.layout.Column(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            ) {
+                                Text("Стиль формы привычки", style = MaterialTheme.typography.bodyLarge)
+                                Text(
+                                    text = "Как выглядит экран создания/редактирования",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    FilterChip(
+                                        selected = uiState.formStyle == "A",
+                                        onClick = { viewModel.setFormStyle("A") },
+                                        label = { Text("A · Preview") },
+                                    )
+                                    FilterChip(
+                                        selected = uiState.formStyle == "B",
+                                        onClick = { viewModel.setFormStyle("B") },
+                                        label = { Text("B · Секции") },
+                                    )
+                                    FilterChip(
+                                        selected = uiState.formStyle == "C",
+                                        onClick = { viewModel.setFormStyle("C") },
+                                        label = { Text("C · Мастер") },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
