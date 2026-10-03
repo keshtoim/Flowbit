@@ -452,13 +452,12 @@ fun TargetCountSection(
             IconButton(onClick = { onTargetCountChange(targetCount + 1) }) {
                 Icon(Icons.Default.Add, "Увеличить")
             }
-            Spacer(Modifier.width(8.dp))
             OutlinedTextField(
                 value = unit,
                 onValueChange = onUnitChange,
                 placeholder = { Text("км, мл…") },
-                label = { Text("Ед. измерения") },
-                modifier = Modifier.width(120.dp),
+                label = { Text("Единица") },
+                modifier = Modifier.weight(1f),
                 singleLine = true,
                 supportingText = { Text("необяз.") },
             )
@@ -899,13 +898,13 @@ fun PeriodGoalSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Цель на период", style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PeriodGoalType.entries.forEach { type ->
-                FilterChip(
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            PeriodGoalType.entries.forEachIndexed { idx, type ->
+                SegmentedButton(
                     selected = periodGoalType == type,
                     onClick = { onTypeChange(type) },
-                    label = { Text(type.label) },
-                )
+                    shape = SegmentedButtonDefaults.itemShape(idx, PeriodGoalType.entries.size),
+                ) { Text(type.label) }
             }
         }
         if (periodGoalType != PeriodGoalType.NONE) {
