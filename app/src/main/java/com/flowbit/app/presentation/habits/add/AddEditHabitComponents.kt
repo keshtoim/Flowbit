@@ -189,7 +189,10 @@ fun EmojiAndNameSection(
 ) {
     var showEmojiPicker by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         Text("Название и иконка", style = MaterialTheme.typography.titleMedium)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -291,7 +294,10 @@ fun ColorPickerSection(
 
     val presetColors = HabitColor.entries.filterNot { it == HabitColor.CUSTOM }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text("Цвет", style = MaterialTheme.typography.titleMedium)
         // Скроллируемый ряд цветов + кнопка «своё»
         Row(
@@ -435,7 +441,10 @@ fun TargetCountSection(
     unit: String = "",
     onUnitChange: (String) -> Unit = {},
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text("Количество в день", style = MaterialTheme.typography.titleMedium)
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -478,29 +487,33 @@ fun FrequencySection(
     onFrequencyChange: (HabitFrequency) -> Unit,
     onDayToggle: (DayOfWeek) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text("Частота", style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            SegmentedButton(
                 selected = frequency == HabitFrequency.DAILY,
                 onClick = { onFrequencyChange(HabitFrequency.DAILY) },
-                label = { Text("Каждый день") },
-            )
-            FilterChip(
+                shape = SegmentedButtonDefaults.itemShape(0, 2),
+            ) { Text("Каждый день") }
+            SegmentedButton(
                 selected = frequency == HabitFrequency.CUSTOM,
                 onClick = { onFrequencyChange(HabitFrequency.CUSTOM) },
-                label = { Text("По дням") },
-            )
+                shape = SegmentedButtonDefaults.itemShape(1, 2),
+            ) { Text("По дням") }
         }
         if (frequency == HabitFrequency.CUSTOM) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 DayOfWeek.entries.forEach { day ->
                     FilterChip(
                         selected = day in scheduledDays,
                         onClick = { onDayToggle(day) },
-                        label = {
-                            Text(day.getDisplayName(TextStyle.NARROW, Locale("ru")))
-                        },
+                        label = { Text(day.getDisplayName(TextStyle.NARROW, Locale("ru"))) },
                     )
                 }
             }
@@ -516,7 +529,10 @@ fun StartDateSection(
 ) {
     var showPicker by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text("Дата начала", style = MaterialTheme.typography.titleMedium)
         OutlinedButton(onClick = { showPicker = true }) {
             Text(startDate.toString())
@@ -548,7 +564,7 @@ fun WidgetSection(
     onShowInWidgetChange: (Boolean) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -573,7 +589,10 @@ fun RemindersSection(
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -685,7 +704,10 @@ fun PhotoSection(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text("Фото привычки", style = MaterialTheme.typography.titleMedium)
 
         if (photoUri != null) {
@@ -822,7 +844,10 @@ fun AudioSection(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text("Аудио к привычке", style = MaterialTheme.typography.titleMedium)
 
         if (audioUri != null) {
@@ -896,7 +921,10 @@ fun PeriodGoalSection(
     onTypeChange: (PeriodGoalType) -> Unit,
     onCountChange: (Int) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         Text("Цель на период", style = MaterialTheme.typography.titleMedium)
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             PeriodGoalType.entries.forEachIndexed { idx, type ->
@@ -1018,7 +1046,10 @@ fun TagSection(
         )
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text("Тег", style = MaterialTheme.typography.titleMedium)
         FilterChip(
             selected = selectedTagId == null,
@@ -1084,7 +1115,10 @@ fun TimerSection(
         mutableStateOf(if (isCustom) (timerSeconds / 60).toString() else "")
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         Text("Таймер привычки", style = MaterialTheme.typography.titleMedium)
         Text(
             text = "При запуске таймер отсчитает время и автоматически отметит привычку выполненной",
@@ -1167,7 +1201,10 @@ fun RecurringReminderSection(
 ) {
     val intervals = listOf(1, 2, 3, 4, 6)
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
