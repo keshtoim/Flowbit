@@ -35,10 +35,11 @@ class EveningCheckReceiver : BroadcastReceiver() {
                 if (habits.isEmpty()) return@launch
                 val entries = db.habitDao().getEntriesForDate(today).first()
                     .associateBy { it.habitId }
-                val remaining = habits.count { habit ->
+                val remainingHabits = habits.filter { habit ->
                     val entry = entries[habit.id]
                     entry?.isSkipped != true && (entry?.completedCount ?: 0) < habit.targetCount
                 }
+                val remaining = remainingHabits.size
                 if (remaining > 0) {
                     val openIntent = PendingIntent.getActivity(
                         context, 0,
@@ -47,13 +48,29 @@ class EveningCheckReceiver : BroadcastReceiver() {
                         },
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                     )
+
+                    // До 3 названий + "и ещё N"
+                    val shown = remainingHabits.take(3)
+                    val habitLines = shown.joinToString("\n") { "• ${it.emoji} ${it.name}" }
+                    val extraCount = remaining - shown.size
+                    val bigText = buildString {
+                        append(habitLines)
+                        if (extraCount > 0) append("\n…и ещё $extraCount")
+                    }
+
                     val notification = NotificationCompat.Builder(context, FlowbitApp.REMINDER_CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_notification)
                         .setContentTitle("Не забудь о привычках!")
                         .setContentText("Осталось $remaining ${plural(remaining)} на сегодня")
+                        .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true)
                         .setContentIntent(openIntent)
+                        .addAction(
+                            R.drawable.ic_notification,
+                            "Открыть список",
+                            openIntent,
+                        )
                         .build()
                     context.getSystemService(NotificationManager::class.java)
                         .notify(NOTIF_ID, notification)
