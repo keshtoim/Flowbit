@@ -1,9 +1,13 @@
 package com.flowbit.app.di
 
+import com.flowbit.app.data.repository.BackupRepositoryImpl
 import com.flowbit.app.data.repository.HabitRepositoryImpl
+import com.flowbit.app.data.repository.PreferencesRepositoryImpl
 import com.flowbit.app.data.repository.ReminderRepositoryImpl
 import com.flowbit.app.data.repository.TagRepositoryImpl
+import com.flowbit.app.domain.repository.BackupRepository
 import com.flowbit.app.domain.repository.HabitRepository
+import com.flowbit.app.domain.repository.PreferencesRepository
 import com.flowbit.app.domain.repository.ReminderRepository
 import com.flowbit.app.domain.repository.TagRepository
 import dagger.Binds
@@ -16,15 +20,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    @Binds
-    @Singleton
+    @Binds @Singleton
     abstract fun bindHabitRepository(impl: HabitRepositoryImpl): HabitRepository
 
-    @Binds
-    @Singleton
+    @Binds @Singleton
     abstract fun bindReminderRepository(impl: ReminderRepositoryImpl): ReminderRepository
 
-    @Binds
-    @Singleton
+    @Binds @Singleton
     abstract fun bindTagRepository(impl: TagRepositoryImpl): TagRepository
+
+    @Binds @Singleton
+    abstract fun bindPreferencesRepository(impl: PreferencesRepositoryImpl): PreferencesRepository
+
+    @Binds @Singleton
+    abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
 }

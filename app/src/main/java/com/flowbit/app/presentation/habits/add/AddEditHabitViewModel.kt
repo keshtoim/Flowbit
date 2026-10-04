@@ -1,7 +1,5 @@
 package com.flowbit.app.presentation.habits.add
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.Habit
@@ -11,6 +9,7 @@ import com.flowbit.app.domain.model.HabitReminder
 import com.flowbit.app.domain.model.HabitTag
 import com.flowbit.app.domain.model.PeriodGoalType
 import com.flowbit.app.domain.repository.HabitRepository
+import com.flowbit.app.domain.repository.PreferencesRepository
 import com.flowbit.app.domain.repository.ReminderRepository
 import com.flowbit.app.domain.repository.TagRepository
 import com.flowbit.app.domain.usecase.reminder.ScheduleReminderUseCase
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -66,14 +64,13 @@ class AddEditHabitViewModel @Inject constructor(
     private val reminderRepository: ReminderRepository,
     private val scheduleReminder: ScheduleReminderUseCase,
     private val tagRepository: TagRepository,
-    private val dataStore: DataStore<Preferences>,
+    prefs: PreferencesRepository,
 ) : ViewModel() {
 
     val allTags: StateFlow<List<HabitTag>> = tagRepository.getAllTags()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val formStyle: StateFlow<String> = dataStore.data
-        .map { prefs -> prefs[com.flowbit.app.presentation.settings.SettingsViewModel.FORM_STYLE_KEY] ?: "A" }
+    val formStyle: StateFlow<String> = prefs.formStyle
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "A")
 
     private val _uiState = MutableStateFlow(AddEditHabitUiState())

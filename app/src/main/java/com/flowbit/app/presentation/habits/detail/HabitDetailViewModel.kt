@@ -1,19 +1,18 @@
 package com.flowbit.app.presentation.habits.detail
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.HabitStats
 import com.flowbit.app.domain.repository.HabitRepository
+import com.flowbit.app.domain.repository.PreferencesRepository
+import com.flowbit.app.domain.usecase.habit.SkipHabitUseCase
+import com.flowbit.app.domain.usecase.habit.UnskipHabitUseCase
 import com.flowbit.app.domain.usecase.stats.GetHabitStatsUseCase
-import com.flowbit.app.presentation.settings.SettingsViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,11 +38,12 @@ data class HabitDetailUiState(
 class HabitDetailViewModel @Inject constructor(
     private val getHabitStats: GetHabitStatsUseCase,
     private val repository: HabitRepository,
-    private val dataStore: DataStore<Preferences>,
+    private val skipHabit: SkipHabitUseCase,
+    private val unskipHabit: UnskipHabitUseCase,
+    prefs: PreferencesRepository,
 ) : ViewModel() {
 
-    val analyticsStyle: StateFlow<String> = dataStore.data
-        .map { prefs -> prefs[SettingsViewModel.ANALYTICS_STYLE_KEY] ?: "A" }
+    val analyticsStyle: StateFlow<String> = prefs.analyticsStyle
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "A")
 
     private val _uiState = MutableStateFlow(HabitDetailUiState())
@@ -58,6 +58,7 @@ class HabitDetailViewModel @Inject constructor(
             val today = LocalDate.now()
             val entry = repository.getEntryForDate(habitId, today)
             val allEntries = repository.getAllEntriesForHabit(habitId)
+
             val history = allEntries
                 .filter { !it.note.isNullOrBlank() }
                 .sortedByDescending { it.date }
@@ -70,7 +71,6 @@ class HabitDetailViewModel @Inject constructor(
                 }
             }
 
-            // Считаем заморозки за текущую неделю (Пн–Вс)
             val dow = today.dayOfWeek.value
             val weekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
             val freezeCountThisWeek = allEntries.count {
@@ -95,22 +95,15 @@ class HabitDetailViewModel @Inject constructor(
         _uiState.update { it.copy(noteDialogOpen = true, noteInput = it.todayNote ?: "") }
     }
 
-    fun dismissNoteDialog() {
-        _uiState.update { it.copy(noteDialogOpen = false) }
-    }
-
-    fun onNoteInputChange(text: String) {
-        _uiState.update { it.copy(noteInput = text) }
-    }
+    fun dismissNoteDialog() { _uiState.update { it.copy(noteDialogOpen = false) } }
+    fun onNoteInputChange(text: String) { _uiState.update { it.copy(noteInput = text) } }
 
     fun saveNote() {
         viewModelScope.launch {
             val today = LocalDate.now()
             val note = _uiState.value.noteInput.trim().takeIf { it.isNotEmpty() }
             val existing = repository.getEntryForDate(currentHabitId, today)
-            if (existing != null) {
-                repository.upsertEntry(existing.copy(note = note))
-            }
+            if (existing != null) repository.upsertEntry(existing.copy(note = note))
             val history = repository.getAllEntriesForHabit(currentHabitId)
                 .filter { !it.note.isNullOrBlank() }
                 .sortedByDescending { it.date }
@@ -121,35 +114,21 @@ class HabitDetailViewModel @Inject constructor(
 
     fun skipToday() {
         viewModelScope.launch {
-            val today = LocalDate.now()
-            val existing = repository.getEntryForDate(currentHabitId, today)
-            val entry = existing?.copy(completedCount = 0, isSkipped = true)
-                ?: com.flowbit.app.domain.model.HabitEntry(
-                    habitId = currentHabitId, date = today, completedCount = 0, isSkipped = true,
-                )
-            repository.upsertEntry(entry)
+            skipHabit(currentHabitId, LocalDate.now())
             _uiState.update { it.copy(isTodaySkipped = true) }
         }
     }
 
-    fun requestUnSkip() {
-        _uiState.update { it.copy(unSkipConfirmOpen = true) }
-    }
+    fun requestUnSkip() { _uiState.update { it.copy(unSkipConfirmOpen = true) } }
 
     fun confirmUnSkip() {
         viewModelScope.launch {
-            val today = LocalDate.now()
-            val existing = repository.getEntryForDate(currentHabitId, today)
-            if (existing != null) {
-                repository.upsertEntry(existing.copy(isSkipped = false))
-            }
+            unskipHabit(currentHabitId, LocalDate.now())
             _uiState.update { it.copy(isTodaySkipped = false, unSkipConfirmOpen = false) }
         }
     }
 
-    fun dismissUnSkip() {
-        _uiState.update { it.copy(unSkipConfirmOpen = false) }
-    }
+    fun dismissUnSkip() { _uiState.update { it.copy(unSkipConfirmOpen = false) } }
 
     fun freezeStreak() {
         viewModelScope.launch {
@@ -158,13 +137,8 @@ class HabitDetailViewModel @Inject constructor(
         }
     }
 
-    fun openDeleteConfirm() {
-        _uiState.update { it.copy(deleteConfirmOpen = true) }
-    }
-
-    fun dismissDeleteConfirm() {
-        _uiState.update { it.copy(deleteConfirmOpen = false) }
-    }
+    fun openDeleteConfirm() { _uiState.update { it.copy(deleteConfirmOpen = true) } }
+    fun dismissDeleteConfirm() { _uiState.update { it.copy(deleteConfirmOpen = false) } }
 
     fun confirmDelete(onDeleted: () -> Unit) {
         viewModelScope.launch {

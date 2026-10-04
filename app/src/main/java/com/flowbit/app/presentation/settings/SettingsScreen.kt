@@ -2,6 +2,7 @@ package com.flowbit.app.presentation.settings
 
 import android.Manifest
 import android.app.AlarmManager
+import com.flowbit.app.domain.model.ThemeMode
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri

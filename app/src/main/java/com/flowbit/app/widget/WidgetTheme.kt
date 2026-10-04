@@ -7,7 +7,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.glance.color.ColorProviders
 import androidx.glance.material3.ColorProviders as GlanceColorProviders
-import com.flowbit.app.presentation.settings.SettingsViewModel
+import com.flowbit.app.domain.repository.PreferencesRepository
 import com.flowbit.app.presentation.theme.ObsidianDarkColorScheme
 import com.flowbit.app.presentation.theme.ObsidianLightColorScheme
 import dagger.hilt.android.EntryPointAccessors
@@ -22,7 +22,7 @@ val ObsidianGlanceColors: ColorProviders = GlanceColorProviders(
 suspend fun buildGlanceColors(context: Context): ColorProviders {
     val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
     val accentHex = ep.dataStore().data
-        .map { it[SettingsViewModel.ACCENT_COLOR_KEY] }
+        .map { it[PreferencesRepository.ACCENT_COLOR_KEY] }
         .first()
 
     val lightBase = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)

@@ -18,8 +18,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.navigation.compose.rememberNavController
 import com.flowbit.app.data.worker.InactivityCheckWorker
 import com.flowbit.app.presentation.navigation.FlowbitNavGraph
-import com.flowbit.app.presentation.settings.SettingsViewModel.Companion.ACCENT_COLOR_KEY
-import com.flowbit.app.presentation.settings.SettingsViewModel.Companion.THEME_MODE_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ACCENT_COLOR_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.THEME_MODE_KEY
 import com.flowbit.app.presentation.theme.FlowbitTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map

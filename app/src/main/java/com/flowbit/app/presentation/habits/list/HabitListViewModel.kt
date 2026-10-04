@@ -1,22 +1,22 @@
 package com.flowbit.app.presentation.habits.list
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.GroupingMode
 import com.flowbit.app.domain.model.HabitEntry
 import com.flowbit.app.domain.model.HabitTag
 import com.flowbit.app.domain.repository.HabitRepository
+import com.flowbit.app.domain.repository.PreferencesRepository
 import com.flowbit.app.domain.repository.TagRepository
 import com.flowbit.app.domain.usecase.habit.DecreaseHabitEntryUseCase
-import com.flowbit.app.presentation.habits.list.randomQuote
 import com.flowbit.app.domain.usecase.habit.GetHabitsForDateUseCase
 import com.flowbit.app.domain.usecase.habit.HabitForDate
+import com.flowbit.app.domain.usecase.habit.SetHabitCountUseCase
+import com.flowbit.app.domain.usecase.habit.SkipHabitUseCase
 import com.flowbit.app.domain.usecase.habit.ToggleHabitEntryUseCase
+import com.flowbit.app.domain.usecase.habit.UnskipHabitUseCase
 import com.flowbit.app.presentation.ShortcutHelper
-import com.flowbit.app.presentation.settings.SettingsViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -57,9 +56,12 @@ class HabitListViewModel @Inject constructor(
     private val getHabitsForDate: GetHabitsForDateUseCase,
     private val toggleHabitEntry: ToggleHabitEntryUseCase,
     private val decreaseHabitEntry: DecreaseHabitEntryUseCase,
+    private val skipHabit: SkipHabitUseCase,
+    private val unskipHabit: UnskipHabitUseCase,
+    private val setHabitCount: SetHabitCountUseCase,
     private val tagRepository: TagRepository,
     private val habitRepository: HabitRepository,
-    private val dataStore: DataStore<Preferences>,
+    private val prefs: PreferencesRepository,
 ) : ViewModel() {
 
     val allTags: StateFlow<List<HabitTag>> = tagRepository.getAllTags()
@@ -69,7 +71,6 @@ class HabitListViewModel @Inject constructor(
     val uiState: StateFlow<HabitListUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
-
     private val selectedDate = MutableStateFlow(LocalDate.now())
 
     init {
@@ -115,24 +116,22 @@ class HabitListViewModel @Inject constructor(
         computeWeekDelta()
 
         viewModelScope.launch {
-            dataStore.data.map { prefs -> prefs[SettingsViewModel.COMPACT_MODE_KEY] ?: false }
-                .collect { compact -> _uiState.update { it.copy(isCompactMode = compact) } }
+            prefs.isCompactMode.collect { v -> _uiState.update { it.copy(isCompactMode = v) } }
         }
     }
 
     private fun computeWeekDelta() {
         viewModelScope.launch {
             val today = LocalDate.now()
-            val dow = today.dayOfWeek.value  // Mon=1...Sun=7
+            val dow = today.dayOfWeek.value
             val thisWeekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
-            val lastWeekEnd = thisWeekStart.minusDays(1)
+            val lastWeekEnd   = thisWeekStart.minusDays(1)
             val lastWeekStart = lastWeekEnd.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
 
-            val thisEntries = habitRepository.getEntriesForDateRange(thisWeekStart, today)
-            val lastEntries = habitRepository.getEntriesForDateRange(lastWeekStart, lastWeekEnd)
-
-            val thisCount = thisEntries.count { it.completedCount > 0 && !it.isSkipped }
-            val lastCount = lastEntries.count { it.completedCount > 0 && !it.isSkipped }
+            val thisCount = habitRepository.getEntriesForDateRange(thisWeekStart, today)
+                .count { it.completedCount > 0 && !it.isSkipped }
+            val lastCount = habitRepository.getEntriesForDateRange(lastWeekStart, lastWeekEnd)
+                .count { it.completedCount > 0 && !it.isSkipped }
 
             val delta = if (lastCount > 0 || thisCount > 0) thisCount - lastCount else null
             _uiState.update { it.copy(weekDelta = delta) }
@@ -152,62 +151,33 @@ class HabitListViewModel @Inject constructor(
     }
 
     fun decreaseHabit(habitId: Long) {
-        viewModelScope.launch {
-            decreaseHabitEntry(habitId, _uiState.value.selectedDate)
-        }
+        viewModelScope.launch { decreaseHabitEntry(habitId, _uiState.value.selectedDate) }
     }
 
-    fun showMotivation() {
-        _uiState.update { it.copy(motivationQuote = randomQuote()) }
-    }
-
-    fun dismissMotivation() {
-        _uiState.update { it.copy(motivationQuote = null) }
-    }
-
-    fun setGroupingMode(mode: GroupingMode) {
-        _uiState.update { it.copy(groupingMode = mode) }
-    }
+    fun showMotivation() { _uiState.update { it.copy(motivationQuote = randomQuote()) } }
+    fun dismissMotivation() { _uiState.update { it.copy(motivationQuote = null) } }
+    fun setGroupingMode(mode: GroupingMode) { _uiState.update { it.copy(groupingMode = mode) } }
 
     fun streakSafeSkipHabit(habitId: Long) {
-        viewModelScope.launch {
-            habitRepository.streakSafeSkip(habitId, _uiState.value.selectedDate)
-        }
+        viewModelScope.launch { habitRepository.streakSafeSkip(habitId, _uiState.value.selectedDate) }
     }
 
     fun skipHabit(habitId: Long) {
-        viewModelScope.launch {
-            val date = _uiState.value.selectedDate
-            val existing = habitRepository.getEntryForDate(habitId, date)
-            val entry = existing?.copy(completedCount = 0, isSkipped = true)
-                ?: HabitEntry(habitId = habitId, date = date, completedCount = 0, isSkipped = true)
-            habitRepository.upsertEntry(entry)
-        }
+        viewModelScope.launch { skipHabit(habitId, _uiState.value.selectedDate) }
     }
 
-    fun requestUnSkip(habitId: Long) {
-        _uiState.update { it.copy(unSkipRequestId = habitId) }
-    }
+    fun requestUnSkip(habitId: Long) { _uiState.update { it.copy(unSkipRequestId = habitId) } }
 
     fun confirmUnSkip() {
         val habitId = _uiState.value.unSkipRequestId ?: return
         viewModelScope.launch {
-            val date = _uiState.value.selectedDate
-            val existing = habitRepository.getEntryForDate(habitId, date)
-            if (existing != null) {
-                habitRepository.upsertEntry(existing.copy(isSkipped = false))
-            }
+            unskipHabit(habitId, _uiState.value.selectedDate)
             _uiState.update { it.copy(unSkipRequestId = null) }
         }
     }
 
-    fun dismissUnSkip() {
-        _uiState.update { it.copy(unSkipRequestId = null) }
-    }
-
-    fun hideConfetti() {
-        _uiState.update { it.copy(showConfetti = false) }
-    }
+    fun dismissUnSkip() { _uiState.update { it.copy(unSkipRequestId = null) } }
+    fun hideConfetti() { _uiState.update { it.copy(showConfetti = false) } }
 
     fun startTimer(habitId: Long) {
         val habit = _uiState.value.habits.find { it.habit.id == habitId }?.habit ?: return
@@ -227,27 +197,17 @@ class HabitListViewModel @Inject constructor(
     }
 
     fun stopTimer() {
-        timerJob?.cancel()
-        timerJob = null
+        timerJob?.cancel(); timerJob = null
         _uiState.update { it.copy(timerHabitId = null, timerRemaining = 0) }
     }
 
     fun setCount(habitId: Long, count: Int) {
-        viewModelScope.launch {
-            val date = _uiState.value.selectedDate
-            val clamped = count.coerceAtLeast(0)
-            val existing = habitRepository.getEntryForDate(habitId, date)
-            val entry = existing?.copy(completedCount = clamped, isSkipped = false)
-                ?: HabitEntry(habitId = habitId, date = date, completedCount = clamped, isSkipped = false)
-            habitRepository.upsertEntry(entry)
-        }
+        viewModelScope.launch { setHabitCount(habitId, _uiState.value.selectedDate, count) }
     }
 
     fun persistReorder(habits: List<HabitForDate>) {
         viewModelScope.launch {
-            habits.forEachIndexed { index, habitForDate ->
-                habitRepository.updateSortOrder(habitForDate.habit.id, index)
-            }
+            habits.forEachIndexed { index, hfd -> habitRepository.updateSortOrder(hfd.habit.id, index) }
         }
     }
 }
