@@ -3,6 +3,7 @@ package com.flowbit.app.presentation.statistics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.BestTimeData
+import com.flowbit.app.domain.model.HabitCorrelation
 import com.flowbit.app.domain.model.HabitStats
 import com.flowbit.app.domain.model.OverallStats
 import com.flowbit.app.domain.model.PeriodComparison
@@ -20,17 +21,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-
-data class HabitCorrelation(
-    val habitA: String,
-    val habitB: String,
-    val emojiA: String,
-    val emojiB: String,
-    val sharedDays: Int,
-    val totalDays: Int,
-) {
-    val rate: Float get() = if (totalDays > 0) sharedDays.toFloat() / totalDays else 0f
-}
 
 data class StatisticsUiState(
     val habitStats: List<HabitStats> = emptyList(),

@@ -1,5 +1,6 @@
 package com.flowbit.app.presentation.habits.detail
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.HabitStats
@@ -36,6 +37,7 @@ data class HabitDetailUiState(
 
 @HiltViewModel
 class HabitDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val getHabitStats: GetHabitStatsUseCase,
     private val repository: HabitRepository,
     private val skipHabit: SkipHabitUseCase,
@@ -49,45 +51,47 @@ class HabitDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HabitDetailUiState())
     val uiState: StateFlow<HabitDetailUiState> = _uiState.asStateFlow()
 
-    private var currentHabitId: Long = 0
+    private val currentHabitId: Long = savedStateHandle["habitId"] ?: 0L
 
-    fun load(habitId: Long) {
-        currentHabitId = habitId
-        viewModelScope.launch {
-            val stats = getHabitStats.forHabit(habitId)
-            val today = LocalDate.now()
-            val entry = repository.getEntryForDate(habitId, today)
-            val allEntries = repository.getAllEntriesForHabit(habitId)
+    init {
+        viewModelScope.launch { loadData() }
+    }
 
-            val history = allEntries
-                .filter { !it.note.isNullOrBlank() }
-                .sortedByDescending { it.date }
-                .map { it.date to it.note!! }
+    private suspend fun loadData() {
+        val habitId = currentHabitId
+        val stats = getHabitStats.forHabit(habitId)
+        val today = LocalDate.now()
+        val entry = repository.getEntryForDate(habitId, today)
+        val allEntries = repository.getAllEntriesForHabit(habitId)
 
-            val hourlyCompletions = buildMap<Int, Int> {
-                allEntries.forEach { e ->
-                    val hour = e.markedAt?.substringBefore(":")?.toIntOrNull() ?: return@forEach
-                    if (e.completedCount > 0) put(hour, (get(hour) ?: 0) + 1)
-                }
+        val history = allEntries
+            .filter { !it.note.isNullOrBlank() }
+            .sortedByDescending { it.date }
+            .map { it.date to it.note!! }
+
+        val hourlyCompletions = buildMap<Int, Int> {
+            allEntries.forEach { e ->
+                val hour = e.markedAt?.substringBefore(":")?.toIntOrNull() ?: return@forEach
+                if (e.completedCount > 0) put(hour, (get(hour) ?: 0) + 1)
             }
+        }
 
-            val dow = today.dayOfWeek.value
-            val weekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
-            val freezeCountThisWeek = allEntries.count {
-                it.isFrozen && !it.date.isBefore(weekStart) && !it.date.isAfter(today)
-            }
+        val dow = today.dayOfWeek.value
+        val weekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
+        val freezeCountThisWeek = allEntries.count {
+            it.isFrozen && !it.date.isBefore(weekStart) && !it.date.isAfter(today)
+        }
 
-            _uiState.update {
-                it.copy(
-                    stats = stats,
-                    todayNote = entry?.note,
-                    isTodaySkipped = entry?.isSkipped ?: false,
-                    noteHistory = history,
-                    isFrozenToday = entry?.isFrozen ?: false,
-                    freezeCountThisWeek = freezeCountThisWeek,
-                    hourlyCompletions = hourlyCompletions,
-                )
-            }
+        _uiState.update {
+            it.copy(
+                stats = stats,
+                todayNote = entry?.note,
+                isTodaySkipped = entry?.isSkipped ?: false,
+                noteHistory = history,
+                isFrozenToday = entry?.isFrozen ?: false,
+                freezeCountThisWeek = freezeCountThisWeek,
+                hourlyCompletions = hourlyCompletions,
+            )
         }
     }
 
@@ -133,7 +137,7 @@ class HabitDetailViewModel @Inject constructor(
     fun freezeStreak() {
         viewModelScope.launch {
             repository.freezeStreak(currentHabitId, LocalDate.now())
-            load(currentHabitId)
+            loadData()
         }
     }
 

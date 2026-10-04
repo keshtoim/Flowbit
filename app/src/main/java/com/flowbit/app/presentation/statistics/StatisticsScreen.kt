@@ -1,6 +1,7 @@
 package com.flowbit.app.presentation.statistics
 
 import androidx.compose.foundation.Canvas
+import com.flowbit.app.domain.model.HabitCorrelation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,7 +57,6 @@ import com.flowbit.app.domain.model.HabitStats
 import com.flowbit.app.domain.model.OverallStats
 import com.flowbit.app.domain.model.PeriodComparison
 import com.flowbit.app.domain.model.WeekdayInsight
-import com.flowbit.app.presentation.statistics.HabitCorrelation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
