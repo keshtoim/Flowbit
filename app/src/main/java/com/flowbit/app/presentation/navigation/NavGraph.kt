@@ -15,11 +15,14 @@ import androidx.navigation.navArgument
 import com.flowbit.app.presentation.habits.list.HabitListScreen
 import com.flowbit.app.presentation.habits.add.AddEditHabitScreen
 import com.flowbit.app.presentation.habits.detail.HabitDetailScreen
+import com.flowbit.app.presentation.archive.ArchiveScreen
+import com.flowbit.app.presentation.onboarding.OnboardingScreen
 import com.flowbit.app.presentation.statistics.StatisticsScreen
 import com.flowbit.app.presentation.settings.SettingsScreen
 import com.flowbit.app.presentation.weekly.WeeklySummaryScreen
 
 sealed class Screen(val route: String) {
+    data object Onboarding : Screen("onboarding")
     data object HabitList : Screen("habit_list")
     data object AddHabit : Screen("add_habit")
     data object EditHabit : Screen("edit_habit/{habitId}") {
@@ -31,6 +34,7 @@ sealed class Screen(val route: String) {
     data object Statistics : Screen("statistics")
     data object Settings : Screen("settings")
     data object WeeklySummary : Screen("weekly_summary")
+    data object Archive : Screen("archive")
 }
 
 private const val ANIM_DURATION = 280
@@ -39,10 +43,11 @@ private const val ANIM_DURATION = 280
 fun FlowbitNavGraph(
     navController: NavHostController,
     initialHabitId: Long? = null,
+    showOnboarding: Boolean = false,
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.HabitList.route,
+        startDestination = if (showOnboarding) Screen.Onboarding.route else Screen.HabitList.route,
         enterTransition = {
             slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(ANIM_DURATION)) +
                 fadeIn(tween(ANIM_DURATION))
@@ -60,6 +65,16 @@ fun FlowbitNavGraph(
                 fadeOut(tween(ANIM_DURATION))
         },
     ) {
+
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onFinish = { _, _ ->
+                    navController.navigate(Screen.HabitList.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                },
+            )
+        }
 
         composable(Screen.HabitList.route) {
             LaunchedEffect(initialHabitId) {
@@ -118,7 +133,14 @@ fun FlowbitNavGraph(
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onArchiveClick = { navController.navigate(Screen.Archive.route) },
+            )
+        }
+
+        composable(Screen.Archive.route) {
+            ArchiveScreen(onBack = { navController.popBackStack() })
         }
     }
 }

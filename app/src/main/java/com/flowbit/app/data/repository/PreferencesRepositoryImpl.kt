@@ -9,6 +9,7 @@ import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ACCENT_
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ANALYTICS_STYLE_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.COMPACT_MODE_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.FORM_STYLE_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ONBOARDING_SHOWN_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.THEME_MODE_KEY
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -38,6 +39,9 @@ class PreferencesRepositoryImpl @Inject constructor(
     override val accentColorHex: Flow<String?> =
         dataStore.data.map { prefs -> prefs[ACCENT_COLOR_KEY] }
 
+    override val onboardingShown: Flow<Boolean> =
+        dataStore.data.map { prefs -> prefs[ONBOARDING_SHOWN_KEY] ?: false }
+
     override suspend fun setThemeMode(mode: ThemeMode) {
         dataStore.edit { prefs ->
             prefs[THEME_MODE_KEY] = when (mode) {
@@ -66,5 +70,9 @@ class PreferencesRepositoryImpl @Inject constructor(
 
     override suspend fun clearAccentColor() {
         dataStore.edit { it.remove(ACCENT_COLOR_KEY) }
+    }
+
+    override suspend fun setOnboardingShown() {
+        dataStore.edit { it[ONBOARDING_SHOWN_KEY] = true }
     }
 }

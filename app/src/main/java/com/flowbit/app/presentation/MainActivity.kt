@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.flowbit.app.data.worker.InactivityCheckWorker
 import com.flowbit.app.presentation.navigation.FlowbitNavGraph
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ACCENT_COLOR_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ONBOARDING_SHOWN_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.THEME_MODE_KEY
 import com.flowbit.app.presentation.theme.FlowbitTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -58,11 +59,16 @@ class MainActivity : AppCompatActivity() {
                 else    -> isSystemDark
             }
 
+            val onboardingShown by dataStore.data
+                .map { it[ONBOARDING_SHOWN_KEY] ?: false }
+                .collectAsState(initial = true)
+
             FlowbitTheme(darkTheme = isDark, customAccentHex = accentColorHex) {
                 val navController = rememberNavController()
                 FlowbitNavGraph(
                     navController = navController,
                     initialHabitId = habitIdFromShortcut,
+                    showOnboarding = !onboardingShown,
                 )
             }
         }
