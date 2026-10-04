@@ -318,6 +318,19 @@ internal fun DetailLayoutB(
             }
         }
 
+        // Тепловая карта года
+        item {
+            Box(Modifier.padding(horizontal = 16.dp)) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = CardDefaults.cardElevation(2.dp),
+                ) {
+                    HabitHeatmap(completedDates = stats.completedDates, modifier = Modifier.padding(16.dp))
+                }
+            }
+        }
+
         // Месячный календарь
         item {
             Box(Modifier.padding(horizontal = 16.dp)) {
