@@ -326,6 +326,9 @@ class SettingsViewModel @Inject constructor(
         put("periodGoalType", h.periodGoalType)
         put("periodGoalCount", h.periodGoalCount)
         put("timerSeconds", h.timerSeconds)
+        put("isBadHabit", h.isBadHabit)
+        put("allowStreakSkip", h.allowStreakSkip)
+        h.stackAfterHabitId?.let { put("stackAfterHabitId", it) }
         h.photoUri?.let { put("photoUri", it) }
         h.audioUri?.let { put("audioUri", it) }
         h.tagId?.let { put("tagId", it) }
@@ -369,6 +372,9 @@ class SettingsViewModel @Inject constructor(
         periodGoalType = j.optString("periodGoalType", "NONE"),
         periodGoalCount = j.optInt("periodGoalCount", 0),
         timerSeconds = j.optInt("timerSeconds", 0),
+        isBadHabit = j.optBoolean("isBadHabit", false),
+        allowStreakSkip = j.optBoolean("allowStreakSkip", false),
+        stackAfterHabitId = if (j.has("stackAfterHabitId")) j.getLong("stackAfterHabitId") else null,
         photoUri = j.optString("photoUri").takeIf { it.isNotEmpty() },
         audioUri = j.optString("audioUri").takeIf { it.isNotEmpty() },
         tagId = if (j.has("tagId")) j.getLong("tagId") else null,
