@@ -9,6 +9,7 @@ import com.flowbit.app.domain.model.OverallStats
 import com.flowbit.app.domain.model.PeriodComparison
 import com.flowbit.app.domain.model.WeekdayInsight
 import com.flowbit.app.domain.repository.HabitRepository
+import com.flowbit.app.domain.usecase.stats.GetBestTimeUseCase
 import com.flowbit.app.domain.usecase.stats.GetHabitCorrelationsUseCase
 import com.flowbit.app.domain.usecase.stats.GetHabitStatsUseCase
 import com.flowbit.app.domain.usecase.stats.GetPeriodComparisonUseCase
@@ -41,6 +42,7 @@ class StatisticsViewModel @Inject constructor(
     private val getWeekdayInsight: GetWeekdayInsightUseCase,
     private val getPeriodComparison: GetPeriodComparisonUseCase,
     private val getHabitCorrelations: GetHabitCorrelationsUseCase,
+    private val getBestTime: GetBestTimeUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StatisticsUiState())
@@ -55,7 +57,7 @@ class StatisticsViewModel @Inject constructor(
 
             val insight = getWeekdayInsight(stats)
             val comparison = getPeriodComparison(stats)
-            val bestTime = computeBestTime(markedTimes)
+            val bestTime = getBestTime(markedTimes)
 
             val activeStats = stats.filter { it.completionRate > 0f || it.totalCompletions >= 0 }
             val popular = activeStats.maxByOrNull { it.completionRate }
@@ -79,16 +81,5 @@ class StatisticsViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private fun computeBestTime(times: List<String?>): BestTimeData? {
-        if (times.isEmpty()) return null
-        val hourCounts = mutableMapOf<Int, Int>()
-        times.forEach { t ->
-            val hour = t?.substringBefore(":")?.toIntOrNull() ?: return@forEach
-            hourCounts[hour] = (hourCounts[hour] ?: 0) + 1
-        }
-        val peak = hourCounts.maxByOrNull { it.value }?.key
-        return BestTimeData(hourCounts = hourCounts, peakHour = peak)
     }
 }
