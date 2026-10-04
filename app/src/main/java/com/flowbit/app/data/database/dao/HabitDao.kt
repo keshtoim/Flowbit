@@ -75,4 +75,10 @@ interface HabitDao {
 
     @Query("SELECT markedAt FROM habit_entries WHERE markedAt IS NOT NULL")
     suspend fun getAllMarkedAtTimes(): List<String?>
+
+    @Query("SELECT * FROM habits WHERE isArchived = 1 ORDER BY createdAt DESC")
+    fun getArchivedHabits(): Flow<List<HabitEntity>>
+
+    @Query("UPDATE habits SET isArchived = 0 WHERE id = :habitId")
+    suspend fun unarchiveHabit(habitId: Long)
 }

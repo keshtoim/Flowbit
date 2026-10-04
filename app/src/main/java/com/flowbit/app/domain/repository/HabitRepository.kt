@@ -17,6 +17,8 @@ interface HabitRepository {
     suspend fun updateHabit(habit: Habit)
     suspend fun deleteHabit(habit: Habit)
     suspend fun archiveHabit(habitId: Long)
+    suspend fun unarchiveHabit(habitId: Long)
+    fun getArchivedHabits(): Flow<List<Habit>>
 
     fun getHabitWithEntries(habitId: Long): Flow<HabitWithEntries?>
     fun getEntriesForDate(date: LocalDate): Flow<List<HabitEntry>>

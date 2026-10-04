@@ -45,6 +45,12 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun archiveHabit(habitId: Long) =
         dao.archiveHabit(habitId)
 
+    override suspend fun unarchiveHabit(habitId: Long) =
+        dao.unarchiveHabit(habitId)
+
+    override fun getArchivedHabits(): Flow<List<Habit>> =
+        dao.getArchivedHabits().map { list -> list.map { it.toDomain() } }
+
     override fun getHabitWithEntries(habitId: Long): Flow<HabitWithEntries?> {
         return combine(
             dao.getActiveHabits(),
