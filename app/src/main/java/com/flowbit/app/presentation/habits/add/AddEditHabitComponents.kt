@@ -480,6 +480,7 @@ fun TargetCountSection(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrequencySection(
     frequency: HabitFrequency,
@@ -914,6 +915,7 @@ fun AudioSection(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeriodGoalSection(
     periodGoalType: PeriodGoalType,

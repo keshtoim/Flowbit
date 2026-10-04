@@ -20,6 +20,7 @@ val autoVersionName = "1.0.$autoVersionCode"
 android {
     namespace = "com.flowbit.app"
     compileSdk = 35
+    buildToolsVersion = "36.0.0"
 
     defaultConfig {
         applicationId = "com.flowbit.app"
@@ -107,6 +108,8 @@ dependencies {
     implementation(libs.reorderable)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.json)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
