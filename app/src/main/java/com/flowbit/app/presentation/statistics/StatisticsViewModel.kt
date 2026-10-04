@@ -9,7 +9,10 @@ import com.flowbit.app.domain.model.OverallStats
 import com.flowbit.app.domain.model.PeriodComparison
 import com.flowbit.app.domain.model.WeekdayInsight
 import com.flowbit.app.domain.repository.HabitRepository
+import com.flowbit.app.domain.usecase.stats.GetHabitCorrelationsUseCase
 import com.flowbit.app.domain.usecase.stats.GetHabitStatsUseCase
+import com.flowbit.app.domain.usecase.stats.GetPeriodComparisonUseCase
+import com.flowbit.app.domain.usecase.stats.GetWeekdayInsightUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 data class StatisticsUiState(
@@ -38,6 +38,9 @@ data class StatisticsUiState(
 class StatisticsViewModel @Inject constructor(
     private val habitRepository: HabitRepository,
     private val getHabitStats: GetHabitStatsUseCase,
+    private val getWeekdayInsight: GetWeekdayInsightUseCase,
+    private val getPeriodComparison: GetPeriodComparisonUseCase,
+    private val getHabitCorrelations: GetHabitCorrelationsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StatisticsUiState())
@@ -50,8 +53,8 @@ class StatisticsViewModel @Inject constructor(
             val overall = getHabitStats.overall()
             val markedTimes = habitRepository.getAllMarkedAtTimes()
 
-            val insight = computeWeekdayInsight(stats)
-            val comparison = computePeriodComparison(stats)
+            val insight = getWeekdayInsight(stats)
+            val comparison = getPeriodComparison(stats)
             val bestTime = computeBestTime(markedTimes)
 
             val activeStats = stats.filter { it.completionRate > 0f || it.totalCompletions >= 0 }
@@ -60,7 +63,7 @@ class StatisticsViewModel @Inject constructor(
             val avgPct = if (activeStats.isEmpty()) 0
             else (activeStats.map { it.completionRate }.average() * 100).toInt()
 
-            val correlations = computeCorrelations(stats)
+            val correlations = getHabitCorrelations(stats)
 
             _uiState.update {
                 it.copy(
@@ -76,91 +79,6 @@ class StatisticsViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private fun computeWeekdayInsight(stats: List<HabitStats>): WeekdayInsight? {
-        if (stats.isEmpty()) return null
-        val today = LocalDate.now()
-        val last30 = (0..29).map { today.minusDays(it.toLong()) }
-        val weekdays = last30.filter { it.dayOfWeek.value <= 5 }
-        val weekends = last30.filter { it.dayOfWeek.value > 5 }
-
-        val habitCount = stats.size
-        val wdCompletions = weekdays.sumOf { day -> stats.count { day in it.completedDates } }
-        val weCompletions = weekends.sumOf { day -> stats.count { day in it.completedDates } }
-
-        val wdRate = if (weekdays.isEmpty()) 0f
-        else wdCompletions.toFloat() / (weekdays.size * habitCount)
-        val weRate = if (weekends.isEmpty()) 0f
-        else weCompletions.toFloat() / (weekends.size * habitCount)
-
-        val wdPct = (wdRate * 100).toInt()
-        val wePct = (weRate * 100).toInt()
-        val text = when {
-            wdRate - weRate > 0.15f ->
-                "Вы выполняете $wdPct% привычек по будням и только $wePct% в выходные"
-            weRate - wdRate > 0.15f ->
-                "Вы активнее в выходные ($wePct%) чем по будням ($wdPct%)"
-            else ->
-                "Вы одинаково стабильны в будни ($wdPct%) и выходные ($wePct%)"
-        }
-        return WeekdayInsight(weekdayRate = wdRate, weekendRate = weRate, insightText = text)
-    }
-
-    private fun computePeriodComparison(stats: List<HabitStats>): PeriodComparison? {
-        if (stats.isEmpty()) return null
-        val today = LocalDate.now()
-        val thisMonStart = today.withDayOfMonth(1)
-        val lastMonStart = thisMonStart.minusMonths(1)
-        val lastMonEnd = thisMonStart.minusDays(1)
-
-        val dayOfWeek = today.dayOfWeek.value
-        val thisWeekStart = today.minusDays((dayOfWeek - DayOfWeek.MONDAY.value).toLong())
-        val lastWeekStart = thisWeekStart.minusWeeks(1)
-        val lastWeekEnd = thisWeekStart.minusDays(1)
-
-        fun rate(start: LocalDate, end: LocalDate): Float {
-            if (start.isAfter(end)) return 0f
-            val days = (0..(end.toEpochDay() - start.toEpochDay()).toInt())
-                .map { start.plusDays(it.toLong()) }
-            val completions = days.sumOf { day -> stats.count { day in it.completedDates } }
-            return completions.toFloat() / (days.size * stats.size)
-        }
-
-        val fmt = DateTimeFormatter.ofPattern("d MMM")
-        return PeriodComparison(
-            thisWeekRate = rate(thisWeekStart, today),
-            lastWeekRate = rate(lastWeekStart, lastWeekEnd),
-            thisMonthRate = rate(thisMonStart, today),
-            lastMonthRate = rate(lastMonStart, lastMonEnd),
-            thisWeekLabel = "${thisWeekStart.format(fmt)} – ${today.format(fmt)}",
-            lastWeekLabel = "${lastWeekStart.format(fmt)} – ${lastWeekEnd.format(fmt)}",
-        )
-    }
-
-    private fun computeCorrelations(stats: List<HabitStats>): List<HabitCorrelation> {
-        if (stats.size < 2) return emptyList()
-        val result = mutableListOf<HabitCorrelation>()
-        for (i in stats.indices) {
-            for (j in i + 1 until stats.size) {
-                val a = stats[i]
-                val b = stats[j]
-                val setA = a.completedDates.toHashSet()
-                val setB = b.completedDates.toHashSet()
-                val shared = setA.count { it in setB }
-                val total = (setA + setB).size
-                if (total >= 7 && shared > 0) {
-                    result.add(
-                        HabitCorrelation(
-                            habitA = a.habitName, habitB = b.habitName,
-                            emojiA = a.habitEmoji, emojiB = b.habitEmoji,
-                            sharedDays = shared, totalDays = total,
-                        )
-                    )
-                }
-            }
-        }
-        return result.sortedByDescending { it.rate }.take(3)
     }
 
     private fun computeBestTime(times: List<String?>): BestTimeData? {

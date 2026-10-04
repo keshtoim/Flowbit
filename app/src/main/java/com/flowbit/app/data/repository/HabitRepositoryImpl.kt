@@ -136,14 +136,41 @@ class HabitRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getOverallStats(): OverallStats {
-        // Simplified implementation
+        val habits = dao.getAllHabitsList().filter { !it.isArchived }.map { it.toDomain() }
+        if (habits.isEmpty()) return OverallStats(0, 0, 0f, 0, 0, 0)
+
+        val today = LocalDate.now()
+        val todayStr = today.toString()
+
+        val todayTotal = habits.count { h ->
+            h.frequency == HabitFrequency.DAILY || today.dayOfWeek in h.scheduledDays
+        }
+
+        val todayEntries = dao.getEntriesForDateRange(todayStr, todayStr)
+            .map { it.toDomain() }
+            .associateBy { it.habitId }
+
+        val todayCompleted = habits.count { h ->
+            val e = todayEntries[h.id] ?: return@count false
+            !e.isSkipped && if (h.isBadHabit) e.completedCount == 0
+                           else e.completedCount >= h.targetCount
+        }
+
+        var totalRate = 0f
+        var bestStreak = 0
+        habits.forEach { h ->
+            val s = getHabitStats(h.id) ?: return@forEach
+            totalRate += s.completionRate
+            if (s.currentStreak > bestStreak) bestStreak = s.currentStreak
+        }
+
         return OverallStats(
-            totalHabits = 0,
-            activeHabits = 0,
-            averageCompletionRate = 0f,
-            bestStreak = 0,
-            todayCompleted = 0,
-            todayTotal = 0,
+            totalHabits = habits.size,
+            activeHabits = habits.size,
+            averageCompletionRate = totalRate / habits.size,
+            bestStreak = bestStreak,
+            todayCompleted = todayCompleted,
+            todayTotal = todayTotal,
         )
     }
 
