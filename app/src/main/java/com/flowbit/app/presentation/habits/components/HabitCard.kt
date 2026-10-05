@@ -129,7 +129,7 @@ fun HabitCard(
             habit.isBadHabit -> tabooCleanColor.copy(alpha = 0.14f)
             isStreakSafeSkipped -> streakSafeColor.copy(alpha = 0.35f)
             isSkipped -> skippedColor
-            isCompleted -> habitColor.copy(alpha = 0.18f)
+            isCompleted -> habitColor.copy(alpha = 0.10f)
             else -> surface
         },
         animationSpec = tween(380, easing = FastOutSlowInEasing),
@@ -185,7 +185,7 @@ fun HabitCard(
                     modifier = Modifier
                         .size(if (compact) 36.dp else 42.dp)
                         .clip(RoundedCornerShape(if (compact) 10.dp else 12.dp))
-                        .background(habitColor.copy(alpha = if (isCompleted) 0.28f else 0.14f)),
+                        .background(habitColor.copy(alpha = if (isCompleted) 0.16f else 0.09f)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

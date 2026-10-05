@@ -81,10 +81,10 @@ fun TodaySummaryCard(
     // Градиентный фон: серый → зелёный по мере выполнения
     val cardContainerColor by animateColorAsState(
         targetValue = when {
-            total == 0 -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-            done == total -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
-            progress >= 0.5f -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-            else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.30f)
+            total == 0 -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.18f)
+            done == total -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f)
+            progress >= 0.5f -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f)
+            else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
         },
         animationSpec = tween(600),
         label = "cardBg",
