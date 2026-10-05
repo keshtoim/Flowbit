@@ -149,13 +149,14 @@ fun OnboardingScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
                         text = pages[currentPage].subtitle,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
                     )
 
                     // ── Шаблоны привычек на последнем слайде ─────────────────

@@ -48,7 +48,7 @@ class HeatmapWidget : GlanceAppWidget() {
         val habits = db.habitDao().getActiveHabits().first()
         val habitCount = habits.size.coerceAtLeast(1)
 
-        val weeksCount = 18
+        val weeksCount = 8
         val startDate = run {
             val base = today.minusWeeks(weeksCount.toLong() - 1)
             val shift = (base.dayOfWeek.value - DayOfWeek.MONDAY.value).let { if (it < 0) it + 7 else it }
