@@ -7,11 +7,9 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -21,6 +19,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -37,8 +36,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 class HeatmapWidget : GlanceAppWidget() {
-
-    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
@@ -77,26 +74,13 @@ class HeatmapWidget : GlanceAppWidget() {
                 val surfaceVariant = GlanceTheme.colors.surfaceVariant
                 val onSurfaceVariant = GlanceTheme.colors.onSurfaceVariant
 
-                // Адаптивный размер ячеек под реальный размер виджета
-                val widgetSize = LocalSize.current
-                val hPadPx = 24f       // 12dp × 2
-                val vReserved = 46f    // 12dp top + 16dp title + 6dp spacer + 12dp bottom
-                val gapH = 2f
-                val gapV = 1f
-
-                val availW = widgetSize.width.value - hPadPx
-                val availH = widgetSize.height.value - vReserved
-
-                val cellW = ((availW - gapH * (weeksCount - 1)) / weeksCount).coerceAtLeast(4f).dp
-                val cellH = ((availH - gapV * 6) / 7).coerceAtLeast(4f).dp
-
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
                         .background(bg)
                         .cornerRadius(20.dp)
                         .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
-                        .padding(12.dp),
+                        .padding(10.dp),
                 ) {
                     Column(modifier = GlanceModifier.fillMaxSize()) {
                         Text(
@@ -107,11 +91,12 @@ class HeatmapWidget : GlanceAppWidget() {
                                 color = onSurfaceVariant,
                             ),
                         )
-                        Spacer(GlanceModifier.height(6.dp))
+                        Spacer(GlanceModifier.height(5.dp))
 
-                        Column(modifier = GlanceModifier.fillMaxWidth()) {
+                        // Сетка заполняет всё оставшееся место через defaultWeight
+                        Column(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
                             for (dow in 0..6) {
-                                Row {
+                                Row(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
                                     for (week in 0 until weeksCount) {
                                         val date = startDate
                                             .plusWeeks(week.toLong())
@@ -140,19 +125,19 @@ class HeatmapWidget : GlanceAppWidget() {
 
                                         Box(
                                             modifier = GlanceModifier
-                                                .width(cellW)
-                                                .height(cellH)
+                                                .defaultWeight()
+                                                .fillMaxHeight()
                                                 .cornerRadius(2.dp)
                                                 .background(cellColor),
                                         ) {}
 
                                         if (week < weeksCount - 1) {
-                                            Spacer(GlanceModifier.width(gapH.dp))
+                                            Spacer(GlanceModifier.width(2.dp))
                                         }
                                     }
                                 }
                                 if (dow < 6) {
-                                    Spacer(GlanceModifier.height(gapV.dp))
+                                    Spacer(GlanceModifier.height(2.dp))
                                 }
                             }
                         }
