@@ -57,6 +57,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -81,6 +83,12 @@ fun HabitCard(
     onLongClick: () -> Unit = {},
     compact: Boolean = false,
 ) {
+    val haptic = LocalHapticFeedback.current
+    val onToggleWithHaptic = {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        onToggle()
+    }
+
     val habit = habitForDate.habit
     val isStreakSafeSkipped = habitForDate.entry?.isStreakSafeSkip ?: false
     val isSkipped = habitForDate.entry?.isSkipped ?: false
@@ -337,14 +345,14 @@ fun HabitCard(
                                 .scale(buttonScale)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.error)
-                                .clickable(onClick = onToggle),
+                                .clickable(onClick = onToggleWithHaptic),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(20.dp))
                         }
                     } else {
                         TextButton(
-                            onClick = onToggle,
+                            onClick = onToggleWithHaptic,
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         ) {
                             Text(
@@ -384,7 +392,7 @@ fun HabitCard(
                                     modifier = Modifier
                                         .size(40.dp)
                                         .scale(buttonScale)
-                                        .clickable(onClick = onToggle),
+                                        .clickable(onClick = onToggleWithHaptic),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Canvas(modifier = Modifier.size(40.dp)) {
@@ -424,7 +432,7 @@ fun HabitCard(
                                                 1.5.dp, habitColor.copy(alpha = 0.5f), CircleShape
                                             ) else Modifier
                                         )
-                                        .clickable(onClick = onToggle),
+                                        .clickable(onClick = onToggleWithHaptic),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     if (isCompleted) {
