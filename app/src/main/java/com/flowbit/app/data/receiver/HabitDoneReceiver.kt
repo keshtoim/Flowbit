@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.flowbit.app.data.database.entity.HabitEntryEntity
+import com.flowbit.app.data.worker.WidgetUpdateWorker
 import com.flowbit.app.widget.WidgetEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +43,8 @@ class HabitDoneReceiver : BroadcastReceiver() {
                     markedAt = now,
                 )
                 db.habitDao().insertEntry(newEntry)
+
+                WidgetUpdateWorker.enqueueOnce(context)
 
                 if (notificationId != -1) {
                     context.getSystemService(NotificationManager::class.java).cancel(notificationId)
