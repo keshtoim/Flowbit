@@ -122,6 +122,11 @@
             android:name=".data.receiver.HabitDoneReceiver"
             android:exported="false" />
 
+        <!-- Отложить напоминание -->
+        <receiver
+            android:name=".data.receiver.SnoozeReceiver"
+            android:exported="false" />
+
         <!-- Вечерняя напоминалка в 20:00 -->
         <receiver
             android:name=".data.receiver.EveningCheckReceiver"
