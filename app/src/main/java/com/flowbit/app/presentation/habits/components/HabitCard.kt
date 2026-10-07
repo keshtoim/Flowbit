@@ -477,11 +477,24 @@ fun HabitCard(
                     val startDay = today.minusDays(6)
                     val startDow = startDay.dayOfWeek.value - 1 // 0=Пн
 
+                    val errorColor = MaterialTheme.colorScheme.error
+                    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+
                     habitForDate.recentDays.forEachIndexed { i, done ->
                         val isToday = i == 6
-                        val dotColor = if (done) habitColor
-                                       else if (isToday) habitColor.copy(alpha = 0.2f)
-                                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                        val dotColor = if (habit.isBadHabit) when {
+                            done -> errorColor
+                            isToday -> tertiaryColor.copy(alpha = 0.25f)
+                            else -> tertiaryColor.copy(alpha = 0.12f)
+                        } else when {
+                            done -> habitColor
+                            isToday -> habitColor.copy(alpha = 0.2f)
+                            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                        }
+                        val labelColor = if (isToday) {
+                            if (habit.isBadHabit) (if (done) errorColor else tertiaryColor)
+                            else habitColor
+                        } else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                         val label = dayLabels[(startDow + i) % 7]
 
                         Column(
@@ -492,8 +505,7 @@ fun HabitCard(
                                 text = label,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontSize = 9.sp,
-                                color = if (isToday) habitColor
-                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                                color = labelColor,
                                 fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
                             )
                             Spacer(Modifier.height(3.dp))
@@ -502,11 +514,15 @@ fun HabitCard(
                                     .size(18.dp)
                                     .clip(RoundedCornerShape(5.dp))
                                     .background(dotColor)
-                                    .then(
-                                        if (isToday && !done) Modifier.border(
+                                    .then(when {
+                                        habit.isBadHabit && isToday && !done -> Modifier.border(
+                                            1.5.dp, tertiaryColor.copy(alpha = 0.6f), RoundedCornerShape(5.dp)
+                                        )
+                                        !habit.isBadHabit && isToday && !done -> Modifier.border(
                                             1.5.dp, habitColor.copy(alpha = 0.5f), RoundedCornerShape(5.dp)
-                                        ) else Modifier
-                                    ),
+                                        )
+                                        else -> Modifier
+                                    }),
                             )
                         }
                     }
