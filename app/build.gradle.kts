@@ -15,7 +15,7 @@ val autoVersionCode: Int = try {
     }.standardOutput.asText.get().trim().toInt()
 } catch (e: Exception) { 1 }
 
-val autoVersionName = "1.0.$autoVersionCode"
+val autoVersionName = "1.2.0"
 
 android {
     namespace = "com.flowbit.app"
