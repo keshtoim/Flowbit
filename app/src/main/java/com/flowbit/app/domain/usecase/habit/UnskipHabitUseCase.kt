@@ -9,6 +9,6 @@ class UnskipHabitUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(habitId: Long, date: LocalDate) {
         val existing = repository.getEntryForDate(habitId, date) ?: return
-        repository.upsertEntry(existing.copy(isSkipped = false))
+        repository.upsertEntry(existing.copy(isSkipped = false, isStreakSafeSkip = false))
     }
 }
