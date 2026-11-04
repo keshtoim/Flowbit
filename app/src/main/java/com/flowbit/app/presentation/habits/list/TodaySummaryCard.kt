@@ -70,6 +70,7 @@ fun TodaySummaryCard(
     }
 
     val message = when {
+        selectedDate.isAfter(LocalDate.now()) && total > 0 -> "День ещё не наступил"
         allSkipped -> "Все привычки пропущены"
         total == 0 -> "Нет привычек на этот день"
         done == total -> "Все привычки выполнены!"

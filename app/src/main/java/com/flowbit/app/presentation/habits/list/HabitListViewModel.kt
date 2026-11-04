@@ -138,7 +138,10 @@ class HabitListViewModel @Inject constructor(
         _uiState.update { it.copy(selectedDate = date) }
     }
 
+    private fun isFutureSelected() = _uiState.value.selectedDate.isAfter(LocalDate.now())
+
     fun toggleHabit(habitId: Long) {
+        if (isFutureSelected()) return
         viewModelScope.launch {
             val habit = _uiState.value.habits.find { it.habit.id == habitId } ?: return@launch
             toggleHabitEntry(habitId, _uiState.value.selectedDate, habit.habit.targetCount)
@@ -154,10 +157,12 @@ class HabitListViewModel @Inject constructor(
     fun setGroupingMode(mode: GroupingMode) { _uiState.update { it.copy(groupingMode = mode) } }
 
     fun streakSafeSkipHabit(habitId: Long) {
+        if (isFutureSelected()) return
         viewModelScope.launch { habitRepository.streakSafeSkip(habitId, _uiState.value.selectedDate) }
     }
 
     fun skipHabit(habitId: Long) {
+        if (isFutureSelected()) return
         viewModelScope.launch { skipHabit(habitId, _uiState.value.selectedDate) }
     }
 
@@ -176,7 +181,7 @@ class HabitListViewModel @Inject constructor(
 
     fun startTimer(habitId: Long) {
         val habit = _uiState.value.habits.find { it.habit.id == habitId }?.habit ?: return
-        if (habit.timerSeconds <= 0) return
+        if (habit.timerSeconds <= 0 || isFutureSelected()) return
         timerJob?.cancel()
         _uiState.update { it.copy(timerHabitId = habitId, timerRemaining = habit.timerSeconds) }
         timerJob = viewModelScope.launch {
@@ -197,6 +202,7 @@ class HabitListViewModel @Inject constructor(
     }
 
     fun setCount(habitId: Long, count: Int) {
+        if (isFutureSelected()) return
         viewModelScope.launch { setHabitCount(habitId, _uiState.value.selectedDate, count) }
     }
 
