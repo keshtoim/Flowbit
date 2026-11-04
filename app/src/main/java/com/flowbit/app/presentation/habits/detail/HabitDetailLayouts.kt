@@ -242,7 +242,6 @@ internal fun DetailLayoutB(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         if (stats.photoUri != null) item {
             AsyncImage(
@@ -253,7 +252,7 @@ internal fun DetailLayoutB(
             )
         }
         if (stats.audioUri != null) item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 DetailAudioPlayer(stats.audioUri)
             }
         }
@@ -313,14 +312,14 @@ internal fun DetailLayoutB(
 
         // Пропуск / заморозка
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Box(Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp)) {
                 SkipFreezeSection(uiState, viewModel)
             }
         }
 
         // Тепловая карта года
         item {
-            Box(Modifier.padding(horizontal = 16.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -333,7 +332,7 @@ internal fun DetailLayoutB(
 
         // Месячный календарь
         item {
-            Box(Modifier.padding(horizontal = 16.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -346,7 +345,7 @@ internal fun DetailLayoutB(
 
         // Текущая серия + лучшая серия рядом
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     // Текущая серия с анимацией
                     Card(
@@ -403,13 +402,13 @@ internal fun DetailLayoutB(
 
         // Год
         item {
-            Box(Modifier.padding(horizontal = 16.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 YearHeatmapCard(completedDates = stats.completedDates)
             }
         }
 
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 SectionCard(title = "Активность — 30 дней") {
                     ProgressBarChart(
                         completedDates = stats.completedDates,
@@ -419,22 +418,22 @@ internal fun DetailLayoutB(
             }
         }
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 PeriodAnalysisCard(completedDates = stats.completedDates)
             }
         }
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 WeeklyPatternCard(completedDates = stats.completedDates)
             }
         }
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 HourlyPatternCard(hourlyCompletions = uiState.hourlyCompletions)
             }
         }
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 StreakForecastCard(
                     currentStreak = stats.currentStreak,
                     longestStreak = stats.longestStreak,
@@ -443,16 +442,16 @@ internal fun DetailLayoutB(
             }
         }
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 NoteSection(uiState, viewModel)
             }
         }
         item {
-            Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                 NoteHistoryCard(notes = uiState.noteHistory)
             }
         }
-        item { Spacer(Modifier.height(16.dp)) }
+        item { Spacer(Modifier.height(10.dp)) }
     }
 }
 
