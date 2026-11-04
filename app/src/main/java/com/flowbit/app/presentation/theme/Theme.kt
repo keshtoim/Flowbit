@@ -1,7 +1,9 @@
 package com.flowbit.app.presentation.theme
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -78,35 +80,30 @@ fun FlowbitTheme(
     customAccentHex: String? = null,
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
+    MaterialTheme(
+        colorScheme = flowbitColorScheme(LocalContext.current, darkTheme, customAccentHex),
+        typography = Typography,
+        content = content,
+    )
+}
 
-    // Базовая схема: Material You на API 31+, иначе Obsidian
+// Общая схема для приложения и виджетов: Material You на API 31+, иначе Obsidian, поверх — акцент
+fun flowbitColorScheme(context: Context, darkTheme: Boolean, accentHex: String?): ColorScheme {
     val baseScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     } else {
         if (darkTheme) ObsidianDarkColorScheme else ObsidianLightColorScheme
     }
-
-    // Если задан кастомный цвет — переопределяем primary поверх базовой схемы
-    val colorScheme = if (!customAccentHex.isNullOrBlank()) {
-        runCatching {
-            val accent = Color(android.graphics.Color.parseColor(customAccentHex))
-            val lum = with(accent) { 0.2126f * red + 0.7152f * green + 0.0722f * blue }
-            val onAccent = if (lum > 0.45f) Color(0xFF1C1C1C) else Color.White
-            baseScheme.copy(
-                primary = accent,
-                onPrimary = onAccent,
-                primaryContainer = accent.copy(alpha = if (darkTheme) 0.25f else 0.18f),
-                onPrimaryContainer = if (darkTheme) accent.copy(alpha = 0.9f) else accent.copy(alpha = 0.8f),
-            )
-        }.getOrDefault(baseScheme)
-    } else {
-        baseScheme
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content,
-    )
+    if (accentHex.isNullOrBlank()) return baseScheme
+    return runCatching {
+        val accent = Color(android.graphics.Color.parseColor(accentHex))
+        val lum = with(accent) { 0.2126f * red + 0.7152f * green + 0.0722f * blue }
+        val onAccent = if (lum > 0.45f) Color(0xFF1C1C1C) else Color.White
+        baseScheme.copy(
+            primary = accent,
+            onPrimary = onAccent,
+            primaryContainer = accent.copy(alpha = if (darkTheme) 0.25f else 0.18f),
+            onPrimaryContainer = accent.copy(alpha = if (darkTheme) 0.9f else 0.8f),
+        )
+    }.getOrDefault(baseScheme)
 }

@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.flowbit.app.BuildConfig
 import com.flowbit.app.R
 import com.flowbit.app.data.receiver.EveningCheckReceiver
+import com.flowbit.app.data.worker.WidgetUpdateWorker
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.domain.model.ListDensity
 import com.flowbit.app.domain.model.ListViewSettings
@@ -94,7 +95,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setThemeMode(mode: ThemeMode) { viewModelScope.launch { prefs.setThemeMode(mode) } }
+    fun setThemeMode(mode: ThemeMode) { viewModelScope.launch { prefs.setThemeMode(mode); WidgetUpdateWorker.enqueueOnce(context) } }
     fun setListDensity(density: ListDensity) { viewModelScope.launch { prefs.setListDensity(density) } }
     fun setShowHistory(enabled: Boolean) { viewModelScope.launch { prefs.setShowHistory(enabled) } }
     fun setCollapseCompleted(enabled: Boolean) { viewModelScope.launch { prefs.setCollapseCompleted(enabled) } }
@@ -103,8 +104,8 @@ class SettingsViewModel @Inject constructor(
     fun setShowInWidgetByDefault(enabled: Boolean) { viewModelScope.launch { prefs.setShowInWidgetByDefault(enabled) } }
     fun setFormStyle(style: String) { viewModelScope.launch { prefs.setFormStyle(style) } }
     fun setAnalyticsStyle(style: String) { viewModelScope.launch { prefs.setAnalyticsStyle(style) } }
-    fun setAccentColor(hex: String) { viewModelScope.launch { prefs.setAccentColor(hex) } }
-    fun clearAccentColor() { viewModelScope.launch { prefs.clearAccentColor() } }
+    fun setAccentColor(hex: String) { viewModelScope.launch { prefs.setAccentColor(hex); WidgetUpdateWorker.enqueueOnce(context) } }
+    fun clearAccentColor() { viewModelScope.launch { prefs.clearAccentColor(); WidgetUpdateWorker.enqueueOnce(context) } }
 
     fun setLanguage(lang: String) {
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
