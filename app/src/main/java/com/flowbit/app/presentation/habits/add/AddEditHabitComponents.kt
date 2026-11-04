@@ -488,6 +488,10 @@ fun FrequencySection(
     scheduledDays: Set<DayOfWeek>,
     onFrequencyChange: (HabitFrequency) -> Unit,
     onDayToggle: (DayOfWeek) -> Unit,
+    intervalTimes: Int,
+    intervalDays: Int,
+    onIntervalTimesChange: (Int) -> Unit,
+    onIntervalDaysChange: (Int) -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -498,13 +502,32 @@ fun FrequencySection(
             SegmentedButton(
                 selected = frequency == HabitFrequency.DAILY,
                 onClick = { onFrequencyChange(HabitFrequency.DAILY) },
-                shape = SegmentedButtonDefaults.itemShape(0, 2),
-            ) { Text("Каждый день") }
+                shape = SegmentedButtonDefaults.itemShape(0, 3),
+            ) { Text("Каждый день", maxLines = 1) }
             SegmentedButton(
                 selected = frequency == HabitFrequency.CUSTOM,
                 onClick = { onFrequencyChange(HabitFrequency.CUSTOM) },
-                shape = SegmentedButtonDefaults.itemShape(1, 2),
-            ) { Text("По дням") }
+                shape = SegmentedButtonDefaults.itemShape(1, 3),
+            ) { Text("По дням", maxLines = 1) }
+            SegmentedButton(
+                selected = frequency == HabitFrequency.INTERVAL,
+                onClick = { onFrequencyChange(HabitFrequency.INTERVAL) },
+                shape = SegmentedButtonDefaults.itemShape(2, 3),
+            ) { Text("M за N дней", maxLines = 1) }
+        }
+        if (frequency == HabitFrequency.INTERVAL) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IntervalStepper(intervalTimes, onIntervalTimesChange)
+                Text("раз за", style = MaterialTheme.typography.bodyLarge)
+                IntervalStepper(intervalDays, onIntervalDaysChange)
+                Text("дней", style = MaterialTheme.typography.bodyLarge)
+            }
+            Text(
+                text = "Привычка считается выполненной, пока за последние $intervalDays дн. набрано " +
+                    "$intervalTimes отм. Например, тренировка 3 раза за 7 дней.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         if (frequency == HabitFrequency.CUSTOM) {
             Row(
@@ -519,6 +542,19 @@ fun FrequencySection(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun IntervalStepper(value: Int, onValueChange: (Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = { onValueChange(value - 1) }) {
+            Icon(Icons.Default.Remove, "Уменьшить")
+        }
+        Text(text = value.toString(), style = MaterialTheme.typography.titleLarge)
+        IconButton(onClick = { onValueChange(value + 1) }) {
+            Icon(Icons.Default.Add, "Увеличить")
         }
     }
 }

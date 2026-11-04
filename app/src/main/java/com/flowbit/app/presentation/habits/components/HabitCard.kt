@@ -68,6 +68,7 @@ import coil.compose.AsyncImage
 import com.flowbit.app.R
 import kotlinx.coroutines.launch
 import java.time.format.TextStyle
+import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -290,6 +291,20 @@ fun HabitCard(
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                                 )
                             }
+                        }
+                        habit.frequency == HabitFrequency.INTERVAL && habit.targetCount == 1 -> {
+                            val reached = habitForDate.intervalProgress >= habit.intervalTimes
+                            Text(
+                                text = stringResource(
+                                    R.string.interval_progress,
+                                    habitForDate.intervalProgress.coerceAtMost(habit.intervalTimes),
+                                    habit.intervalTimes,
+                                    habit.intervalDays,
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (reached) habitColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (reached) FontWeight.SemiBold else FontWeight.Normal,
+                            )
                         }
                         habit.targetCount > 1 -> {
                             Text(

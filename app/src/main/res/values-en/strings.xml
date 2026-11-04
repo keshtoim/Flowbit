@@ -118,6 +118,7 @@
     <string name="taboo_relapse_button">Relapsed</string>
     <string name="streak_safe_skipped_label">🛡 Skipped (streak kept)</string>
     <string name="not_done">Not done</string>
+    <string name="interval_progress">%1$d of %2$d in %3$d days</string>
     <string name="summary_today">Today</string>
     <string name="summary_future">This day hasn\'t come yet</string>
     <string name="summary_all_skipped">All habits skipped</string>

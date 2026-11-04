@@ -119,6 +119,7 @@
     <string name="taboo_relapse_button">Сорвался</string>
     <string name="streak_safe_skipped_label">🛡 Пропущено (серия сохранена)</string>
     <string name="not_done">Не выполнено</string>
+    <string name="interval_progress">%1$d из %2$d за %3$d дн.</string>
     <string name="summary_today">Сегодня</string>
     <string name="summary_future">День ещё не наступил</string>
     <string name="summary_all_skipped">Все привычки пропущены</string>

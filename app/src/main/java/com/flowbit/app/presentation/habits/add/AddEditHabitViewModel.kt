@@ -34,6 +34,8 @@ data class AddEditHabitUiState(
     val targetCount: Int = 1,
     val frequency: HabitFrequency = HabitFrequency.DAILY,
     val scheduledDays: Set<DayOfWeek> = DayOfWeek.entries.toSet(),
+    val intervalTimes: Int = 3,
+    val intervalDays: Int = 7,
     val startDate: LocalDate = LocalDate.now(),
     val showInWidget: Boolean = false,
     val reminders: List<HabitReminder> = emptyList(),
@@ -100,6 +102,8 @@ class AddEditHabitViewModel @Inject constructor(
                     targetCount = habit.targetCount,
                     frequency = habit.frequency,
                     scheduledDays = habit.scheduledDays,
+                    intervalTimes = habit.intervalTimes,
+                    intervalDays = habit.intervalDays,
                     startDate = habit.startDate,
                     showInWidget = habit.showInWidget,
                     reminders = reminders,
@@ -125,6 +129,11 @@ class AddEditHabitViewModel @Inject constructor(
     fun onColorChange(color: HabitColor) = _uiState.update { it.copy(color = color) }
     fun onTargetCountChange(count: Int) = _uiState.update { it.copy(targetCount = count.coerceIn(1, 20)) }
     fun onFrequencyChange(freq: HabitFrequency) = _uiState.update { it.copy(frequency = freq) }
+    fun onIntervalDaysChange(days: Int) = _uiState.update {
+        val d = days.coerceIn(2, 31)
+        it.copy(intervalDays = d, intervalTimes = it.intervalTimes.coerceAtMost(d - 1))
+    }
+    fun onIntervalTimesChange(times: Int) = _uiState.update { it.copy(intervalTimes = times.coerceIn(1, it.intervalDays - 1)) }
     fun onShowInWidgetChange(show: Boolean) = _uiState.update { it.copy(showInWidget = show) }
     fun onStartDateChange(date: LocalDate) = _uiState.update { it.copy(startDate = date) }
     fun onPhotoSelected(uri: String?) = _uiState.update { it.copy(photoUri = uri) }
@@ -212,6 +221,8 @@ class AddEditHabitViewModel @Inject constructor(
                 targetCount = state.targetCount,
                 frequency = state.frequency,
                 scheduledDays = state.scheduledDays,
+                intervalTimes = state.intervalTimes,
+                intervalDays = state.intervalDays,
                 startDate = state.startDate,
                 showInWidget = state.showInWidget,
                 photoUri = state.photoUri,

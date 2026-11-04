@@ -234,7 +234,10 @@ fun FormLayoutA(
         // Расписание
         SectionLabel("РАСПИСАНИЕ")
         SectionCard {
-            FrequencySection(uiState.frequency, uiState.scheduledDays, viewModel::onFrequencyChange, viewModel::onDayToggle)
+            FrequencySection(
+                uiState.frequency, uiState.scheduledDays, viewModel::onFrequencyChange, viewModel::onDayToggle,
+                uiState.intervalTimes, uiState.intervalDays, viewModel::onIntervalTimesChange, viewModel::onIntervalDaysChange,
+            )
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             StartDateSection(uiState.startDate, viewModel::onStartDateChange)
         }
@@ -355,7 +358,10 @@ fun FormLayoutB(
                 expanded = schedExpanded,
                 onToggle = { schedExpanded = !schedExpanded },
             ) {
-                FrequencySection(uiState.frequency, uiState.scheduledDays, viewModel::onFrequencyChange, viewModel::onDayToggle)
+                FrequencySection(
+                    uiState.frequency, uiState.scheduledDays, viewModel::onFrequencyChange, viewModel::onDayToggle,
+                    uiState.intervalTimes, uiState.intervalDays, viewModel::onIntervalTimesChange, viewModel::onIntervalDaysChange,
+                )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 StartDateSection(uiState.startDate, viewModel::onStartDateChange)
             }
@@ -540,7 +546,10 @@ fun FormLayoutC(
 
                 SectionLabel("РАСПИСАНИЕ")
                 SectionCard {
-                    FrequencySection(uiState.frequency, uiState.scheduledDays, viewModel::onFrequencyChange, viewModel::onDayToggle)
+                    FrequencySection(
+                        uiState.frequency, uiState.scheduledDays, viewModel::onFrequencyChange, viewModel::onDayToggle,
+                        uiState.intervalTimes, uiState.intervalDays, viewModel::onIntervalTimesChange, viewModel::onIntervalDaysChange,
+                    )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     StartDateSection(uiState.startDate, viewModel::onStartDateChange)
                 }
