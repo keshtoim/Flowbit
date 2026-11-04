@@ -136,7 +136,7 @@ internal fun DetailLayoutA(
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "выполнение за 30 дней",
+                            text = "выполнение за всё время",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 8.dp),
@@ -303,7 +303,7 @@ internal fun DetailLayoutB(
                         VerticalDividerThin()
                         CompactMetric(value = "${stats.longestStreak}", label = "Рекорд")
                         VerticalDividerThin()
-                        CompactMetric(value = "$rateInt%", label = "30 дней", valueColor = primary)
+                        CompactMetric(value = "$rateInt%", label = "Всё время", valueColor = primary)
                         VerticalDividerThin()
                         CompactMetric(value = "${stats.totalCompletions}", label = "Всего")
                     }
@@ -501,7 +501,7 @@ internal fun DetailLayoutC(
                 RingProgressIndicator(
                     progress = stats.completionRate,
                     centerLabel = "$rateInt%",
-                    subLabel = "30 дней",
+                    subLabel = "всё время",
                     modifier = Modifier.size(110.dp),
                 )
                 Spacer(Modifier.height(10.dp))
