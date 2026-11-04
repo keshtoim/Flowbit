@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 class HabitRepositoryImpl @Inject constructor(
@@ -93,7 +92,7 @@ class HabitRepositoryImpl @Inject constructor(
         val totalDays = countScheduledDays(habit)
         val completionRate = if (totalDays > 0) completedDates.size.toFloat() / totalDays else 0f
         val currentStreak = calculateCurrentStreak(habit, completedDates, frozenDates, LocalDate.now())
-        val longestStreak = calculateLongestStreak(habit, completedDates)
+        val longestStreak = calculateLongestStreak(habit, completedDates, frozenDates)
 
         return HabitStats(
             habitId = habitId,
@@ -254,18 +253,30 @@ class HabitRepositoryImpl @Inject constructor(
         return streak
     }
 
-    private fun calculateLongestStreak(habit: Habit, completedDates: List<LocalDate>): Int {
-        if (completedDates.isEmpty()) return 0
-        var longest = 1
-        var current = 1
-        for (i in 1 until completedDates.size) {
-            val diff = ChronoUnit.DAYS.between(completedDates[i - 1], completedDates[i])
-            if (diff == 1L) {
-                current++
-                if (current > longest) longest = current
-            } else {
-                current = 1
+    // Те же правила, что в calculateCurrentStreak: дни вне расписания, заморозки и неотмеченный сегодняшний день серию не рвут
+    private fun calculateLongestStreak(
+        habit: Habit,
+        completedDates: List<LocalDate>,
+        frozenDates: Set<LocalDate>,
+    ): Int {
+        val datesSet = completedDates.toHashSet()
+        val today = LocalDate.now()
+        var longest = 0
+        var current = 0
+        var d = habit.startDate
+        while (!d.isAfter(today)) {
+            val isScheduled = habit.frequency == HabitFrequency.DAILY || d.dayOfWeek in habit.scheduledDays
+            if (isScheduled) {
+                when {
+                    d in datesSet -> {
+                        current++
+                        if (current > longest) longest = current
+                    }
+                    d in frozenDates || d == today -> Unit
+                    else -> current = 0
+                }
             }
+            d = d.plusDays(1)
         }
         return longest
     }
