@@ -4,7 +4,7 @@
 
 ### Трекер привычек, который не мешает жить
 
-[![Android](https://img.shields.io/badge/Android-5.0+-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
+[![Android](https://img.shields.io/badge/Android-8.0+-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack_Compose-Material_3-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![CI](https://img.shields.io/github/actions/workflow/status/keshtoim/Flowbit/build.yml?style=for-the-badge&label=CI)](https://github.com/keshtoim/Flowbit/actions)
@@ -21,8 +21,8 @@
 Большинство приложений для привычек — либо слишком простые, либо перегруженные платными функциями. Flowbit занимает середину: **всё, что нужно для серьёзного трекинга** — без подписок, без рекламы, без облака.
 
 - 📴 **100% офлайн** — ваши данные хранятся только на устройстве
-- 🎨 **Material You** — виджеты и интерфейс меняют цвет под ваши обои
-- ⚡ **Быстро** — галочка за одно касание, виджет на рабочем столе
+- 🎨 **Свой акцент** — бирюзовый по умолчанию, 8 пресетов, любой HEX или цвета обоев (Material You)
+- ⚡ **Быстро** — галочка в одно касание или свайп, отметка прямо из виджета
 - 🔓 **Открытый код** — без скрытых трекеров и аналитики
 
 ---
@@ -35,7 +35,7 @@
 
 ### ✅ Гибкие привычки
 - Счётчик повторений (+ / −) с целью на день
-- Частота: каждый день или выбранные дни
+- Частота: каждый день, выбранные дни или **M раз за N дней** — например, 3 тренировки за 7 дней (скользящее окно)
 - **Числовые цели** — «выпить 2 л воды», «пробежать 5 км»
 - **Таймер** — готовые пресеты или произвольное время, отмечает сам
 - Периодические цели — «4 раза в неделю»
@@ -75,12 +75,13 @@
 <td>
 
 ### 🪟 Виджеты
-- 📅 Недельный — все привычки × 7 дней недели
-- 📜 Список дня — прокрутка привычек с прогрессом
+- 📅 Недельный и 📜 Список дня — строки как в приложении: история за 7 дней и кнопка отметки прямо в виджете
 - ➕ Одна привычка — счётчик + кнопка **«+»**
-- 🔵 Сводка дня — «N / M выполнено» + прогресс-полоса
-- 🎨 Следуют акценту приложения (Material You / кастомный цвет)
-- 👆 Нажатие открывает приложение
+- 🔵 Сводка дня — «N / M выполнено» + прогресс
+- 🗓️ Тепловая карта — активность за 18 недель
+- 🔒 Экран блокировки — прогресс на сегодня
+- 🌗 Следуют **теме и акценту приложения**, а не только системной теме
+- Значок виджета на карточке и опция «Новые привычки сразу в виджет»
 
 </td>
 </tr>
@@ -88,20 +89,23 @@
 <td>
 
 ### 💡 Детали, которые важны
+- 👆 **Долгое нажатие** — панель со всеми действиями: +1, число, таймер, пропуски, виджет, архив
+- ↔️ **Свайп** вправо — отметить, влево — пропустить
+- 🏷️ Фильтр по тегам над списком
+- 📂 Выполненные и табу сворачиваются в секции внизу
 - ⏭ Пропуск дня — намеренно, с подтверждением отмены
 - 📝 Заметка к каждому дню + **история всех заметок**
-- 🖼️ Фото-баннер (с кадрированием)
-- 🎵 Аудио-мотивация
-- ↕️ Перетаскивание карточек для сортировки
+- 🖼️ Фото-баннер (с кадрированием) и 🎵 аудио-мотивация
+- ↕️ Перетаскивание для сортировки, новые привычки — в конец списка
 - 🗑️ Удаление с подтверждением
 
 </td>
 <td>
 
 ### 🌗 Персонализация
-- Тёмная / светлая / системная тема
-- 🎨 **Material You** — акцент из обоев (Android 12+)
-- 8 цветов-пресетов + произвольный HEX + кнопка «Из обоев»
+- Тёмная / светлая / системная тема — применяется и к виджетам
+- 🎨 Акцент: бирюзовый по умолчанию, 8 пресетов, произвольный HEX или «Из обоев» (Material You, Android 12+)
+- 📐 **Вид списка** — Карточки / Строки / Мини, история за 7 дней, сворачивание выполненных, компактная или большая сводка дня
 - **3 стиля формы привычки** — Preview, Секции, Мастер
 - **3 стиля экрана аналитики** — Dashboard, Timeline, История
 - Эмодзи-аватарка
@@ -120,7 +124,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white)
 ![Compose](https://img.shields.io/badge/Jetpack_Compose-4285F4?logo=jetpackcompose&logoColor=white)
 ![Material3](https://img.shields.io/badge/Material_3-757575?logo=materialdesign&logoColor=white)
-![Room](https://img.shields.io/badge/Room_DB-v15-3DDC84?logo=android&logoColor=white)
+![Room](https://img.shields.io/badge/Room_DB-v16-3DDC84?logo=android&logoColor=white)
 ![Hilt](https://img.shields.io/badge/Hilt_DI-F6891F)
 ![Glance](https://img.shields.io/badge/Glance_Widgets-4285F4?logo=android&logoColor=white)
 ![WorkManager](https://img.shields.io/badge/WorkManager-3DDC84?logo=android&logoColor=white)
@@ -131,7 +135,7 @@
 | UI | Jetpack Compose + Material 3 |
 | Виджеты | Jetpack Glance 1.1 · `PreferencesGlanceStateDefinition` |
 | DI | Hilt |
-| БД | Room 2.6 · SQLite · миграции v1→v15 |
+| БД | Room 2.6 · SQLite · миграции v1→v16 |
 | Изображения | Coil 2.6 + android-image-cropper |
 | Фон | AlarmManager · WorkManager |
 | Настройки | DataStore Preferences |
@@ -149,7 +153,7 @@ cd Flowbit
 ./gradlew assembleDebug
 ```
 
-> Требования: Android Studio Ladybug+, JDK 17, Android 5.0+ (API 21)
+> Требования: Android Studio Ladybug+, JDK 17, Android 8.0+ (API 26)
 
 APK → `app/build/outputs/apk/debug/app-debug.apk`
 
@@ -160,7 +164,7 @@ APK → `app/build/outputs/apk/debug/app-debug.apk`
 ```
 app/
 ├── data/
-│   ├── database/       # Room: сущности, DAO, миграции (v1→v15)
+│   ├── database/       # Room: сущности, DAO, миграции (v1→v16)
 │   ├── receiver/       # AlarmManager BroadcastReceiver-ы
 │   ├── repository/     # Реализации репозиториев
 │   └── worker/         # WorkManager: InactivityCheckWorker
@@ -173,8 +177,8 @@ app/
 │   ├── statistics/     # Графики и тепловая карта
 │   ├── weekly/         # Экран итогов недели
 │   ├── settings/       # Настройки · бекап · язык
-│   └── theme/          # Material You + тёмная тема
-└── widget/             # 4 Glance-виджета + IncrementHabitAction + buildGlanceColors
+│   └── theme/          # Общая схема цветов для приложения и виджетов
+└── widget/             # 6 Glance-виджетов + WidgetHabitList + IncrementHabitAction + buildGlanceColors
 ```
 
 Clean Architecture: `presentation → domain ← data`. ViewModel не знает про БД, UseCase не знает про Compose.

@@ -4,7 +4,7 @@
 
 ### A habit tracker that stays out of your way
 
-[![Android](https://img.shields.io/badge/Android-5.0+-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
+[![Android](https://img.shields.io/badge/Android-8.0+-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack_Compose-Material_3-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![CI](https://img.shields.io/github/actions/workflow/status/keshtoim/Flowbit/build.yml?style=for-the-badge&label=CI)](https://github.com/keshtoim/Flowbit/actions)
@@ -21,8 +21,8 @@
 Most habit apps are either too basic or bloated with paid features. Flowbit hits the sweet spot: **everything you need for serious habit tracking** — no subscriptions, no ads, no cloud required.
 
 - 📴 **100% offline** — your data lives only on your device
-- 🎨 **Material You** — widgets and UI adapt to your wallpaper colors
-- ⚡ **Fast** — one tap to check off, widget right on your home screen
+- 🎨 **Your accent** — teal by default, 8 presets, any HEX or wallpaper colors (Material You)
+- ⚡ **Fast** — one tap or a swipe to check off, mark right from the widget
 - 🔓 **Open source** — no hidden trackers or analytics
 
 ---
@@ -35,7 +35,7 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 
 ### ✅ Flexible habits
 - Repetition counter (+ / −) with daily goal
-- Frequency: every day or specific weekdays
+- Frequency: every day, specific weekdays or **M times in N days** — e.g. 3 workouts in 7 days (rolling window)
 - **Numeric goals** — "drink 2 L of water", "run 5 km"
 - **Built-in timer** — presets or custom time, auto-completes when done
 - Period goals — "4 times a week"
@@ -74,11 +74,13 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 <td>
 
 ### 🪟 Home screen widgets
-- 📅 Weekly — all habits for 7 days
-- 🔵 Day summary — circular progress
+- 📅 Weekly and 📜 Today list — rows like in the app: 7-day history and a check button right in the widget
 - ➕ Single habit — counter + **"+"** button
-- 🎨 All adapt to Material You dynamic color
-- 👆 Tap opens the app
+- 🔵 Day summary — "N / M done" + progress
+- 🗓️ Heatmap — activity for the last 18 weeks
+- 🔒 Lock screen — today's progress
+- 🌗 Follow the **app theme and accent**, not just the system theme
+- Widget badge on habit rows and a "New habits go to the widget" option
 
 </td>
 </tr>
@@ -86,19 +88,25 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 <td>
 
 ### 💡 Details that matter
+- 👆 **Long press** — a sheet with every action: +1, count, timer, skips, widget, archive
+- ↔️ **Swipe** right to check off, left to skip
+- 🏷️ Tag filter above the list
+- 📂 Completed and taboo habits collapse into sections at the bottom
 - ⏭ Intentional day skip — with confirmation to undo
 - 📝 Per-day notes + **full note history**
-- 🖼️ Photo banner (with crop)
-- 🎵 Audio motivation
-- ↕️ Drag-and-drop card reordering
+- 🖼️ Photo banner (with crop) and 🎵 audio motivation
+- ↕️ Drag-and-drop reordering, new habits go to the end of the list
 - 🗑️ Delete with confirmation
 
 </td>
 <td>
 
 ### 🌗 Personalization
-- Dark / light theme
-- 16 accent colors + custom HEX color
+- Dark / light / system theme — applied to widgets too
+- 🎨 Accent: teal by default, 8 presets, custom HEX or "From wallpaper" (Material You, Android 12+)
+- 📐 **List view** — Cards / Rows / Mini, 7-day history, collapsed completed habits, compact or large day summary
+- **3 habit form styles** — Preview, Sections, Wizard
+- **3 analytics styles** — Dashboard, Timeline, History
 - Emoji avatar
 - Group by tag / frequency / status
 - 💾 JSON export & import (including reminders)
@@ -115,7 +123,7 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white)
 ![Compose](https://img.shields.io/badge/Jetpack_Compose-4285F4?logo=jetpackcompose&logoColor=white)
 ![Material3](https://img.shields.io/badge/Material_3-757575?logo=materialdesign&logoColor=white)
-![Room](https://img.shields.io/badge/Room_DB-v15-3DDC84?logo=android&logoColor=white)
+![Room](https://img.shields.io/badge/Room_DB-v16-3DDC84?logo=android&logoColor=white)
 ![Hilt](https://img.shields.io/badge/Hilt_DI-F6891F)
 ![Glance](https://img.shields.io/badge/Glance_Widgets-4285F4?logo=android&logoColor=white)
 
@@ -124,7 +132,7 @@ Most habit apps are either too basic or bloated with paid features. Flowbit hits
 | UI | Jetpack Compose + Material 3 |
 | Widgets | Jetpack Glance 1.1 · `PreferencesGlanceStateDefinition` |
 | DI | Hilt |
-| Database | Room 2.6 · SQLite · migrations v1→v15 |
+| Database | Room 2.6 · SQLite · migrations v1→v16 |
 | Images | Coil 2.6 + android-image-cropper |
 | Background | AlarmManager · WorkManager |
 | Preferences | DataStore |
@@ -142,7 +150,7 @@ cd Flowbit
 ./gradlew assembleDebug
 ```
 
-> Requirements: Android Studio Ladybug+, JDK 17, Android 5.0+ (API 21)
+> Requirements: Android Studio Ladybug+, JDK 17, Android 8.0+ (API 26)
 
 APK → `app/build/outputs/apk/debug/app-debug.apk`
 
@@ -153,7 +161,7 @@ APK → `app/build/outputs/apk/debug/app-debug.apk`
 ```
 app/
 ├── data/
-│   ├── database/       # Room: entities, DAOs, migrations (v1→v15)
+│   ├── database/       # Room: entities, DAOs, migrations (v1→v16)
 │   ├── receiver/       # AlarmManager BroadcastReceivers
 │   ├── repository/     # Repository implementations
 │   └── worker/         # WorkManager: InactivityCheckWorker
@@ -166,8 +174,8 @@ app/
 │   ├── statistics/     # Charts and heatmap
 │   ├── weekly/         # Weekly summary screen
 │   ├── settings/       # Settings · backup · language
-│   └── theme/          # Material You + dark theme
-└── widget/             # 3 Glance widgets + IncrementHabitAction
+│   └── theme/          # Shared color scheme for app and widgets
+└── widget/             # 6 Glance widgets + WidgetHabitList + IncrementHabitAction + buildGlanceColors
 ```
 
 Clean Architecture: `presentation → domain ← data`. ViewModels don't know about the DB; UseCases don't know about Compose.
