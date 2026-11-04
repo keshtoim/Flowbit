@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -80,6 +81,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.flowbit.app.R
 import com.flowbit.app.domain.model.GroupingMode
 import com.flowbit.app.domain.model.ListDensity
+import com.flowbit.app.domain.model.ListViewSettings
+import com.flowbit.app.presentation.habits.components.HabitRow
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.presentation.habits.components.HabitCard
@@ -393,7 +396,7 @@ fun HabitListScreen(
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     onLongClick = { contextMenuHabit = habitForDate },
                                     cardModifier = Modifier.animateItem(),
-                                    compact = uiState.listSettings.density == ListDensity.MINI,
+                                    listSettings = uiState.listSettings,
                                 )
                             }
                         }
@@ -417,7 +420,7 @@ fun HabitListScreen(
                                             viewModel.persistReorder(draggableHabits)
                                         },
                                     ),
-                                    compact = uiState.listSettings.density == ListDensity.MINI,
+                                    listSettings = uiState.listSettings,
                                 )
                             }
                         }
@@ -469,7 +472,7 @@ fun HabitListScreen(
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     onLongClick = { contextMenuHabit = habitForDate },
                                     enableSwipe = false,
-                                    compact = uiState.listSettings.density == ListDensity.MINI,
+                                    listSettings = uiState.listSettings,
                                 )
                             }
                         }
@@ -497,74 +500,82 @@ private fun SwipeableHabitCard(
     onSkip: () -> Unit,
     onUnSkipRequest: () -> Unit,
     onTimer: () -> Unit,
+    listSettings: ListViewSettings,
     cardModifier: Modifier = Modifier,
     enableSwipe: Boolean = true,
     onLongClick: () -> Unit = {},
-    compact: Boolean = false,
 ) {
+    val content = @Composable {
+        if (listSettings.density == ListDensity.CARDS) {
+            HabitCard(
+                habitForDate = habitForDate,
+                onToggle = onToggle,
+                onDecrease = onDecrease,
+                onGiveUp = onGiveUp,
+                onClick = onClick,
+                onSkip = onSkip,
+                onUnSkipRequest = onUnSkipRequest,
+                onTimer = onTimer,
+                onLongClick = onLongClick,
+                modifier = cardModifier,
+            )
+        } else {
+            HabitRow(
+                habitForDate = habitForDate,
+                onToggle = onToggle,
+                onClick = onClick,
+                onLongClick = onLongClick,
+                onUnSkipRequest = onUnSkipRequest,
+                onTimer = onTimer,
+                modifier = cardModifier,
+                mini = listSettings.density == ListDensity.MINI,
+                showHistory = listSettings.showHistory,
+            )
+        }
+    }
     if (!enableSwipe) {
-        HabitCard(
-            habitForDate = habitForDate,
-            onToggle = onToggle,
-            onDecrease = onDecrease,
-            onGiveUp = onGiveUp,
-            onClick = onClick,
-            onSkip = onSkip,
-            onUnSkipRequest = onUnSkipRequest,
-            onTimer = onTimer,
-            onLongClick = onLongClick,
-            modifier = cardModifier,
-            compact = compact,
-        )
+        content()
         return
     }
+    val canSkip = !habitForDate.isSkippedForDay
     val swipeState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.StartToEnd) onToggle()
-            false  // always snap back
+            when (value) {
+                SwipeToDismissBoxValue.StartToEnd -> onToggle()
+                SwipeToDismissBoxValue.EndToStart -> onSkip()
+                SwipeToDismissBoxValue.Settled -> Unit
+            }
+            false
         },
     )
+    val shape = RoundedCornerShape(if (listSettings.density == ListDensity.CARDS) 18.dp else 14.dp)
     SwipeToDismissBox(
         state = swipeState,
         backgroundContent = {
-            // progress == 1f when settled — show only while actively swiping StartToEnd
-            val alpha = if (swipeState.targetValue == SwipeToDismissBoxValue.StartToEnd)
-                swipeState.progress.coerceIn(0f, 1f)
-            else 0f
+            // progress == 1 в покое, поэтому фон виден только во время активного свайпа
+            val toDone = swipeState.targetValue == SwipeToDismissBoxValue.StartToEnd
+            val toSkip = swipeState.targetValue == SwipeToDismissBoxValue.EndToStart
+            val alpha = if (toDone || toSkip) swipeState.progress.coerceIn(0f, 1f) else 0f
+            val color = if (toSkip) MaterialTheme.colorScheme.onSurfaceVariant else Color(0xFF4CAF50)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        color = Color(0xFF4CAF50).copy(alpha = (alpha * 1.2f).coerceAtMost(1f)),
-                        shape = RoundedCornerShape(18.dp),
-                    )
-                    .padding(start = 24.dp),
-                contentAlignment = Alignment.CenterStart,
+                    .background(color.copy(alpha = (alpha * 1.2f).coerceAtMost(1f)), shape)
+                    .padding(horizontal = 24.dp),
+                contentAlignment = if (toSkip) Alignment.CenterEnd else Alignment.CenterStart,
             ) {
                 Icon(
-                    Icons.Default.Check,
+                    if (toSkip) Icons.Default.SkipNext else Icons.Default.Check,
                     contentDescription = null,
                     tint = Color.White.copy(alpha = alpha),
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(26.dp),
                 )
             }
         },
-        enableDismissFromEndToStart = false,
+        enableDismissFromEndToStart = canSkip,
         enableDismissFromStartToEnd = true,
     ) {
-        HabitCard(
-            habitForDate = habitForDate,
-            onToggle = onToggle,
-            onDecrease = onDecrease,
-            onGiveUp = onGiveUp,
-            onClick = onClick,
-            onSkip = onSkip,
-            onUnSkipRequest = onUnSkipRequest,
-            onTimer = onTimer,
-            onLongClick = onLongClick,
-            modifier = cardModifier,
-            compact = compact,
-        )
+        content()
     }
 }
 

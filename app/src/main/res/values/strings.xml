@@ -98,6 +98,8 @@
     <string name="cd_statistics">Статистика</string>
     <string name="cd_grouping">Группировка</string>
     <string name="cd_in_widget">Показывается в виджете</string>
+    <string name="cd_start_timer">Запустить таймер</string>
+    <string name="status_skipped">Пропущено</string>
     <string name="cd_settings">Настройки</string>
     <string name="cd_add_habit">Добавить привычку</string>
     <string name="cd_collapse">Свернуть</string>
