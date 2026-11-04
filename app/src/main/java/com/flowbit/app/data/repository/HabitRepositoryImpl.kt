@@ -103,6 +103,7 @@ class HabitRepositoryImpl @Inject constructor(
             longestStreak = longestStreak,
             totalCompletions = completedDates.size,
             completedDates = completedDates,
+            startDate = habit.startDate,
             photoUri = habit.photoUri,
             audioUri = habit.audioUri,
         )

@@ -25,6 +25,7 @@ class StatsUseCaseTest {
         longestStreak = 0,
         totalCompletions = dates.size,
         completedDates = dates,
+        startDate = dates.minOrNull() ?: LocalDate.now(),
     )
 
     // ── GetBestTimeUseCase ────────────────────────────────────────────────────

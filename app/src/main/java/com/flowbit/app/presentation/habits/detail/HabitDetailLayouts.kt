@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
 // ── Layout A · Dashboard ──────────────────────────────────────────────────────
@@ -175,10 +177,9 @@ internal fun DetailLayoutA(
                     label = "Всего выполнено",
                     valueColor = MaterialTheme.colorScheme.tertiary,
                 )
-                val weeklyAvg = if (stats.completedDates.size > 0) {
-                    val weeks = (stats.completedDates.size / 7f).coerceAtLeast(1f)
-                    "%.1f".format(stats.completedDates.size / weeks)
-                } else "0"
+                val trackedDays = ChronoUnit.DAYS.between(stats.startDate, LocalDate.now()) + 1
+                val weeks = (trackedDays / 7f).coerceAtLeast(1f)
+                val weeklyAvg = "%.1f".format(stats.completedDates.size / weeks)
                 MetricTile(
                     modifier = Modifier.weight(1f),
                     icon = "📅",
