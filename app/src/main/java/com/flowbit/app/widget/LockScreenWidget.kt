@@ -61,7 +61,7 @@ class LockScreenWidget : GlanceAppWidget() {
 
         provideContent {
             GlanceTheme(colors = glanceColors) {
-                val bg = GlanceTheme.colors.surface
+                val bg = GlanceTheme.colors.background
                 val primary = GlanceTheme.colors.primary
                 val onSurface = GlanceTheme.colors.onSurface
 

@@ -27,16 +27,20 @@ class WidgetUpdateWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        HabitsWidget().updateAll(applicationContext)
-        HabitScrollWidget().updateAll(applicationContext)
-        SingleHabitWidget().updateAll(applicationContext)
-        TodaySummaryWidget().updateAll(applicationContext)
-        HeatmapWidget().updateAll(applicationContext)
-        LockScreenWidget().updateAll(applicationContext)
+        updateAllNow(applicationContext)
         return Result.success()
     }
 
     companion object {
+        suspend fun updateAllNow(context: Context) {
+            HabitsWidget().updateAll(context)
+            HabitScrollWidget().updateAll(context)
+            SingleHabitWidget().updateAll(context)
+            TodaySummaryWidget().updateAll(context)
+            HeatmapWidget().updateAll(context)
+            LockScreenWidget().updateAll(context)
+        }
+
         private const val PERIODIC_WORK_NAME = "widget_update_periodic"
         private const val ONE_SHOT_WORK_NAME = "widget_update_once"
 

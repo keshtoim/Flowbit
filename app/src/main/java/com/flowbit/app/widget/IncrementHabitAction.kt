@@ -5,6 +5,7 @@ import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import com.flowbit.app.data.database.entity.HabitEntryEntity
+import com.flowbit.app.data.worker.WidgetUpdateWorker
 import dagger.hilt.android.EntryPointAccessors
 import java.time.LocalDate
 
@@ -23,7 +24,7 @@ class IncrementHabitAction : ActionCallback {
         val newEntry = existing?.copy(completedCount = currentCount + 1)
             ?: HabitEntryEntity(habitId = habitId, date = today, completedCount = 1)
         db.habitDao().insertEntry(newEntry)
-        SingleHabitWidget().update(context, glanceId)
+        WidgetUpdateWorker.updateAllNow(context)
     }
 
     companion object {

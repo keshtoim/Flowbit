@@ -94,7 +94,7 @@ class SingleHabitWidget : GlanceAppWidget() {
             val streak = stats?.streak ?: 0
 
             GlanceTheme(colors = glanceColors) {
-                val bg = GlanceTheme.colors.surface
+                val bg = GlanceTheme.colors.background
                 val primary = GlanceTheme.colors.primary
                 val onSurface = GlanceTheme.colors.onSurface
                 val onSurfaceVariant = GlanceTheme.colors.onSurfaceVariant
@@ -103,7 +103,7 @@ class SingleHabitWidget : GlanceAppWidget() {
                     modifier = GlanceModifier
                         .fillMaxSize()
                         .background(bg)
-                        .cornerRadius(20.dp)
+                        .cornerRadius(24.dp)
                         .clickable(actionStartActivity(Intent(context, MainActivity::class.java))),
                     contentAlignment = Alignment.Center,
                 ) {
