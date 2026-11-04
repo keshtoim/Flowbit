@@ -95,10 +95,9 @@ class HabitListViewModel @Inject constructor(
                 }
 
                 val isToday = date == LocalDate.now()
-                val allDone = enriched.isNotEmpty() && enriched.all { hfd ->
-                    hfd.entry?.isSkipped == true ||
-                        (hfd.entry?.completedCount ?: 0) >= hfd.habit.targetCount
-                }
+                // Табу не участвуют: для них «выполнено» означает отсутствие отметок
+                val active = enriched.filter { !it.habit.isBadHabit && !it.isSkippedForDay }
+                val allDone = active.isNotEmpty() && active.all { it.isDone }
                 _uiState.update { state ->
                     val canTrigger = isToday && allDone && date !in state.confettiShownDates
                     state.copy(

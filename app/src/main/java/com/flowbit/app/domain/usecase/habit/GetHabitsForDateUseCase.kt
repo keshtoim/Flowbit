@@ -13,7 +13,13 @@ data class HabitForDate(
     val entry: HabitEntry?,
     val isScheduledForDate: Boolean,
     val recentDays: List<Boolean> = emptyList(),
-)
+) {
+    val isSkippedForDay: Boolean
+        get() = entry?.isSkipped == true || entry?.isStreakSafeSkip == true
+
+    val isDone: Boolean
+        get() = !isSkippedForDay && (entry?.completedCount ?: 0) >= habit.targetCount
+}
 
 class GetHabitsForDateUseCase @Inject constructor(
     private val repository: HabitRepository,
