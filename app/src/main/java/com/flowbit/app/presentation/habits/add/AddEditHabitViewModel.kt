@@ -83,6 +83,10 @@ class AddEditHabitViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            val showByDefault = prefs.showInWidgetByDefault.first()
+            if (editingHabitId == null) _uiState.update { it.copy(showInWidget = showByDefault) }
+        }
+        viewModelScope.launch {
             habitRepository.getActiveHabits().collect { habits ->
                 _uiState.update { it.copy(allHabits = habits) }
             }

@@ -11,6 +11,7 @@ import com.flowbit.app.domain.repository.PreferencesRepository.Companion.COMPACT
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.FORM_STYLE_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ONBOARDING_SHOWN_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.THEME_MODE_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.WIDGET_BY_DEFAULT_KEY
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -41,6 +42,9 @@ class PreferencesRepositoryImpl @Inject constructor(
 
     override val onboardingShown: Flow<Boolean> =
         dataStore.data.map { prefs -> prefs[ONBOARDING_SHOWN_KEY] ?: false }
+
+    override val showInWidgetByDefault: Flow<Boolean> =
+        dataStore.data.map { prefs -> prefs[WIDGET_BY_DEFAULT_KEY] ?: false }
 
     override suspend fun setThemeMode(mode: ThemeMode) {
         dataStore.edit { prefs ->
@@ -74,5 +78,9 @@ class PreferencesRepositoryImpl @Inject constructor(
 
     override suspend fun setOnboardingShown() {
         dataStore.edit { it[ONBOARDING_SHOWN_KEY] = true }
+    }
+
+    override suspend fun setShowInWidgetByDefault(enabled: Boolean) {
+        dataStore.edit { it[WIDGET_BY_DEFAULT_KEY] = enabled }
     }
 }

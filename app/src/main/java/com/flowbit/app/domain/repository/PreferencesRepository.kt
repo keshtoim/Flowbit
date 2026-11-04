@@ -12,6 +12,7 @@ interface PreferencesRepository {
     val analyticsStyle: Flow<String>
     val accentColorHex: Flow<String?>
     val onboardingShown: Flow<Boolean>
+    val showInWidgetByDefault: Flow<Boolean>
 
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setCompactMode(enabled: Boolean)
@@ -20,6 +21,7 @@ interface PreferencesRepository {
     suspend fun setAccentColor(hex: String)
     suspend fun clearAccentColor()
     suspend fun setOnboardingShown()
+    suspend fun setShowInWidgetByDefault(enabled: Boolean)
 
     companion object {
         val THEME_MODE_KEY      = stringPreferencesKey("theme_mode")
@@ -28,5 +30,6 @@ interface PreferencesRepository {
         val ANALYTICS_STYLE_KEY = stringPreferencesKey("analytics_style")
         val ACCENT_COLOR_KEY    = stringPreferencesKey("accent_color")
         val ONBOARDING_SHOWN_KEY = booleanPreferencesKey("onboarding_shown")
+        val WIDGET_BY_DEFAULT_KEY = booleanPreferencesKey("show_in_widget_by_default")
     }
 }

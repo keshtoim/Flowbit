@@ -38,6 +38,7 @@ data class SettingsUiState(
     val formStyle: String = "A",
     val analyticsStyle: String = "A",
     val accentColorHex: String? = null,
+    val showInWidgetByDefault: Boolean = false,
 )
 
 @HiltViewModel
@@ -68,6 +69,9 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             prefs.accentColorHex.collect { v -> _uiState.update { it.copy(accentColorHex = v) } }
         }
+        viewModelScope.launch {
+            prefs.showInWidgetByDefault.collect { v -> _uiState.update { it.copy(showInWidgetByDefault = v) } }
+        }
         val currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags()
             .let { if (it.contains("en")) "en" else "ru" }
         _uiState.update { it.copy(currentLanguage = currentLang) }
@@ -90,6 +94,7 @@ class SettingsViewModel @Inject constructor(
 
     fun setThemeMode(mode: ThemeMode) { viewModelScope.launch { prefs.setThemeMode(mode) } }
     fun setCompactMode(enabled: Boolean) { viewModelScope.launch { prefs.setCompactMode(enabled) } }
+    fun setShowInWidgetByDefault(enabled: Boolean) { viewModelScope.launch { prefs.setShowInWidgetByDefault(enabled) } }
     fun setFormStyle(style: String) { viewModelScope.launch { prefs.setFormStyle(style) } }
     fun setAnalyticsStyle(style: String) { viewModelScope.launch { prefs.setAnalyticsStyle(style) } }
     fun setAccentColor(hex: String) { viewModelScope.launch { prefs.setAccentColor(hex) } }

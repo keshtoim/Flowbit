@@ -280,6 +280,16 @@ fun SettingsScreen(
                                 )
                             }
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingsRow(
+                                title = "Новые привычки в виджете",
+                                subtitle = "Включать «Показывать в виджете» при создании",
+                            ) {
+                                Switch(
+                                    checked = uiState.showInWidgetByDefault,
+                                    onCheckedChange = viewModel::setShowInWidgetByDefault,
+                                )
+                            }
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                                 Text("Стиль формы привычки", style = MaterialTheme.typography.bodyLarge)
                                 Text(
