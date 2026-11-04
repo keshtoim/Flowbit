@@ -34,7 +34,7 @@ class GetHabitsForDateUseCase @Inject constructor(
             val entryMap = entries.associateBy { it.habitId }
             habits
                 .filter { habit -> habit.startDate <= date }
-                .filter { habit -> habit.isScheduledFor(date) }
+                .filter { habit -> habit.isScheduledOn(date) }
                 .map { habit ->
                     HabitForDate(
                         habit = habit,
@@ -43,14 +43,6 @@ class GetHabitsForDateUseCase @Inject constructor(
                         isScheduledForDate = true,
                     )
                 }
-        }
-    }
-
-    private fun Habit.isScheduledFor(date: LocalDate): Boolean {
-        return when (frequency) {
-            com.flowbit.app.domain.model.HabitFrequency.DAILY -> true
-            com.flowbit.app.domain.model.HabitFrequency.WEEKLY,
-            com.flowbit.app.domain.model.HabitFrequency.CUSTOM -> date.dayOfWeek in scheduledDays
         }
     }
 }

@@ -5,7 +5,6 @@ import com.flowbit.app.data.database.entity.HabitEntity
 import com.flowbit.app.data.database.entity.HabitEntryEntity
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.domain.model.HabitEntry
-import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.model.HabitStats
 import com.flowbit.app.domain.model.HabitWithEntries
 import com.flowbit.app.domain.model.OverallStats
@@ -143,7 +142,7 @@ class HabitRepositoryImpl @Inject constructor(
         val todayStr = today.toString()
 
         val todayTotal = habits.count { h ->
-            h.frequency == HabitFrequency.DAILY || today.dayOfWeek in h.scheduledDays
+            h.isScheduledOn(today)
         }
 
         val todayEntries = dao.getEntriesForDateRange(todayStr, todayStr)
@@ -187,7 +186,7 @@ class HabitRepositoryImpl @Inject constructor(
         var count = 0
         var current = start
         while (!current.isAfter(today)) {
-            if (habit.frequency == HabitFrequency.DAILY || current.dayOfWeek in habit.scheduledDays) {
+            if (habit.isScheduledOn(current)) {
                 count++
             }
             current = current.plusDays(1)
@@ -202,8 +201,7 @@ class HabitRepositoryImpl @Inject constructor(
             buildList {
                 var d = habit.startDate
                 while (!d.isAfter(until)) {
-                    val scheduled = habit.frequency == HabitFrequency.DAILY ||
-                        d.dayOfWeek in habit.scheduledDays
+                    val scheduled = habit.isScheduledOn(d)
                     if (scheduled && d !in relapsedDates) add(d)
                     d = d.plusDays(1)
                 }
@@ -230,8 +228,7 @@ class HabitRepositoryImpl @Inject constructor(
         var current = if (asOf in datesSet || asOf in frozenDates) asOf else asOf.minusDays(1)
         if (current.isBefore(habit.startDate)) return 0
         while (true) {
-            val isScheduled = habit.frequency == HabitFrequency.DAILY ||
-                current.dayOfWeek in habit.scheduledDays
+            val isScheduled = habit.isScheduledOn(current)
             if (!isScheduled) {
                 current = current.minusDays(1)
                 if (current.isBefore(habit.startDate)) break
@@ -266,7 +263,7 @@ class HabitRepositoryImpl @Inject constructor(
         var current = 0
         var d = habit.startDate
         while (!d.isAfter(today)) {
-            val isScheduled = habit.frequency == HabitFrequency.DAILY || d.dayOfWeek in habit.scheduledDays
+            val isScheduled = habit.isScheduledOn(d)
             if (isScheduled) {
                 when {
                     d in datesSet -> {

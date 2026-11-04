@@ -14,7 +14,7 @@ import com.flowbit.app.data.database.entity.TagEntity
 
 @Database(
     entities = [HabitEntity::class, HabitEntryEntity::class, ReminderEntity::class, TagEntity::class],
-    version = 15,
+    version = 16,
     exportSchema = false,
 )
 abstract class FlowbitDatabase : RoomDatabase() {
@@ -103,6 +103,13 @@ abstract class FlowbitDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE habits ADD COLUMN allowStreakSkip INTEGER NOT NULL DEFAULT 0")
                 database.execSQL("ALTER TABLE habit_entries ADD COLUMN isStreakSafeSkip INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE habits ADD COLUMN intervalTimes INTEGER NOT NULL DEFAULT 3")
+                database.execSQL("ALTER TABLE habits ADD COLUMN intervalDays INTEGER NOT NULL DEFAULT 7")
             }
         }
 

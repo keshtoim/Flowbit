@@ -26,6 +26,8 @@ internal object HabitSerializer {
         put("timerSeconds", h.timerSeconds)
         put("isBadHabit", h.isBadHabit)
         put("allowStreakSkip", h.allowStreakSkip)
+        put("intervalTimes", h.intervalTimes)
+        put("intervalDays", h.intervalDays)
         h.stackAfterHabitId?.let { put("stackAfterHabitId", it) }
         h.photoUri?.let { put("photoUri", it) }
         h.audioUri?.let { put("audioUri", it) }
@@ -52,6 +54,8 @@ internal object HabitSerializer {
         timerSeconds = j.optInt("timerSeconds", 0),
         isBadHabit = j.optBoolean("isBadHabit", false),
         allowStreakSkip = j.optBoolean("allowStreakSkip", false),
+        intervalTimes = j.optInt("intervalTimes", 3),
+        intervalDays = j.optInt("intervalDays", 7),
         stackAfterHabitId = if (j.has("stackAfterHabitId")) j.getLong("stackAfterHabitId") else null,
         photoUri = j.optString("photoUri").takeIf { it.isNotEmpty() },
         audioUri = j.optString("audioUri").takeIf { it.isNotEmpty() },

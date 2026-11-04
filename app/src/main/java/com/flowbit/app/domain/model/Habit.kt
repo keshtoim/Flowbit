@@ -29,10 +29,17 @@ data class Habit(
     val isBadHabit: Boolean = false,
     val allowStreakSkip: Boolean = false,
     val stackAfterHabitId: Long? = null,
+    val intervalTimes: Int = 3,
+    val intervalDays: Int = 7,
     val customColorHex: String? = null,
 ) {
     val effectiveColorHex: String
         get() = if (color == HabitColor.CUSTOM) customColorHex ?: "#FFFFFF" else color.hex
+
+    fun isScheduledOn(date: LocalDate): Boolean = when (frequency) {
+        HabitFrequency.DAILY, HabitFrequency.INTERVAL -> true
+        HabitFrequency.WEEKLY, HabitFrequency.CUSTOM -> date.dayOfWeek in scheduledDays
+    }
 }
 
 data class HabitReminder(
@@ -46,6 +53,9 @@ enum class HabitFrequency {
     DAILY,
     WEEKLY,
     CUSTOM,
+
+    // Выполнено, если за последние intervalDays дней набрано intervalTimes отметок
+    INTERVAL,
 }
 
 enum class PeriodGoalType(val label: String) {

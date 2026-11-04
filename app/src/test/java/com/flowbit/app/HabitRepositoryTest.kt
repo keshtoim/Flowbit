@@ -114,7 +114,7 @@ class HabitRepositoryTest {
     // ── HabitFrequency ────────────────────────────────────────────────────────
 
     @Test
-    fun `всего 3 варианта HabitFrequency`() {
-        assertEquals(3, HabitFrequency.entries.size)
+    fun `всего 4 варианта HabitFrequency`() {
+        assertEquals(4, HabitFrequency.entries.size)
     }
 }

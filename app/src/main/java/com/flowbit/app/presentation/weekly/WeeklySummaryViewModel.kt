@@ -66,8 +66,7 @@ class WeeklySummaryViewModel @Inject constructor(
             val totalPossible = habitWeeks.sumOf { wk ->
                 weekDays.count { day ->
                     !day.isAfter(today) &&
-                        (wk.habit.frequency == com.flowbit.app.domain.model.HabitFrequency.DAILY ||
-                         day.dayOfWeek in wk.habit.scheduledDays)
+                        wk.habit.isScheduledOn(day)
                 }
             }
 
