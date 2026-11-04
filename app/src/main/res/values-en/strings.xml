@@ -89,4 +89,41 @@
     <string name="backup_error">Backup error: %s</string>
     <string name="import_success">Import complete</string>
     <string name="import_error">Import error: %s</string>
+
+    <string name="widget_heatmap_description">Heatmap — activity across all habits for the last 18 weeks</string>
+    <string name="widget_lock_screen_description">Lock screen — today\'s habit progress</string>
+
+    <!-- Main screen -->
+    <string name="cd_statistics">Statistics</string>
+    <string name="cd_grouping">Grouping</string>
+    <string name="cd_settings">Settings</string>
+    <string name="cd_add_habit">Add habit</string>
+    <string name="cd_collapse">Collapse</string>
+    <string name="cd_expand">Expand</string>
+    <string name="cd_prev_week">Previous week</string>
+    <string name="cd_next_week">Next week</string>
+    <string name="close">Close</string>
+    <string name="grouping_none">No grouping</string>
+    <string name="grouping_by_tag">By tag</string>
+    <string name="grouping_by_frequency">By frequency</string>
+    <string name="grouping_by_status">By status</string>
+    <string name="taboo_label">🚫 Taboo</string>
+    <string name="menu_plus_one">✓ +1 completion</string>
+    <string name="menu_enter_count">🔢 Enter number</string>
+    <string name="menu_streak_safe_skip">🛡 Skip (keep streak)</string>
+    <string name="enter_count_title">Enter amount</string>
+    <string name="count_of_target">of %1$s</string>
+    <string name="taboo_relapsed_status">Relapsed 😞</string>
+    <string name="taboo_clean_status">Clean today ✓</string>
+    <string name="taboo_relapse_button">Relapsed</string>
+    <string name="streak_safe_skipped_label">🛡 Skipped (streak kept)</string>
+    <string name="not_done">Not done</string>
+    <string name="summary_today">Today</string>
+    <string name="summary_future">This day hasn\'t come yet</string>
+    <string name="summary_all_skipped">All habits skipped</string>
+    <string name="summary_all_done">All habits done!</string>
+    <string name="summary_start">Start with your first habit</string>
+    <string name="summary_left">%1$d of %2$d left</string>
+    <string name="summary_done_count">%1$d / %2$d done</string>
+    <string name="summary_week_delta">%1$s vs last week</string>
 </resources>

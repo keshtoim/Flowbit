@@ -210,13 +210,13 @@ fun HabitListScreen(
                 },
                 actions = {
                     IconButton(onClick = onStatisticsClick) {
-                        Icon(Icons.Default.BarChart, contentDescription = "Статистика", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.Default.BarChart, contentDescription = stringResource(R.string.cd_statistics), tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Box {
                         IconButton(onClick = { groupMenuExpanded = true }) {
                             Icon(
                                 Icons.Default.FilterList,
-                                contentDescription = "Группировка",
+                                contentDescription = stringResource(R.string.cd_grouping),
                                 tint = if (uiState.groupingMode != GroupingMode.NONE)
                                     MaterialTheme.colorScheme.primary
                                 else
@@ -231,7 +231,7 @@ fun HabitListScreen(
                                 DropdownMenuItem(
                                     text = {
                                         Text(
-                                            mode.label,
+                                            stringResource(mode.labelRes()),
                                             fontWeight = if (uiState.groupingMode == mode) FontWeight.Bold else FontWeight.Normal,
                                             color = if (uiState.groupingMode == mode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                         )
@@ -245,7 +245,7 @@ fun HabitListScreen(
                         }
                     }
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Настройки", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.cd_settings), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -260,7 +260,7 @@ fun HabitListScreen(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Добавить привычку",
+                    contentDescription = stringResource(R.string.cd_add_habit),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(28.dp),
                 )
@@ -436,7 +436,7 @@ fun HabitListScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
-                                        text = "🚫 Табу",
+                                        text = stringResource(R.string.taboo_label),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.error,
                                         fontWeight = FontWeight.SemiBold,
@@ -448,7 +448,7 @@ fun HabitListScreen(
                                     ) {
                                         Icon(
                                             if (tabooExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                            contentDescription = if (tabooExpanded) "Свернуть" else "Развернуть",
+                                            contentDescription = stringResource(if (tabooExpanded) R.string.cd_collapse else R.string.cd_expand),
                                             tint = MaterialTheme.colorScheme.error,
                                         )
                                     }
@@ -592,7 +592,7 @@ private fun HabitContextMenu(
                     onClick = { onToggle(); onDismiss() },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("✓ +1 выполнение", modifier = Modifier.fillMaxWidth())
+                    Text(stringResource(R.string.menu_plus_one), modifier = Modifier.fillMaxWidth())
                 }
                 if (habit.habit.targetCount > 1) {
                     HorizontalDivider()
@@ -600,7 +600,7 @@ private fun HabitContextMenu(
                         onClick = { onEnterCount(); onDismiss() },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("🔢 Ввести число", modifier = Modifier.fillMaxWidth())
+                        Text(stringResource(R.string.menu_enter_count), modifier = Modifier.fillMaxWidth())
                     }
                 }
                 HorizontalDivider()
@@ -609,7 +609,7 @@ private fun HabitContextMenu(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = "⏭ Пропустить сегодня",
+                        text = stringResource(R.string.skip_today_button),
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -621,7 +621,7 @@ private fun HabitContextMenu(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            text = "🛡 Пропустить (серия сохраняется)",
+                            text = stringResource(R.string.menu_streak_safe_skip),
                             modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colorScheme.tertiary,
                         )
@@ -630,7 +630,7 @@ private fun HabitContextMenu(
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Закрыть") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
     )
 }
 
@@ -645,7 +645,7 @@ private fun HabitNumberInputDialog(
     var value by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Введи количество") },
+        title = { Text(stringResource(R.string.enter_count_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -657,7 +657,7 @@ private fun HabitNumberInputDialog(
                     value = value,
                     onValueChange = { v -> if (v.length <= 5 && v.all { it.isDigit() }) value = v },
                     placeholder = {
-                        Text("из ${habit.habit.targetCount}${habit.habit.unit?.let { " $it" } ?: ""}")
+                        Text(stringResource(R.string.count_of_target, "${habit.habit.targetCount}${habit.habit.unit?.let { " $it" } ?: ""}"))
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
@@ -669,10 +669,17 @@ private fun HabitNumberInputDialog(
             TextButton(
                 onClick = { value.toIntOrNull()?.let(onConfirm); onDismiss() },
                 enabled = value.isNotEmpty(),
-            ) { Text("Сохранить") }
+            ) { Text(stringResource(R.string.save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
+}
+
+private fun GroupingMode.labelRes(): Int = when (this) {
+    GroupingMode.NONE -> R.string.grouping_none
+    GroupingMode.BY_TAG -> R.string.grouping_by_tag
+    GroupingMode.BY_FREQUENCY -> R.string.grouping_by_frequency
+    GroupingMode.BY_STATUS -> R.string.grouping_by_status
 }
 
 private fun groupHabits(

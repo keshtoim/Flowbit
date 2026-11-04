@@ -6,9 +6,9 @@ data class HabitTag(
     val colorHex: String = "#4A90E2",
 )
 
-enum class GroupingMode(val label: String) {
-    NONE("Без группировки"),
-    BY_TAG("По тегам"),
-    BY_FREQUENCY("По частоте"),
-    BY_STATUS("По статусу"),
+enum class GroupingMode {
+    NONE,
+    BY_TAG,
+    BY_FREQUENCY,
+    BY_STATUS,
 }

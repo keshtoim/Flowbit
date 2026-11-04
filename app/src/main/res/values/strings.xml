@@ -93,4 +93,38 @@
     <string name="backup_error">Ошибка бекапа: %s</string>
     <string name="import_success">Импорт завершён</string>
     <string name="import_error">Ошибка импорта: %s</string>
+
+    <!-- Главный экран -->
+    <string name="cd_statistics">Статистика</string>
+    <string name="cd_grouping">Группировка</string>
+    <string name="cd_settings">Настройки</string>
+    <string name="cd_add_habit">Добавить привычку</string>
+    <string name="cd_collapse">Свернуть</string>
+    <string name="cd_expand">Развернуть</string>
+    <string name="cd_prev_week">Предыдущая неделя</string>
+    <string name="cd_next_week">Следующая неделя</string>
+    <string name="close">Закрыть</string>
+    <string name="grouping_none">Без группировки</string>
+    <string name="grouping_by_tag">По тегам</string>
+    <string name="grouping_by_frequency">По частоте</string>
+    <string name="grouping_by_status">По статусу</string>
+    <string name="taboo_label">🚫 Табу</string>
+    <string name="menu_plus_one">✓ +1 выполнение</string>
+    <string name="menu_enter_count">🔢 Ввести число</string>
+    <string name="menu_streak_safe_skip">🛡 Пропустить (серия сохраняется)</string>
+    <string name="enter_count_title">Введи количество</string>
+    <string name="count_of_target">из %1$s</string>
+    <string name="taboo_relapsed_status">Сорвался 😞</string>
+    <string name="taboo_clean_status">Чисто сегодня ✓</string>
+    <string name="taboo_relapse_button">Сорвался</string>
+    <string name="streak_safe_skipped_label">🛡 Пропущено (серия сохранена)</string>
+    <string name="not_done">Не выполнено</string>
+    <string name="summary_today">Сегодня</string>
+    <string name="summary_future">День ещё не наступил</string>
+    <string name="summary_all_skipped">Все привычки пропущены</string>
+    <string name="summary_all_done">Все привычки выполнены!</string>
+    <string name="summary_start">Начни с первой привычки</string>
+    <string name="summary_left">Осталось %1$d из %2$d</string>
+    <string name="summary_done_count">%1$d / %2$d выполнено</string>
+    <string name="summary_week_delta">%1$s vs прошлая неделя</string>
 </resources>

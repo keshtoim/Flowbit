@@ -58,6 +58,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +67,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.flowbit.app.R
 import kotlinx.coroutines.launch
+import java.time.format.TextStyle
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -224,7 +226,7 @@ fun HabitCard(
                                     .padding(horizontal = 5.dp, vertical = 1.dp),
                             ) {
                                 Text(
-                                    text = "🚫 Табу",
+                                    text = stringResource(R.string.taboo_label),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
@@ -256,7 +258,7 @@ fun HabitCard(
                     Spacer(Modifier.height(2.dp))
                     when {
                         habit.isBadHabit -> Text(
-                            text = if (isRelapsed) "Сорвался 😞" else "Чисто сегодня ✓",
+                            text = stringResource(if (isRelapsed) R.string.taboo_relapsed_status else R.string.taboo_clean_status),
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isRelapsed) MaterialTheme.colorScheme.error
                                     else MaterialTheme.colorScheme.tertiary,
@@ -265,7 +267,7 @@ fun HabitCard(
                         isStreakSafeSkipped || isSkipped -> {
                             if (isStreakSafeSkipped) {
                                 Text(
-                                    text = "🛡 Пропущено (серия сохранена)",
+                                    text = stringResource(R.string.streak_safe_skipped_label),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.tertiary,
                                     fontWeight = FontWeight.Medium,
@@ -320,7 +322,7 @@ fun HabitCard(
                             fontWeight = FontWeight.Medium,
                         )
                         else -> Text(
-                            text = "Не выполнено",
+                            text = stringResource(R.string.not_done),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         )
@@ -356,7 +358,7 @@ fun HabitCard(
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                         ) {
                             Text(
-                                text = "Сорвался",
+                                text = stringResource(R.string.taboo_relapse_button),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.error.copy(alpha = 0.70f),
                             )
@@ -478,9 +480,9 @@ fun HabitCard(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val dayLabels = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+                    val locale = LocalConfiguration.current.locales[0]
                     // index 0 = 6 дней до выбранной даты, index 6 = выбранная дата
-                    val startDow = habitForDate.date.minusDays(6).dayOfWeek.value - 1
+                    val startDay = habitForDate.date.minusDays(6)
 
                     val errorColor = MaterialTheme.colorScheme.error
                     val tertiaryColor = MaterialTheme.colorScheme.tertiary
@@ -500,7 +502,9 @@ fun HabitCard(
                             if (habit.isBadHabit) (if (done) errorColor else tertiaryColor)
                             else habitColor
                         } else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                        val label = dayLabels[(startDow + i) % 7]
+                        val label = startDay.plusDays(i.toLong()).dayOfWeek
+                            .getDisplayName(TextStyle.SHORT, locale)
+                            .replaceFirstChar { it.uppercase() }
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,

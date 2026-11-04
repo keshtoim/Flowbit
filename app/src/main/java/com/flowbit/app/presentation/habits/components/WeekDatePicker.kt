@@ -42,13 +42,15 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
-import java.util.Locale
+import com.flowbit.app.R
 
 @Composable
 fun WeekDatePicker(
@@ -57,6 +59,7 @@ fun WeekDatePicker(
     modifier: Modifier = Modifier,
 ) {
     val today = LocalDate.now()
+    val locale = LocalConfiguration.current.locales[0]
 
     fun mondayOf(date: LocalDate): LocalDate {
         val dow = date.dayOfWeek.value  // Mon=1 … Sun=7
@@ -109,7 +112,7 @@ fun WeekDatePicker(
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                        contentDescription = "Предыдущая неделя",
+                        contentDescription = stringResource(R.string.cd_prev_week),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp),
                     )
@@ -117,11 +120,11 @@ fun WeekDatePicker(
                 val monthLabel = run {
                     val startMonth = weekStart.month
                     val endMonth = weekStart.plusDays(6).month
-                    val name = startMonth.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
+                    val name = startMonth.getDisplayName(TextStyle.FULL_STANDALONE, locale)
                         .replaceFirstChar { it.uppercase() }
                     val yearSuffix = if (weekStart.year != today.year) " ${weekStart.year}" else ""
                     if (startMonth != endMonth) {
-                        val name2 = endMonth.getDisplayName(TextStyle.FULL_STANDALONE, Locale("ru"))
+                        val name2 = endMonth.getDisplayName(TextStyle.FULL_STANDALONE, locale)
                             .replaceFirstChar { it.uppercase() }
                         "$name / $name2$yearSuffix"
                     } else {
@@ -141,7 +144,7 @@ fun WeekDatePicker(
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = "Следующая неделя",
+                        contentDescription = stringResource(R.string.cd_next_week),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp),
                     )
@@ -212,7 +215,7 @@ fun WeekDatePicker(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
-                                text = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("ru")),
+                                text = date.dayOfWeek.getDisplayName(TextStyle.SHORT, locale),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = labelColor,
                             )

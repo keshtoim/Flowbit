@@ -27,12 +27,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.flowbit.app.R
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @Composable
 fun TodaySummaryCard(
@@ -55,10 +57,11 @@ fun TodaySummaryCard(
     )
 
     val isToday = selectedDate == LocalDate.now()
+    val locale = LocalConfiguration.current.locales[0]
     val dateLabel = if (isToday) {
-        "Сегодня"
+        stringResource(R.string.summary_today)
     } else {
-        selectedDate.format(DateTimeFormatter.ofPattern("d MMMM", Locale("ru")))
+        selectedDate.format(DateTimeFormatter.ofPattern("d MMMM", locale))
     }
 
     val emoji = when {
@@ -70,12 +73,12 @@ fun TodaySummaryCard(
     }
 
     val message = when {
-        selectedDate.isAfter(LocalDate.now()) && total > 0 -> "День ещё не наступил"
-        allSkipped -> "Все привычки пропущены"
-        total == 0 -> "Нет привычек на этот день"
-        done == total -> "Все привычки выполнены!"
-        done == 0 -> "Начни с первой привычки"
-        else -> "Осталось ${total - done} из $total"
+        selectedDate.isAfter(LocalDate.now()) && total > 0 -> stringResource(R.string.summary_future)
+        allSkipped -> stringResource(R.string.summary_all_skipped)
+        total == 0 -> stringResource(R.string.no_habits_title)
+        done == total -> stringResource(R.string.summary_all_done)
+        done == 0 -> stringResource(R.string.summary_start)
+        else -> stringResource(R.string.summary_left, total - done, total)
     }
 
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -148,14 +151,14 @@ fun TodaySummaryCard(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "$done / $total выполнено",
+                    text = stringResource(R.string.summary_done_count, done, total),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (weekDelta != null && isToday) {
                     val sign = if (weekDelta >= 0) "+" else ""
                     Text(
-                        text = "$sign$weekDelta vs прошлая неделя",
+                        text = stringResource(R.string.summary_week_delta, "$sign$weekDelta"),
                         style = MaterialTheme.typography.labelSmall,
                         color = when {
                             weekDelta > 0 -> greenColor
