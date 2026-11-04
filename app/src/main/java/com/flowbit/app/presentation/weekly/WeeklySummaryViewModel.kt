@@ -3,6 +3,7 @@ package com.flowbit.app.presentation.weekly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.Habit
+import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.repository.HabitRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,12 +63,19 @@ class WeeklySummaryViewModel @Inject constructor(
                 )
             }
 
-            val totalDone = habitWeeks.sumOf { it.doneDays }
-            val totalPossible = habitWeeks.sumOf { wk ->
-                weekDays.count { day ->
-                    !day.isAfter(today) &&
-                        wk.habit.isScheduledOn(day)
+            fun possibleDays(habit: Habit): Int {
+                val scheduled = weekDays.count { day -> !day.isAfter(today) && habit.isScheduledOn(day) }
+                return if (habit.frequency == HabitFrequency.INTERVAL) {
+                    (scheduled * habit.intervalTimes + habit.intervalDays - 1) / habit.intervalDays
+                } else {
+                    scheduled
                 }
+            }
+            val totalPossible = habitWeeks.sumOf { possibleDays(it.habit) }
+            // Отметки сверх нормы интервальной привычки не засчитываются, иначе итог превысит 100%
+            val totalDone = habitWeeks.sumOf { wk ->
+                if (wk.habit.frequency == HabitFrequency.INTERVAL) wk.doneDays.coerceAtMost(possibleDays(wk.habit))
+                else wk.doneDays
             }
 
             _uiState.update {

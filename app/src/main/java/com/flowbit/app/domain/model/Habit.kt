@@ -40,6 +40,15 @@ data class Habit(
         HabitFrequency.DAILY, HabitFrequency.INTERVAL -> true
         HabitFrequency.WEEKLY, HabitFrequency.CUSTOM -> date.dayOfWeek in scheduledDays
     }
+
+    // Заморозка и пропуск без потери серии засчитываются в окно наравне с выполнением
+    fun isIntervalCredit(entry: HabitEntry): Boolean =
+        entry.isFrozen || entry.isStreakSafeSkip || (!entry.isSkipped && entry.completedCount >= targetCount)
+
+    fun intervalCreditsBefore(date: LocalDate, entries: Collection<HabitEntry>): Int {
+        val windowStart = date.minusDays(intervalDays - 1L)
+        return entries.count { it.habitId == id && it.date >= windowStart && it.date < date && isIntervalCredit(it) }
+    }
 }
 
 data class HabitReminder(

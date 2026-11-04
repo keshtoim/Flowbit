@@ -5,6 +5,7 @@ import com.flowbit.app.data.database.entity.HabitEntity
 import com.flowbit.app.data.database.entity.HabitEntryEntity
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.domain.model.HabitEntry
+import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.model.HabitStats
 import com.flowbit.app.domain.model.HabitWithEntries
 import com.flowbit.app.domain.model.OverallStats
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 class HabitRepositoryImpl @Inject constructor(
@@ -89,7 +91,7 @@ class HabitRepositoryImpl @Inject constructor(
         val frozenDates = frozenDates(entries)
 
         val totalDays = countScheduledDays(habit)
-        val completionRate = if (totalDays > 0) completedDates.size.toFloat() / totalDays else 0f
+        val completionRate = if (totalDays > 0) (completedDates.size.toFloat() / totalDays).coerceAtMost(1f) else 0f
         val currentStreak = calculateCurrentStreak(habit, completedDates, frozenDates, LocalDate.now())
         val longestStreak = calculateLongestStreak(habit, completedDates, frozenDates)
 
@@ -145,12 +147,17 @@ class HabitRepositoryImpl @Inject constructor(
             h.isScheduledOn(today)
         }
 
-        val todayEntries = dao.getEntriesForDateRange(todayStr, todayStr)
+        val lookbackDays = habits.maxOf { it.intervalDays }
+        val recentEntries = dao.getEntriesForDateRange(today.minusDays(lookbackDays - 1L).toString(), todayStr)
             .map { it.toDomain() }
-            .associateBy { it.habitId }
+        val todayEntries = recentEntries.filter { it.date == today }.associateBy { it.habitId }
 
         val todayCompleted = habits.count { h ->
-            val e = todayEntries[h.id] ?: return@count false
+            val e = todayEntries[h.id]
+            if (h.usesIntervalStreak() && e?.isSkipped != true &&
+                h.intervalCreditsBefore(today, recentEntries) >= h.intervalTimes
+            ) return@count true
+            e ?: return@count false
             !e.isSkipped && if (h.isBadHabit) e.completedCount == 0
                            else e.completedCount >= h.targetCount
         }
@@ -183,6 +190,10 @@ class HabitRepositoryImpl @Inject constructor(
         val today = LocalDate.now()
         val start = habit.startDate
         if (start > today) return 0
+        if (habit.frequency == HabitFrequency.INTERVAL) {
+            val elapsed = ChronoUnit.DAYS.between(start, today) + 1
+            return ((elapsed * habit.intervalTimes + habit.intervalDays - 1) / habit.intervalDays).toInt()
+        }
         var count = 0
         var current = start
         while (!current.isAfter(today)) {
@@ -222,6 +233,7 @@ class HabitRepositoryImpl @Inject constructor(
         frozenDates: Set<LocalDate>,
         asOf: LocalDate,
     ): Int {
+        if (habit.usesIntervalStreak()) return intervalStreaks(habit, completedDates.toHashSet(), frozenDates, asOf).first
         val datesSet = completedDates.toHashSet()
         var streak = 0
         // День asOf ещё может быть отмечен: если он пуст, серия считается с предыдущего дня
@@ -257,6 +269,7 @@ class HabitRepositoryImpl @Inject constructor(
         completedDates: List<LocalDate>,
         frozenDates: Set<LocalDate>,
     ): Int {
+        if (habit.usesIntervalStreak()) return intervalStreaks(habit, completedDates.toHashSet(), frozenDates, LocalDate.now()).second
         val datesSet = completedDates.toHashSet()
         val today = LocalDate.now()
         var longest = 0
@@ -277,5 +290,42 @@ class HabitRepositoryImpl @Inject constructor(
             d = d.plusDays(1)
         }
         return longest
+    }
+
+    private fun Habit.usesIntervalStreak() = frequency == HabitFrequency.INTERVAL && !isBadHabit
+
+    // Возвращает (текущая, лучшая) серию в отметках. Серия рвётся в день без зачёта, если в окне из
+    // intervalDays дней, заканчивающемся этим днём, меньше intervalTimes зачётов. Первые дни после
+    // startDate, пока окно не заполнено, и ещё не закрытый день until не проверяются.
+    private fun intervalStreaks(
+        habit: Habit,
+        completed: Set<LocalDate>,
+        frozen: Set<LocalDate>,
+        until: LocalDate,
+    ): Pair<Int, Int> {
+        var current = 0
+        var longest = 0
+        var d = habit.startDate
+        while (!d.isAfter(until)) {
+            when {
+                d in completed -> {
+                    current++
+                    if (current > longest) longest = current
+                }
+                d in frozen || d == until -> Unit
+                else -> {
+                    val windowStart = d.minusDays(habit.intervalDays - 1L)
+                    if (!windowStart.isBefore(habit.startDate)) {
+                        val credits = (0 until habit.intervalDays).count { offset ->
+                            val day = windowStart.plusDays(offset.toLong())
+                            day in completed || day in frozen
+                        }
+                        if (credits < habit.intervalTimes) current = 0
+                    }
+                }
+            }
+            d = d.plusDays(1)
+        }
+        return current to longest
     }
 }

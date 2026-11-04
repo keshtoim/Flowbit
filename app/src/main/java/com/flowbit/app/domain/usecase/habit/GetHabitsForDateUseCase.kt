@@ -2,6 +2,7 @@ package com.flowbit.app.domain.usecase.habit
 
 import com.flowbit.app.domain.model.Habit
 import com.flowbit.app.domain.model.HabitEntry
+import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.repository.HabitRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -15,12 +16,22 @@ data class HabitForDate(
     val isScheduledForDate: Boolean,
     val recentDays: List<Boolean> = emptyList(),
     val streak: Int = 0,
+    val intervalCredits: Int = 0,
 ) {
     val isSkippedForDay: Boolean
         get() = entry?.isSkipped == true || entry?.isStreakSafeSkip == true
 
+    val isCompletedToday: Boolean
+        get() = (entry?.completedCount ?: 0) >= habit.targetCount
+
+    val isCoveredByInterval: Boolean
+        get() = habit.frequency == HabitFrequency.INTERVAL && intervalCredits >= habit.intervalTimes
+
+    val intervalProgress: Int
+        get() = intervalCredits + if (isCompletedToday) 1 else 0
+
     val isDone: Boolean
-        get() = !isSkippedForDay && (entry?.completedCount ?: 0) >= habit.targetCount
+        get() = !isSkippedForDay && (isCompletedToday || isCoveredByInterval)
 }
 
 class GetHabitsForDateUseCase @Inject constructor(

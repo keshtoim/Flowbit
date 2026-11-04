@@ -78,9 +78,10 @@ class HabitListViewModel @Inject constructor(
             .flatMapLatest { date -> getHabitsForDate(date) }
             .onEach { habits ->
                 val date = selectedDate.value
-                val weekEntries = habitRepository.getEntriesForDateRange(date.minusDays(6), date)
-                val weekMap: Map<Long, Map<LocalDate, HabitEntry>> = weekEntries
-                    .groupBy { it.habitId }
+                val lookbackDays = maxOf(7, habits.maxOfOrNull { it.habit.intervalDays } ?: 0)
+                val recentEntries = habitRepository.getEntriesForDateRange(date.minusDays(lookbackDays - 1L), date)
+                val entriesByHabit = recentEntries.groupBy { it.habitId }
+                val weekMap: Map<Long, Map<LocalDate, HabitEntry>> = entriesByHabit
                     .mapValues { (_, entries) -> entries.associateBy { it.date } }
                 val streaks = habitRepository.getCurrentStreaks(habits.map { it.habit }, date)
 
@@ -92,7 +93,11 @@ class HabitListViewModel @Inject constructor(
                         e != null && e.isSkipped != true && !e.isStreakSafeSkip &&
                             e.completedCount >= hfd.habit.targetCount
                     }
-                    hfd.copy(recentDays = recentDays, streak = streaks[hfd.habit.id] ?: 0)
+                    hfd.copy(
+                        recentDays = recentDays,
+                        streak = streaks[hfd.habit.id] ?: 0,
+                        intervalCredits = hfd.habit.intervalCreditsBefore(date, entriesByHabit[hfd.habit.id].orEmpty()),
+                    )
                 }
 
                 val isToday = date == LocalDate.now()
