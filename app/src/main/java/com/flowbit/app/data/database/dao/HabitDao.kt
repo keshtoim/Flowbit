@@ -37,6 +37,9 @@ interface HabitDao {
     @Query("UPDATE habits SET isArchived = 1 WHERE id = :habitId")
     suspend fun archiveHabit(habitId: Long)
 
+    @Query("SELECT MAX(sortOrder) FROM habits")
+    suspend fun getMaxSortOrder(): Int?
+
     @Query("UPDATE habits SET sortOrder = :order WHERE id = :id")
     suspend fun updateSortOrder(id: Long, order: Int)
 

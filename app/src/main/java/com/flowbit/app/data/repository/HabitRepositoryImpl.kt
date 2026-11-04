@@ -33,8 +33,10 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun getHabitById(id: Long): Habit? =
         dao.getHabitById(id)?.toDomain()
 
-    override suspend fun insertHabit(habit: Habit): Long =
-        dao.insertHabit(HabitEntity.fromDomain(habit))
+    override suspend fun insertHabit(habit: Habit): Long {
+        val nextOrder = (dao.getMaxSortOrder() ?: -1) + 1
+        return dao.insertHabit(HabitEntity.fromDomain(habit.copy(sortOrder = nextOrder)))
+    }
 
     override suspend fun updateHabit(habit: Habit) =
         dao.updateHabit(HabitEntity.fromDomain(habit))

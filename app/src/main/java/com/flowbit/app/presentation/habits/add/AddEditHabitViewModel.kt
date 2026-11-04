@@ -79,6 +79,7 @@ class AddEditHabitViewModel @Inject constructor(
     val uiState: StateFlow<AddEditHabitUiState> = _uiState.asStateFlow()
 
     private var editingHabitId: Long? = null
+    private var editingHabit: Habit? = null
 
     init {
         viewModelScope.launch {
@@ -93,6 +94,7 @@ class AddEditHabitViewModel @Inject constructor(
         viewModelScope.launch {
             val habit = habitRepository.getHabitById(habitId) ?: return@launch
             editingHabitId = habit.id
+            editingHabit = habit
             val reminders = reminderRepository.getRemindersForHabit(habitId).first()
             _uiState.update {
                 it.copy(
@@ -237,6 +239,8 @@ class AddEditHabitViewModel @Inject constructor(
                 allowStreakSkip = state.allowStreakSkip,
                 stackAfterHabitId = state.stackAfterHabitId,
                 customColorHex = state.customColorHex,
+                sortOrder = editingHabit?.sortOrder ?: 0,
+                createdAt = editingHabit?.createdAt ?: LocalDate.now(),
             )
 
             val savedId = if (editingHabitId == null) {
