@@ -88,6 +88,7 @@ fun FlowbitNavGraph(
                 onStatisticsClick = { navController.navigate(Screen.Statistics.route) },
                 onSettingsClick = { navController.navigate(Screen.Settings.route) },
                 onWeeklySummaryClick = { navController.navigate(Screen.WeeklySummary.route) },
+                onEditHabit = { id -> navController.navigate(Screen.EditHabit.createRoute(id)) },
             )
         }
 

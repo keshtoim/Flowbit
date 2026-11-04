@@ -55,7 +55,6 @@
     <!-- HabitDetail -->
     <string name="delete_habit_title">Delete habit?</string>
     <string name="delete_habit_message">All completion records will be deleted. This cannot be undone.</string>
-    <string name="skip_today_button">⏭ Skip today</string>
     <string name="today_skipped">⏭ Today is skipped</string>
 
     <!-- Settings -->
@@ -99,6 +98,22 @@
     <string name="cd_in_widget">Shown in widget</string>
     <string name="cd_start_timer">Start timer</string>
     <string name="status_skipped">Skipped</string>
+    <string name="cd_edit">Edit</string>
+    <string name="sheet_mark">Mark done</string>
+    <string name="sheet_unmark">Unmark</string>
+    <string name="sheet_plus_one">+1</string>
+    <string name="sheet_enter_count">Count</string>
+    <string name="sheet_minus_one">−1</string>
+    <string name="sheet_timer">Timer</string>
+    <string name="sheet_undo_relapse">Undo relapse</string>
+    <string name="sheet_skip_today">Skip today</string>
+    <string name="sheet_streak_safe_skip">Skip without losing streak</string>
+    <string name="sheet_show_in_widget">Show in widget</string>
+    <string name="sheet_open_details">Stats and history</string>
+    <string name="sheet_archive">Archive</string>
+    <string name="freq_daily">Every day</string>
+    <string name="freq_interval">%1$d times in %2$d days</string>
+    <string name="freq_with_streak">%1$s · streak %2$d</string>
     <string name="cd_settings">Settings</string>
     <string name="cd_add_habit">Add habit</string>
     <string name="cd_collapse">Collapse</string>
@@ -111,9 +126,6 @@
     <string name="grouping_by_frequency">By frequency</string>
     <string name="grouping_by_status">By status</string>
     <string name="taboo_label">🚫 Taboo</string>
-    <string name="menu_plus_one">✓ +1 completion</string>
-    <string name="menu_enter_count">🔢 Enter number</string>
-    <string name="menu_streak_safe_skip">🛡 Skip (keep streak)</string>
     <string name="enter_count_title">Enter amount</string>
     <string name="count_of_target">of %1$s</string>
     <string name="taboo_relapsed_status">Relapsed 😞</string>

@@ -101,6 +101,7 @@ fun HabitListScreen(
     onStatisticsClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onWeeklySummaryClick: () -> Unit = {},
+    onEditHabit: (Long) -> Unit = {},
     viewModel: HabitListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -122,18 +123,27 @@ fun HabitListScreen(
     }
     var tabooExpanded by rememberSaveable { mutableStateOf(false) }
 
-    // Long-press контекстное меню
-    var contextMenuHabit by remember { mutableStateOf<HabitForDate?>(null) }
+    // Храним id, а не снимок: панель должна видеть изменения, сделанные из неё же
+    var actionsHabitId by rememberSaveable { mutableStateOf<Long?>(null) }
     var numberInputHabit by remember { mutableStateOf<HabitForDate?>(null) }
 
-    contextMenuHabit?.let { hfd ->
-        HabitContextMenu(
-            habit = hfd,
-            onDismiss = { contextMenuHabit = null },
-            onToggle = { viewModel.toggleHabit(hfd.habit.id) },
-            onSkip = { viewModel.skipHabit(hfd.habit.id) },
-            onStreakSafeSkip = { viewModel.streakSafeSkipHabit(hfd.habit.id) },
+    actionsHabitId?.let { id ->
+        val hfd = uiState.habits.find { it.habit.id == id } ?: return@let
+        HabitActionsSheet(
+            habitForDate = hfd,
+            onDismiss = { actionsHabitId = null },
+            onToggle = { viewModel.toggleHabit(id) },
+            onDecrease = { viewModel.decreaseHabit(id) },
             onEnterCount = { numberInputHabit = hfd },
+            onTimer = { viewModel.startTimer(id) },
+            onSkip = { viewModel.skipHabit(id) },
+            onStreakSafeSkip = { viewModel.streakSafeSkipHabit(id) },
+            onUnSkipRequest = { viewModel.requestUnSkip(id) },
+            onCantToday = viewModel::showMotivation,
+            onShowInWidgetChange = { viewModel.setShowInWidget(id, it) },
+            onOpenDetails = { onHabitClick(id) },
+            onEdit = { onEditHabit(id) },
+            onArchive = { viewModel.archiveHabit(id) },
         )
     }
 
@@ -394,7 +404,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
-                                    onLongClick = { contextMenuHabit = habitForDate },
+                                    onLongClick = { actionsHabitId = habitForDate.habit.id },
                                     cardModifier = Modifier.animateItem(),
                                     listSettings = uiState.listSettings,
                                 )
@@ -412,7 +422,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
-                                    onLongClick = { contextMenuHabit = habitForDate },
+                                    onLongClick = { actionsHabitId = habitForDate.habit.id },
                                     cardModifier = Modifier.longPressDraggableHandle(
                                         onDragStarted = { isDragging = true },
                                         onDragStopped = {
@@ -470,7 +480,7 @@ fun HabitListScreen(
                                     onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
                                     onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
-                                    onLongClick = { contextMenuHabit = habitForDate },
+                                    onLongClick = { actionsHabitId = habitForDate.habit.id },
                                     enableSwipe = false,
                                     listSettings = uiState.listSettings,
                                 )
@@ -577,73 +587,6 @@ private fun SwipeableHabitCard(
     ) {
         content()
     }
-}
-
-// ── Контекстное меню по долгому нажатию ──────────────────────────────────────
-
-@Composable
-private fun HabitContextMenu(
-    habit: HabitForDate,
-    onDismiss: () -> Unit,
-    onToggle: () -> Unit,
-    onSkip: () -> Unit,
-    onStreakSafeSkip: () -> Unit,
-    onEnterCount: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "${habit.habit.emoji}  ${habit.habit.name}",
-                style = MaterialTheme.typography.titleMedium,
-            )
-        },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                TextButton(
-                    onClick = { onToggle(); onDismiss() },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.menu_plus_one), modifier = Modifier.fillMaxWidth())
-                }
-                if (habit.habit.targetCount > 1) {
-                    HorizontalDivider()
-                    TextButton(
-                        onClick = { onEnterCount(); onDismiss() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.menu_enter_count), modifier = Modifier.fillMaxWidth())
-                    }
-                }
-                HorizontalDivider()
-                TextButton(
-                    onClick = { onSkip(); onDismiss() },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = stringResource(R.string.skip_today_button),
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (habit.habit.allowStreakSkip) {
-                    HorizontalDivider()
-                    TextButton(
-                        onClick = { onStreakSafeSkip(); onDismiss() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.menu_streak_safe_skip),
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.tertiary,
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
-    )
 }
 
 // ── Диалог быстрого ввода числа для счётчиков ────────────────────────────────

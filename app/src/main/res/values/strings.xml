@@ -59,7 +59,6 @@
     <!-- HabitDetail -->
     <string name="delete_habit_title">Удалить привычку?</string>
     <string name="delete_habit_message">Все записи о выполнении будут удалены. Это действие нельзя отменить.</string>
-    <string name="skip_today_button">⏭ Пропустить сегодня</string>
     <string name="today_skipped">⏭ Сегодня пропущено</string>
 
     <!-- Settings -->
@@ -100,6 +99,22 @@
     <string name="cd_in_widget">Показывается в виджете</string>
     <string name="cd_start_timer">Запустить таймер</string>
     <string name="status_skipped">Пропущено</string>
+    <string name="cd_edit">Редактировать</string>
+    <string name="sheet_mark">Отметить</string>
+    <string name="sheet_unmark">Снять отметку</string>
+    <string name="sheet_plus_one">+1</string>
+    <string name="sheet_enter_count">Число</string>
+    <string name="sheet_minus_one">−1</string>
+    <string name="sheet_timer">Таймер</string>
+    <string name="sheet_undo_relapse">Отменить срыв</string>
+    <string name="sheet_skip_today">Пропустить сегодня</string>
+    <string name="sheet_streak_safe_skip">Пропуск без потери серии</string>
+    <string name="sheet_show_in_widget">Показывать в виджете</string>
+    <string name="sheet_open_details">Статистика и история</string>
+    <string name="sheet_archive">В архив</string>
+    <string name="freq_daily">Каждый день</string>
+    <string name="freq_interval">%1$d р. за %2$d дн.</string>
+    <string name="freq_with_streak">%1$s · серия %2$d</string>
     <string name="cd_settings">Настройки</string>
     <string name="cd_add_habit">Добавить привычку</string>
     <string name="cd_collapse">Свернуть</string>
@@ -112,9 +127,6 @@
     <string name="grouping_by_frequency">По частоте</string>
     <string name="grouping_by_status">По статусу</string>
     <string name="taboo_label">🚫 Табу</string>
-    <string name="menu_plus_one">✓ +1 выполнение</string>
-    <string name="menu_enter_count">🔢 Ввести число</string>
-    <string name="menu_streak_safe_skip">🛡 Пропустить (серия сохраняется)</string>
     <string name="enter_count_title">Введи количество</string>
     <string name="count_of_target">из %1$s</string>
     <string name="taboo_relapsed_status">Сорвался 😞</string>

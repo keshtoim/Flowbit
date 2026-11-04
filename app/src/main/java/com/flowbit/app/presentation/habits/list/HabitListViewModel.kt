@@ -3,6 +3,7 @@ package com.flowbit.app.presentation.habits.list
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbit.app.data.worker.WidgetUpdateWorker
 import com.flowbit.app.domain.model.GroupingMode
 import com.flowbit.app.domain.model.ListViewSettings
 import com.flowbit.app.domain.model.HabitEntry
@@ -210,6 +211,21 @@ class HabitListViewModel @Inject constructor(
     fun setCount(habitId: Long, count: Int) {
         if (isFutureSelected()) return
         viewModelScope.launch { setHabitCount(habitId, _uiState.value.selectedDate, count) }
+    }
+
+    fun setShowInWidget(habitId: Long, show: Boolean) {
+        val habit = _uiState.value.habits.find { it.habit.id == habitId }?.habit ?: return
+        viewModelScope.launch {
+            habitRepository.updateHabit(habit.copy(showInWidget = show))
+            WidgetUpdateWorker.enqueueOnce(context)
+        }
+    }
+
+    fun archiveHabit(habitId: Long) {
+        viewModelScope.launch {
+            habitRepository.archiveHabit(habitId)
+            WidgetUpdateWorker.enqueueOnce(context)
+        }
     }
 
     fun persistReorder(habits: List<HabitForDate>) {
