@@ -109,32 +109,27 @@ class HabitListViewModel @Inject constructor(
                     )
                 }
                 ShortcutHelper.updateShortcuts(context, enriched.map { it.habit })
+                if (isToday) computeWeekDelta()
             }
             .launchIn(viewModelScope)
-
-        computeWeekDelta()
 
         viewModelScope.launch {
             prefs.isCompactMode.collect { v -> _uiState.update { it.copy(isCompactMode = v) } }
         }
     }
 
-    private fun computeWeekDelta() {
-        viewModelScope.launch {
-            val today = LocalDate.now()
-            val dow = today.dayOfWeek.value
-            val thisWeekStart = today.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
-            val lastWeekEnd   = thisWeekStart.minusDays(1)
-            val lastWeekStart = lastWeekEnd.minusDays((dow - DayOfWeek.MONDAY.value).toLong())
+    private suspend fun computeWeekDelta() {
+        val today = LocalDate.now()
+        val thisWeekStart = today.minusDays((today.dayOfWeek.value - DayOfWeek.MONDAY.value).toLong())
 
-            val thisCount = habitRepository.getEntriesForDateRange(thisWeekStart, today)
-                .count { it.completedCount > 0 && !it.isSkipped }
-            val lastCount = habitRepository.getEntriesForDateRange(lastWeekStart, lastWeekEnd)
-                .count { it.completedCount > 0 && !it.isSkipped }
+        val thisCount = habitRepository.getEntriesForDateRange(thisWeekStart, today)
+            .count { it.completedCount > 0 && !it.isSkipped }
+        // Тот же отрезок недели (Пн..текущий день) неделей раньше
+        val lastCount = habitRepository.getEntriesForDateRange(thisWeekStart.minusWeeks(1), today.minusWeeks(1))
+            .count { it.completedCount > 0 && !it.isSkipped }
 
-            val delta = if (lastCount > 0 || thisCount > 0) thisCount - lastCount else null
-            _uiState.update { it.copy(weekDelta = delta) }
-        }
+        val delta = if (lastCount > 0 || thisCount > 0) thisCount - lastCount else null
+        _uiState.update { it.copy(weekDelta = delta) }
     }
 
     fun onDateSelected(date: LocalDate) {
