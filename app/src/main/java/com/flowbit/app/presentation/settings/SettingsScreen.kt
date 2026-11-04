@@ -90,6 +90,8 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flowbit.app.R
 import com.flowbit.app.domain.model.Habit
+import com.flowbit.app.domain.model.ListDensity
+import com.flowbit.app.domain.model.ListViewSettings
 import com.flowbit.app.domain.repository.PreferencesRepository
 import java.time.LocalDate
 
@@ -271,15 +273,14 @@ fun SettingsScreen(
                                 }
                             }
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                            SettingsRow(
-                                title = "Компактный режим",
-                                subtitle = "Скрыть фото и прогресс-бар в карточках",
-                            ) {
-                                Switch(
-                                    checked = uiState.isCompactMode,
-                                    onCheckedChange = viewModel::setCompactMode,
-                                )
-                            }
+                            ListViewSettingsSection(
+                                settings = uiState.listSettings,
+                                onDensityChange = viewModel::setListDensity,
+                                onShowHistoryChange = viewModel::setShowHistory,
+                                onCollapseCompletedChange = viewModel::setCollapseCompleted,
+                                onShowTagFilterChange = viewModel::setShowTagFilter,
+                                onBigSummaryChange = viewModel::setBigSummary,
+                            )
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                             SettingsRow(
                                 title = "Новые привычки в виджете",
@@ -746,6 +747,55 @@ private fun SettingsRow(title: String, subtitle: String, action: @Composable () 
             )
         }
         action()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ListViewSettingsSection(
+    settings: ListViewSettings,
+    onDensityChange: (ListDensity) -> Unit,
+    onShowHistoryChange: (Boolean) -> Unit,
+    onCollapseCompletedChange: (Boolean) -> Unit,
+    onShowTagFilterChange: (Boolean) -> Unit,
+    onBigSummaryChange: (Boolean) -> Unit,
+) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Text("Вид списка", style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = when (settings.density) {
+                ListDensity.CARDS -> "Карточки с фото, историей и кнопками пропуска"
+                ListDensity.ROWS -> "Строки: история и действия по долгому нажатию"
+                ListDensity.MINI -> "Только название и кнопка"
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(10.dp))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            listOf(ListDensity.CARDS to "Карточки", ListDensity.ROWS to "Строки", ListDensity.MINI to "Мини")
+                .forEachIndexed { idx, (density, label) ->
+                    SegmentedButton(
+                        selected = settings.density == density,
+                        onClick = { onDensityChange(density) },
+                        shape = SegmentedButtonDefaults.itemShape(idx, 3),
+                    ) { Text(label) }
+                }
+        }
+    }
+    if (settings.density == ListDensity.ROWS) {
+        SettingsRow(title = "История 7 дней", subtitle = "Мини-полоски в строке привычки") {
+            Switch(checked = settings.showHistory, onCheckedChange = onShowHistoryChange)
+        }
+    }
+    SettingsRow(title = "Сворачивать выполненные", subtitle = "Секция «Выполнено» внизу списка") {
+        Switch(checked = settings.collapseCompleted, onCheckedChange = onCollapseCompletedChange)
+    }
+    SettingsRow(title = "Фильтр по тегам", subtitle = "Чипы с тегами над списком") {
+        Switch(checked = settings.showTagFilter, onCheckedChange = onShowTagFilterChange)
+    }
+    SettingsRow(title = "Большая сводка дня", subtitle = "Карточка с кольцом вместо полосы прогресса") {
+        Switch(checked = settings.bigSummary, onCheckedChange = onBigSummaryChange)
     }
 }
 

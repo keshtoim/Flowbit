@@ -10,6 +10,8 @@ import com.flowbit.app.BuildConfig
 import com.flowbit.app.R
 import com.flowbit.app.data.receiver.EveningCheckReceiver
 import com.flowbit.app.domain.model.Habit
+import com.flowbit.app.domain.model.ListDensity
+import com.flowbit.app.domain.model.ListViewSettings
 import com.flowbit.app.domain.model.ThemeMode
 import com.flowbit.app.domain.repository.BackupRepository
 import com.flowbit.app.domain.repository.HabitRepository
@@ -34,7 +36,7 @@ data class SettingsUiState(
     val eveningEnabled: Boolean = true,
     val eveningHour: Int = 20,
     val eveningMinute: Int = 0,
-    val isCompactMode: Boolean = false,
+    val listSettings: ListViewSettings = ListViewSettings(),
     val formStyle: String = "A",
     val analyticsStyle: String = "A",
     val accentColorHex: String? = null,
@@ -58,7 +60,7 @@ class SettingsViewModel @Inject constructor(
             prefs.themeMode.collect { mode -> _uiState.update { it.copy(themeMode = mode) } }
         }
         viewModelScope.launch {
-            prefs.isCompactMode.collect { v -> _uiState.update { it.copy(isCompactMode = v) } }
+            prefs.listViewSettings.collect { v -> _uiState.update { it.copy(listSettings = v) } }
         }
         viewModelScope.launch {
             prefs.formStyle.collect { v -> _uiState.update { it.copy(formStyle = v) } }
@@ -93,7 +95,11 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setThemeMode(mode: ThemeMode) { viewModelScope.launch { prefs.setThemeMode(mode) } }
-    fun setCompactMode(enabled: Boolean) { viewModelScope.launch { prefs.setCompactMode(enabled) } }
+    fun setListDensity(density: ListDensity) { viewModelScope.launch { prefs.setListDensity(density) } }
+    fun setShowHistory(enabled: Boolean) { viewModelScope.launch { prefs.setShowHistory(enabled) } }
+    fun setCollapseCompleted(enabled: Boolean) { viewModelScope.launch { prefs.setCollapseCompleted(enabled) } }
+    fun setShowTagFilter(enabled: Boolean) { viewModelScope.launch { prefs.setShowTagFilter(enabled) } }
+    fun setBigSummary(enabled: Boolean) { viewModelScope.launch { prefs.setBigSummary(enabled) } }
     fun setShowInWidgetByDefault(enabled: Boolean) { viewModelScope.launch { prefs.setShowInWidgetByDefault(enabled) } }
     fun setFormStyle(style: String) { viewModelScope.launch { prefs.setFormStyle(style) } }
     fun setAnalyticsStyle(style: String) { viewModelScope.launch { prefs.setAnalyticsStyle(style) } }

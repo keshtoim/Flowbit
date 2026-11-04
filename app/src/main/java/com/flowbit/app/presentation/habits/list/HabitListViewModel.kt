@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbit.app.domain.model.GroupingMode
+import com.flowbit.app.domain.model.ListViewSettings
 import com.flowbit.app.domain.model.HabitEntry
 import com.flowbit.app.domain.model.HabitTag
 import com.flowbit.app.domain.repository.HabitRepository
@@ -47,7 +48,7 @@ data class HabitListUiState(
     val showConfetti: Boolean = false,
     val confettiShownDates: Set<LocalDate> = emptySet(),
     val weekDelta: Int? = null,
-    val isCompactMode: Boolean = false,
+    val listSettings: ListViewSettings = ListViewSettings(),
 )
 
 @HiltViewModel
@@ -120,7 +121,7 @@ class HabitListViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         viewModelScope.launch {
-            prefs.isCompactMode.collect { v -> _uiState.update { it.copy(isCompactMode = v) } }
+            prefs.listViewSettings.collect { v -> _uiState.update { it.copy(listSettings = v) } }
         }
     }
 

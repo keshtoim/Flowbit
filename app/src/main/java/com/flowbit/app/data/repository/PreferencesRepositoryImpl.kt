@@ -3,11 +3,18 @@ package com.flowbit.app.data.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.flowbit.app.domain.model.ListDensity
+import com.flowbit.app.domain.model.ListViewSettings
 import com.flowbit.app.domain.model.ThemeMode
 import com.flowbit.app.domain.repository.PreferencesRepository
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ACCENT_COLOR_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ANALYTICS_STYLE_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.BIG_SUMMARY_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.COLLAPSE_DONE_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.COMPACT_MODE_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.LIST_DENSITY_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.SHOW_HISTORY_KEY
+import com.flowbit.app.domain.repository.PreferencesRepository.Companion.TAG_FILTER_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.FORM_STYLE_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.ONBOARDING_SHOWN_KEY
 import com.flowbit.app.domain.repository.PreferencesRepository.Companion.THEME_MODE_KEY
@@ -28,8 +35,17 @@ class PreferencesRepositoryImpl @Inject constructor(
         }
     }
 
-    override val isCompactMode: Flow<Boolean> =
-        dataStore.data.map { prefs -> prefs[COMPACT_MODE_KEY] ?: false }
+    override val listViewSettings: Flow<ListViewSettings> = dataStore.data.map { prefs ->
+        ListViewSettings(
+            // Старый «компактный режим» переносится в плотность «Мини»
+            density = prefs[LIST_DENSITY_KEY]?.let { runCatching { ListDensity.valueOf(it) }.getOrNull() }
+                ?: if (prefs[COMPACT_MODE_KEY] == true) ListDensity.MINI else ListDensity.ROWS,
+            showHistory = prefs[SHOW_HISTORY_KEY] ?: true,
+            collapseCompleted = prefs[COLLAPSE_DONE_KEY] ?: true,
+            showTagFilter = prefs[TAG_FILTER_KEY] ?: true,
+            bigSummary = prefs[BIG_SUMMARY_KEY] ?: false,
+        )
+    }
 
     override val formStyle: Flow<String> =
         dataStore.data.map { prefs -> prefs[FORM_STYLE_KEY] ?: "A" }
@@ -56,8 +72,24 @@ class PreferencesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setCompactMode(enabled: Boolean) {
-        dataStore.edit { it[COMPACT_MODE_KEY] = enabled }
+    override suspend fun setListDensity(density: ListDensity) {
+        dataStore.edit { it[LIST_DENSITY_KEY] = density.name }
+    }
+
+    override suspend fun setShowHistory(enabled: Boolean) {
+        dataStore.edit { it[SHOW_HISTORY_KEY] = enabled }
+    }
+
+    override suspend fun setCollapseCompleted(enabled: Boolean) {
+        dataStore.edit { it[COLLAPSE_DONE_KEY] = enabled }
+    }
+
+    override suspend fun setShowTagFilter(enabled: Boolean) {
+        dataStore.edit { it[TAG_FILTER_KEY] = enabled }
+    }
+
+    override suspend fun setBigSummary(enabled: Boolean) {
+        dataStore.edit { it[BIG_SUMMARY_KEY] = enabled }
     }
 
     override suspend fun setFormStyle(style: String) {

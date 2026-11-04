@@ -79,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flowbit.app.R
 import com.flowbit.app.domain.model.GroupingMode
+import com.flowbit.app.domain.model.ListDensity
 import com.flowbit.app.domain.model.HabitFrequency
 import com.flowbit.app.domain.usecase.habit.HabitForDate
 import com.flowbit.app.presentation.habits.components.HabitCard
@@ -392,7 +393,7 @@ fun HabitListScreen(
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     onLongClick = { contextMenuHabit = habitForDate },
                                     cardModifier = Modifier.animateItem(),
-                                    compact = uiState.isCompactMode,
+                                    compact = uiState.listSettings.density == ListDensity.MINI,
                                 )
                             }
                         }
@@ -416,7 +417,7 @@ fun HabitListScreen(
                                             viewModel.persistReorder(draggableHabits)
                                         },
                                     ),
-                                    compact = uiState.isCompactMode,
+                                    compact = uiState.listSettings.density == ListDensity.MINI,
                                 )
                             }
                         }
@@ -468,7 +469,7 @@ fun HabitListScreen(
                                     onTimer = { viewModel.startTimer(habitForDate.habit.id) },
                                     onLongClick = { contextMenuHabit = habitForDate },
                                     enableSwipe = false,
-                                    compact = uiState.isCompactMode,
+                                    compact = uiState.listSettings.density == ListDensity.MINI,
                                 )
                             }
                         }
