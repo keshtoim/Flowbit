@@ -479,11 +479,8 @@ fun HabitCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val dayLabels = listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
-                    // index 0 = 6 дней назад, index 6 = сегодня
-                    // Вычислим смещение начала: 6 дней назад
-                    val today = java.time.LocalDate.now()
-                    val startDay = today.minusDays(6)
-                    val startDow = startDay.dayOfWeek.value - 1 // 0=Пн
+                    // index 0 = 6 дней до выбранной даты, index 6 = выбранная дата
+                    val startDow = habitForDate.date.minusDays(6).dayOfWeek.value - 1
 
                     val errorColor = MaterialTheme.colorScheme.error
                     val tertiaryColor = MaterialTheme.colorScheme.tertiary

@@ -10,6 +10,7 @@ import javax.inject.Inject
 
 data class HabitForDate(
     val habit: Habit,
+    val date: LocalDate,
     val entry: HabitEntry?,
     val isScheduledForDate: Boolean,
     val recentDays: List<Boolean> = emptyList(),
@@ -36,6 +37,7 @@ class GetHabitsForDateUseCase @Inject constructor(
                 .map { habit ->
                     HabitForDate(
                         habit = habit,
+                        date = date,
                         entry = entryMap[habit.id],
                         isScheduledForDate = true,
                     )
