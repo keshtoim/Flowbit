@@ -68,6 +68,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -279,7 +280,7 @@ fun HabitListScreen(
             WeekDatePicker(
                 selectedDate = uiState.selectedDate,
                 onDateSelected = viewModel::onDateSelected,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
             )
 
             TodaySummaryCard(
@@ -288,14 +289,14 @@ fun HabitListScreen(
                 weekDelta = uiState.weekDelta,
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 4.dp)
+                    .clip(RoundedCornerShape(24.dp))
                     .clickable { onWeeklySummaryClick() },
             )
 
             // Shimmer-скелетон при первой загрузке
             if (showShimmer && uiState.habits.isEmpty()) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     repeat(4) { ShimmerHabitCard() }
@@ -358,7 +359,7 @@ fun HabitListScreen(
 
                 LazyColumn(
                     state = lazyListState,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     if (isGrouped) {
