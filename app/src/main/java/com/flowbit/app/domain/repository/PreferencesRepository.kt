@@ -31,5 +31,16 @@ interface PreferencesRepository {
         val ACCENT_COLOR_KEY    = stringPreferencesKey("accent_color")
         val ONBOARDING_SHOWN_KEY = booleanPreferencesKey("onboarding_shown")
         val WIDGET_BY_DEFAULT_KEY = booleanPreferencesKey("show_in_widget_by_default")
+
+        const val DEFAULT_ACCENT_HEX = "#2DD4BF"
+
+        // Явный выбор цвета из обоев. Пустое значение означает стартовый акцент, а не Material You
+        const val WALLPAPER_ACCENT = "wallpaper"
+
+        fun resolveAccentHex(stored: String?): String? = when (stored) {
+            null -> DEFAULT_ACCENT_HEX
+            WALLPAPER_ACCENT -> null
+            else -> stored
+        }
     }
 }

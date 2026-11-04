@@ -90,6 +90,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flowbit.app.R
 import com.flowbit.app.domain.model.Habit
+import com.flowbit.app.domain.repository.PreferencesRepository
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -843,14 +844,14 @@ private fun HabitOrderItemRow(
 // ── Пикер цвета акцента ───────────────────────────────────────────────────────
 
 private val accentPresets = listOf(
-    "#FF6B4A", // coral
-    "#2196F3", // blue
-    "#9B7FF5", // purple
-    "#4CAF50", // green
-    "#FF9800", // orange
-    "#E91E63", // pink
-    "#00BCD4", // teal
-    "#F44336", // red
+    PreferencesRepository.DEFAULT_ACCENT_HEX,
+    "#60A5FA",
+    "#818CF8",
+    "#A78BFA",
+    "#F472B6",
+    "#FB923C",
+    "#FBBF24",
+    "#34D399",
 )
 
 @Composable
@@ -865,7 +866,11 @@ private fun AccentColorPicker(
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
         Text("Цвет акцента", style = MaterialTheme.typography.bodyLarge)
         Text(
-            text = if (currentHex == null) "Из обоев (Material You)" else "Свой цвет",
+            text = when {
+                currentHex == null -> "Из обоев (Material You)"
+                currentHex.equals(PreferencesRepository.DEFAULT_ACCENT_HEX, ignoreCase = true) -> "Стандартный"
+                else -> "Свой цвет"
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

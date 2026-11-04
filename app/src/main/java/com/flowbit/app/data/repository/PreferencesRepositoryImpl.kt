@@ -38,7 +38,7 @@ class PreferencesRepositoryImpl @Inject constructor(
         dataStore.data.map { prefs -> prefs[ANALYTICS_STYLE_KEY] ?: "A" }
 
     override val accentColorHex: Flow<String?> =
-        dataStore.data.map { prefs -> prefs[ACCENT_COLOR_KEY] }
+        dataStore.data.map { prefs -> PreferencesRepository.resolveAccentHex(prefs[ACCENT_COLOR_KEY]) }
 
     override val onboardingShown: Flow<Boolean> =
         dataStore.data.map { prefs -> prefs[ONBOARDING_SHOWN_KEY] ?: false }
@@ -73,7 +73,7 @@ class PreferencesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun clearAccentColor() {
-        dataStore.edit { it.remove(ACCENT_COLOR_KEY) }
+        dataStore.edit { it[ACCENT_COLOR_KEY] = PreferencesRepository.WALLPAPER_ACCENT }
     }
 
     override suspend fun setOnboardingShown() {

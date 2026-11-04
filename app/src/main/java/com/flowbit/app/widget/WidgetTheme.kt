@@ -22,7 +22,7 @@ val ObsidianGlanceColors: ColorProviders = GlanceColorProviders(
 suspend fun buildGlanceColors(context: Context): ColorProviders {
     val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
     val accentHex = ep.dataStore().data
-        .map { it[PreferencesRepository.ACCENT_COLOR_KEY] }
+        .map { PreferencesRepository.resolveAccentHex(it[PreferencesRepository.ACCENT_COLOR_KEY]) }
         .first()
 
     val lightBase = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
