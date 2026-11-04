@@ -98,6 +98,10 @@
     <string name="cd_in_widget">Shown in widget</string>
     <string name="cd_start_timer">Start timer</string>
     <string name="status_skipped">Skipped</string>
+    <string name="tag_filter_all">All %1$d</string>
+    <string name="section_done">Done · %1$d</string>
+    <string name="section_taboo">Taboo · %1$d</string>
+    <string name="section_taboo_clean">clean %1$d / %2$d</string>
     <string name="cd_edit">Edit</string>
     <string name="sheet_mark">Mark done</string>
     <string name="sheet_unmark">Unmark</string>

@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
@@ -169,6 +170,61 @@ fun TodaySummaryCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DaySummaryBar(
+    habits: List<HabitForDate>,
+    selectedDate: LocalDate,
+    modifier: Modifier = Modifier,
+    weekDelta: Int? = null,
+) {
+    val active = habits.filter { !it.habit.isBadHabit && !it.isSkippedForDay }
+    val total = active.size
+    val done = active.count { it.isDone }
+    val progress by animateFloatAsState(
+        targetValue = if (total > 0) done.toFloat() / total else 0f,
+        animationSpec = tween(600),
+        label = "barProgress",
+    )
+    val primary = MaterialTheme.colorScheme.primary
+    val track = MaterialTheme.colorScheme.surfaceVariant
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Canvas(
+            modifier = Modifier
+                .weight(1f)
+                .height(6.dp),
+        ) {
+            val radius = CornerRadius(size.height / 2)
+            drawRoundRect(color = track, cornerRadius = radius)
+            if (progress > 0f) {
+                drawRoundRect(color = primary, size = Size(size.width * progress, size.height), cornerRadius = radius)
+            }
+        }
+        Text(
+            text = "$done / $total",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+        if (weekDelta != null && selectedDate == LocalDate.now()) {
+            Text(
+                text = (if (weekDelta >= 0) "+" else "") + weekDelta,
+                style = MaterialTheme.typography.labelMedium,
+                color = when {
+                    weekDelta > 0 -> MaterialTheme.colorScheme.tertiary
+                    weekDelta < 0 -> MaterialTheme.colorScheme.error
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
         }
     }
 }

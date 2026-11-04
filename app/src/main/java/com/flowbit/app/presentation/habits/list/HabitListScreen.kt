@@ -8,6 +8,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -37,6 +39,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -77,6 +80,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flowbit.app.R
 import com.flowbit.app.domain.model.GroupingMode
@@ -115,13 +119,24 @@ fun HabitListScreen(
         showShimmer = false
     }
 
-    // Drag-and-drop state (только обычные привычки, без Табу)
-    var draggableHabits by remember { mutableStateOf(uiState.habits.filter { !it.habit.isBadHabit }) }
+    val listSettings = uiState.listSettings
+    var tagFilter by rememberSaveable { mutableStateOf<Long?>(null) }
+    val activeTag = tagFilter?.takeIf { id -> listSettings.showTagFilter && allTags.any { it.id == id } }
+    val normalAll = uiState.habits.filter { !it.habit.isBadHabit }
+    val visibleNormal = normalAll.filter { activeTag == null || it.habit.tagId == activeTag }
+    val tabooHabits = uiState.habits.filter { it.habit.isBadHabit && (activeTag == null || it.habit.tagId == activeTag) }
+    val collapseDone = listSettings.collapseCompleted && uiState.groupingMode != GroupingMode.BY_STATUS
+    val (doneHabits, mainHabits) =
+        if (collapseDone) visibleNormal.partition { it.isDone } else emptyList<HabitForDate>() to visibleNormal
+
+    // Drag-and-drop идёт по видимому подсписку, порядок остальных привычек сохраняется при записи
+    var draggableHabits by remember { mutableStateOf(mainHabits) }
     var isDragging by remember { mutableStateOf(false) }
-    LaunchedEffect(uiState.habits) {
-        if (!isDragging) draggableHabits = uiState.habits.filter { !it.habit.isBadHabit }
+    LaunchedEffect(mainHabits) {
+        if (!isDragging) draggableHabits = mainHabits
     }
     var tabooExpanded by rememberSaveable { mutableStateOf(false) }
+    var doneExpanded by rememberSaveable { mutableStateOf(false) }
 
     // Храним id, а не снимок: панель должна видеть изменения, сделанные из неё же
     var actionsHabitId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -297,15 +312,50 @@ fun HabitListScreen(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp),
             )
 
-            TodaySummaryCard(
-                habits = uiState.habits,
-                selectedDate = uiState.selectedDate,
-                weekDelta = uiState.weekDelta,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .clickable { onWeeklySummaryClick() },
-            )
+            if (listSettings.bigSummary) {
+                TodaySummaryCard(
+                    habits = uiState.habits,
+                    selectedDate = uiState.selectedDate,
+                    weekDelta = uiState.weekDelta,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .clickable { onWeeklySummaryClick() },
+                )
+            } else {
+                DaySummaryBar(
+                    habits = uiState.habits,
+                    selectedDate = uiState.selectedDate,
+                    weekDelta = uiState.weekDelta,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { onWeeklySummaryClick() },
+                )
+            }
+
+            if (listSettings.showTagFilter && allTags.isNotEmpty() && uiState.habits.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterChip(
+                        selected = activeTag == null,
+                        onClick = { tagFilter = null },
+                        label = { Text(stringResource(R.string.tag_filter_all, uiState.habits.size)) },
+                    )
+                    allTags.forEach { tag ->
+                        FilterChip(
+                            selected = activeTag == tag.id,
+                            onClick = { tagFilter = if (activeTag == tag.id) null else tag.id },
+                            label = { Text(tag.name) },
+                        )
+                    }
+                }
+            }
 
             // Shimmer-скелетон при первой загрузке
             if (showShimmer && uiState.habits.isEmpty()) {
@@ -359,12 +409,9 @@ fun HabitListScreen(
                 val strDone = stringResource(R.string.group_done)
                 val strNoTag = stringResource(R.string.group_no_tag)
                 val strUnknownTag = stringResource(R.string.group_unknown_tag)
-                // Табу — всегда в отдельной секции внизу
-                val normalHabits = uiState.habits.filter { !it.habit.isBadHabit }
-                val tabooHabits = uiState.habits.filter { it.habit.isBadHabit }
-                val groups = remember(normalHabits, uiState.groupingMode, allTags) {
+                val groups = remember(mainHabits, uiState.groupingMode, allTags) {
                     groupHabits(
-                        normalHabits,
+                        mainHabits,
                         uiState.groupingMode,
                         allTags.associateBy { it.id },
                         strDaily, strScheduled, strNotDone, strDone, strNoTag, strUnknownTag,
@@ -374,7 +421,7 @@ fun HabitListScreen(
                 LazyColumn(
                     state = lazyListState,
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(if (listSettings.density == ListDensity.CARDS) 10.dp else 4.dp),
                 ) {
                     if (isGrouped) {
                         groups.forEach { (groupName, habits) ->
@@ -427,7 +474,7 @@ fun HabitListScreen(
                                         onDragStarted = { isDragging = true },
                                         onDragStopped = {
                                             isDragging = false
-                                            viewModel.persistReorder(draggableHabits)
+                                            viewModel.persistReorder(mergeOrder(normalAll, draggableHabits))
                                         },
                                     ),
                                     listSettings = uiState.listSettings,
@@ -436,38 +483,47 @@ fun HabitListScreen(
                         }
                     }
 
+                    if (doneHabits.isNotEmpty()) {
+                        item(key = "done_header") {
+                            CollapsibleSectionHeader(
+                                title = stringResource(R.string.section_done, doneHabits.size),
+                                expanded = doneExpanded,
+                                onToggle = { doneExpanded = !doneExpanded },
+                                modifier = Modifier.animateItem(),
+                            )
+                        }
+                        if (doneExpanded) {
+                            items(doneHabits, key = { "done_${it.habit.id}" }) { habitForDate ->
+                                SwipeableHabitCard(
+                                    habitForDate = habitForDate,
+                                    onToggle = { viewModel.toggleHabit(habitForDate.habit.id) },
+                                    onDecrease = { viewModel.decreaseHabit(habitForDate.habit.id) },
+                                    onGiveUp = { viewModel.showMotivation() },
+                                    onClick = { onHabitClick(habitForDate.habit.id) },
+                                    onSkip = { viewModel.skipHabit(habitForDate.habit.id) },
+                                    onUnSkipRequest = { viewModel.requestUnSkip(habitForDate.habit.id) },
+                                    onTimer = { viewModel.startTimer(habitForDate.habit.id) },
+                                    onLongClick = { actionsHabitId = habitForDate.habit.id },
+                                    cardModifier = Modifier.animateItem(),
+                                    listSettings = listSettings,
+                                )
+                            }
+                        }
+                    }
+
                     // ── Секция «Табу» ─────────────────────────────────────────
                     if (tabooHabits.isNotEmpty()) {
                         item(key = "taboo_header") {
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.background,
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.taboo_label),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.error,
-                                        fontWeight = FontWeight.SemiBold,
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                    IconButton(
-                                        onClick = { tabooExpanded = !tabooExpanded },
-                                        modifier = Modifier.size(32.dp),
-                                    ) {
-                                        Icon(
-                                            if (tabooExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                            contentDescription = stringResource(if (tabooExpanded) R.string.cd_collapse else R.string.cd_expand),
-                                            tint = MaterialTheme.colorScheme.error,
-                                        )
-                                    }
-                                }
-                            }
+                            val clean = tabooHabits.count { (it.entry?.completedCount ?: 0) == 0 }
+                            CollapsibleSectionHeader(
+                                title = stringResource(R.string.section_taboo, tabooHabits.size),
+                                expanded = tabooExpanded,
+                                onToggle = { tabooExpanded = !tabooExpanded },
+                                trailing = stringResource(R.string.section_taboo_clean, clean, tabooHabits.size),
+                                trailingColor = if (clean == tabooHabits.size) MaterialTheme.colorScheme.tertiary
+                                                else MaterialTheme.colorScheme.error,
+                                modifier = Modifier.animateItem(),
+                            )
                         }
                         if (tabooExpanded) {
                             items(tabooHabits, key = { "taboo_${it.habit.id}" }) { habitForDate ->
@@ -587,6 +643,51 @@ private fun SwipeableHabitCard(
     ) {
         content()
     }
+}
+
+@Composable
+private fun CollapsibleSectionHeader(
+    title: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailing: String? = null,
+    trailingColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onToggle)
+            .padding(start = 4.dp, end = 8.dp, top = 12.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+            contentDescription = stringResource(if (expanded) R.string.cd_collapse else R.string.cd_expand),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.6.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        if (trailing != null) {
+            Text(text = trailing, style = MaterialTheme.typography.labelMedium, color = trailingColor)
+        }
+    }
+}
+
+// Вписывает переупорядоченный видимый подсписок на места его элементов в полном списке
+private fun mergeOrder(full: List<HabitForDate>, reordered: List<HabitForDate>): List<HabitForDate> {
+    val ids = reordered.mapTo(HashSet()) { it.habit.id }
+    val iterator = reordered.iterator()
+    return full.map { if (it.habit.id in ids) iterator.next() else it }
 }
 
 // ── Диалог быстрого ввода числа для счётчиков ────────────────────────────────

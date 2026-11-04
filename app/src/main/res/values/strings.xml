@@ -99,6 +99,10 @@
     <string name="cd_in_widget">Показывается в виджете</string>
     <string name="cd_start_timer">Запустить таймер</string>
     <string name="status_skipped">Пропущено</string>
+    <string name="tag_filter_all">Все %1$d</string>
+    <string name="section_done">Выполнено · %1$d</string>
+    <string name="section_taboo">Табу · %1$d</string>
+    <string name="section_taboo_clean">чисто %1$d / %2$d</string>
     <string name="cd_edit">Редактировать</string>
     <string name="sheet_mark">Отметить</string>
     <string name="sheet_unmark">Снять отметку</string>
