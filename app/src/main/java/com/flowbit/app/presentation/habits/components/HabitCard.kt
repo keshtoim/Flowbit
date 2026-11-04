@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -252,6 +253,14 @@ fun HabitCard(
                                     color = Color(0xFFFF6B2B),
                                 )
                             }
+                        }
+                        if (habit.showInWidget) {
+                            Icon(
+                                imageVector = Icons.Outlined.Widgets,
+                                contentDescription = stringResource(R.string.cd_in_widget),
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            )
                         }
                     }
 

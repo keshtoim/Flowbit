@@ -96,6 +96,7 @@
     <!-- Main screen -->
     <string name="cd_statistics">Statistics</string>
     <string name="cd_grouping">Grouping</string>
+    <string name="cd_in_widget">Shown in widget</string>
     <string name="cd_settings">Settings</string>
     <string name="cd_add_habit">Add habit</string>
     <string name="cd_collapse">Collapse</string>
