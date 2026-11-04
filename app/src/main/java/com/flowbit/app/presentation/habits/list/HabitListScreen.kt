@@ -534,7 +534,7 @@ private fun SwipeableHabitCard(
                     .fillMaxSize()
                     .background(
                         color = Color(0xFF4CAF50).copy(alpha = (alpha * 1.2f).coerceAtMost(1f)),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedCornerShape(18.dp),
                     )
                     .padding(start = 24.dp),
                 contentAlignment = Alignment.CenterStart,
