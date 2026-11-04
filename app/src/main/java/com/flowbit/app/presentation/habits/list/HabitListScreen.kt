@@ -704,8 +704,7 @@ private fun groupHabits(
         }
     }
     GroupingMode.BY_STATUS -> {
-        val done = habits.filter { (it.entry?.completedCount ?: 0) >= it.habit.targetCount }
-        val notDone = habits.filter { (it.entry?.completedCount ?: 0) < it.habit.targetCount }
+        val (done, notDone) = habits.partition { it.isDone }
         buildList {
             if (notDone.isNotEmpty()) add(strNotDone to notDone)
             if (done.isNotEmpty()) add(strDone to done)

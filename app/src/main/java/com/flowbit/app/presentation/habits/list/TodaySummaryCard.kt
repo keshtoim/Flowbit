@@ -43,8 +43,10 @@ fun TodaySummaryCard(
 ) {
     // Табу-привычки не включаются в счётчик дня — у них отдельная секция
     val normalHabits = habits.filter { !it.habit.isBadHabit }
-    val total = normalHabits.size
-    val done = normalHabits.count { (it.entry?.completedCount ?: 0) >= it.habit.targetCount }
+    val activeHabits = normalHabits.filter { !it.isSkippedForDay }
+    val total = activeHabits.size
+    val done = activeHabits.count { it.isDone }
+    val allSkipped = total == 0 && normalHabits.isNotEmpty()
     val progress = if (total > 0) done.toFloat() / total else 0f
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -60,6 +62,7 @@ fun TodaySummaryCard(
     }
 
     val emoji = when {
+        allSkipped -> "⏭"
         total == 0 -> "🌱"
         done == total -> "🎉"
         progress >= 0.5f -> "💪"
@@ -67,6 +70,7 @@ fun TodaySummaryCard(
     }
 
     val message = when {
+        allSkipped -> "Все привычки пропущены"
         total == 0 -> "Нет привычек на этот день"
         done == total -> "Все привычки выполнены!"
         done == 0 -> "Начни с первой привычки"
