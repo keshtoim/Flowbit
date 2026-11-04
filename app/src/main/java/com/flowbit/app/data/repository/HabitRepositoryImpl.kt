@@ -87,30 +87,12 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun getHabitStats(habitId: Long): HabitStats? {
         val habit = dao.getHabitById(habitId)?.toDomain() ?: return null
         val entries = dao.getAllEntriesForHabit(habitId).map { it.toDomain() }
-        val completedDates = if (habit.isBadHabit) {
-            // Для табу «выполненный» день = запланированный день БЕЗ срыва
-            val relapsedDates = entries.filter { it.completedCount > 0 }.map { it.date }.toHashSet()
-            val today = LocalDate.now()
-            buildList {
-                var d = habit.startDate
-                while (!d.isAfter(today)) {
-                    val scheduled = habit.frequency == HabitFrequency.DAILY ||
-                        d.dayOfWeek in habit.scheduledDays
-                    if (scheduled && d !in relapsedDates) add(d)
-                    d = d.plusDays(1)
-                }
-            }.sorted()
-        } else {
-            entries
-                .filter { it.completedCount >= habit.targetCount }
-                .map { it.date }
-                .sorted()
-        }
-        val frozenDates = entries.filter { it.isFrozen || it.isStreakSafeSkip }.map { it.date }.toHashSet()
+        val completedDates = completedDates(habit, entries, LocalDate.now())
+        val frozenDates = frozenDates(entries)
 
         val totalDays = countScheduledDays(habit)
         val completionRate = if (totalDays > 0) completedDates.size.toFloat() / totalDays else 0f
-        val currentStreak = calculateCurrentStreak(habit, completedDates, frozenDates)
+        val currentStreak = calculateCurrentStreak(habit, completedDates, frozenDates, LocalDate.now())
         val longestStreak = calculateLongestStreak(habit, completedDates)
 
         return HabitStats(
@@ -125,6 +107,18 @@ class HabitRepositoryImpl @Inject constructor(
             photoUri = habit.photoUri,
             audioUri = habit.audioUri,
         )
+    }
+
+    override suspend fun getCurrentStreaks(habits: List<Habit>, asOf: LocalDate): Map<Long, Int> {
+        if (habits.isEmpty()) return emptyMap()
+        val start = habits.minOf { it.startDate }
+        val entriesByHabit = dao.getEntriesForDateRange(start.toString(), asOf.toString())
+            .map { it.toDomain() }
+            .groupBy { it.habitId }
+        return habits.associate { habit ->
+            val entries = entriesByHabit[habit.id].orEmpty()
+            habit.id to calculateCurrentStreak(habit, completedDates(habit, entries, asOf), frozenDates(entries), asOf)
+        }
     }
 
     override suspend fun freezeStreak(habitId: Long, date: LocalDate) {
@@ -201,15 +195,40 @@ class HabitRepositoryImpl @Inject constructor(
         return count
     }
 
+    private fun completedDates(habit: Habit, entries: List<HabitEntry>, until: LocalDate): List<LocalDate> =
+        if (habit.isBadHabit) {
+            // Для табу «выполненный» день = запланированный день БЕЗ срыва
+            val relapsedDates = entries.filter { it.completedCount > 0 }.map { it.date }.toHashSet()
+            buildList {
+                var d = habit.startDate
+                while (!d.isAfter(until)) {
+                    val scheduled = habit.frequency == HabitFrequency.DAILY ||
+                        d.dayOfWeek in habit.scheduledDays
+                    if (scheduled && d !in relapsedDates) add(d)
+                    d = d.plusDays(1)
+                }
+            }
+        } else {
+            entries
+                .filter { it.completedCount >= habit.targetCount }
+                .map { it.date }
+                .sorted()
+        }
+
+    private fun frozenDates(entries: List<HabitEntry>): Set<LocalDate> =
+        entries.filter { it.isFrozen || it.isStreakSafeSkip }.map { it.date }.toHashSet()
+
     private fun calculateCurrentStreak(
         habit: Habit,
         completedDates: List<LocalDate>,
-        frozenDates: Set<LocalDate> = emptySet(),
+        frozenDates: Set<LocalDate>,
+        asOf: LocalDate,
     ): Int {
-        val today = LocalDate.now()
         val datesSet = completedDates.toHashSet()
         var streak = 0
-        var current = today
+        // День asOf ещё может быть отмечен: если он пуст, серия считается с предыдущего дня
+        var current = if (asOf in datesSet || asOf in frozenDates) asOf else asOf.minusDays(1)
+        if (current.isBefore(habit.startDate)) return 0
         while (true) {
             val isScheduled = habit.frequency == HabitFrequency.DAILY ||
                 current.dayOfWeek in habit.scheduledDays

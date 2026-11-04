@@ -30,6 +30,7 @@ interface HabitRepository {
     suspend fun getEntriesForDateRange(start: LocalDate, end: LocalDate): List<HabitEntry>
 
     suspend fun getHabitStats(habitId: Long): HabitStats?
+    suspend fun getCurrentStreaks(habits: List<Habit>, asOf: LocalDate): Map<Long, Int>
     suspend fun getOverallStats(): OverallStats
     suspend fun getAllMarkedAtTimes(): List<String?>
     suspend fun getAllEntriesForHabit(habitId: Long): List<HabitEntry>

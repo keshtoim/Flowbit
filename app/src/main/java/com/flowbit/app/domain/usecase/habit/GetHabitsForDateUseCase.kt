@@ -14,6 +14,7 @@ data class HabitForDate(
     val entry: HabitEntry?,
     val isScheduledForDate: Boolean,
     val recentDays: List<Boolean> = emptyList(),
+    val streak: Int = 0,
 ) {
     val isSkippedForDay: Boolean
         get() = entry?.isSkipped == true || entry?.isStreakSafeSkip == true

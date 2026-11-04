@@ -97,10 +97,7 @@ fun HabitCard(
     val isCompleted = if (habit.isBadHabit) !isRelapsed
                       else !isSkipped && !isStreakSafeSkipped && completedCount >= habit.targetCount
 
-    val streak = habitForDate.entry?.let { _ ->
-        // streak shown if habit has a positive series — approximated from recentDays
-        habitForDate.recentDays.takeLastWhile { it }.size
-    } ?: 0
+    val streak = habitForDate.streak
 
     val habitColor = remember(habit.effectiveColorHex) {
         try { Color(android.graphics.Color.parseColor(habit.effectiveColorHex)) }

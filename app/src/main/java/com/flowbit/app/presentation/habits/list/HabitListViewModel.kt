@@ -82,6 +82,7 @@ class HabitListViewModel @Inject constructor(
                 val weekMap: Map<Long, Map<LocalDate, HabitEntry>> = weekEntries
                     .groupBy { it.habitId }
                     .mapValues { (_, entries) -> entries.associateBy { it.date } }
+                val streaks = habitRepository.getCurrentStreaks(habits.map { it.habit }, date)
 
                 val enriched = habits.map { hfd ->
                     val dayMap = weekMap[hfd.habit.id] ?: emptyMap()
@@ -91,7 +92,7 @@ class HabitListViewModel @Inject constructor(
                         e != null && e.isSkipped != true && !e.isStreakSafeSkip &&
                             e.completedCount >= hfd.habit.targetCount
                     }
-                    hfd.copy(recentDays = recentDays)
+                    hfd.copy(recentDays = recentDays, streak = streaks[hfd.habit.id] ?: 0)
                 }
 
                 val isToday = date == LocalDate.now()
