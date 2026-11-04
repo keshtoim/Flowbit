@@ -509,7 +509,7 @@ fun HabitCard(
                             Text(
                                 text = label,
                                 style = MaterialTheme.typography.labelSmall,
-                                fontSize = 9.sp,
+                                fontSize = 10.sp,
                                 color = labelColor,
                                 fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
                             )
@@ -539,7 +539,7 @@ fun HabitCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 8.dp, end = 14.dp, bottom = 6.dp),
+                        .padding(start = 6.dp, end = 14.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(
@@ -556,6 +556,7 @@ fun HabitCard(
                         text = "·",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                        modifier = Modifier.padding(horizontal = 4.dp),
                     )
                     TextButton(
                         onClick = onSkip,
