@@ -724,10 +724,13 @@ private fun Modifier.swipeToDayGesture(
         var totalY = 0f
         var directionDecided = false
         var isHorizontal = false
+        // Свайп по карточке обрабатывает SwipeToDismissBox — день при этом не переключаем
+        var handledByChild = false
 
         do {
             val event = awaitPointerEvent()
             val change = event.changes.firstOrNull() ?: break
+            if (change.isConsumed) handledByChild = true
             totalX += change.positionChange().x
             totalY += change.positionChange().y
 
@@ -735,10 +738,10 @@ private fun Modifier.swipeToDayGesture(
                 directionDecided = true
                 isHorizontal = abs(totalX) > abs(totalY) * 1.5f
             }
-            if (isHorizontal) change.consume()
+            if (isHorizontal && !handledByChild) change.consume()
         } while (event.changes.any { it.pressed })
 
-        if (isHorizontal) {
+        if (isHorizontal && !handledByChild) {
             when {
                 totalX > 80f -> onPreviousDay()
                 totalX < -80f -> onNextDay()
